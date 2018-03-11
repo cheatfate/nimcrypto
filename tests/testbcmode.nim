@@ -96,8 +96,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ecb128E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all192K)
       var ctx1 = ECB[aes192]()
@@ -113,8 +111,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ecb192E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all256K)
       var ctx1 = ECB[aes256]()
@@ -130,8 +126,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ecb256E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
 
   proc cbcTest() =
     block:
@@ -150,8 +144,6 @@ when isMainModule:
         doAssert(toHex(crypt) == cbc128E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all192K)
       var iv = fromHex(cbcIV)
@@ -168,8 +160,6 @@ when isMainModule:
         doAssert(toHex(crypt) == cbc192E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all256K)
       var iv = fromHex(cbcIV)
@@ -186,8 +176,6 @@ when isMainModule:
         doAssert(toHex(crypt) == cbc256E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
 
   proc ofbTest() =
     block:
@@ -206,8 +194,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ofb128E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all192K)
       var iv = fromHex(ofbIV)
@@ -224,8 +210,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ofb192E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all256K)
       var iv = fromHex(ofbIV)
@@ -242,8 +226,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ofb256E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
 
   proc cfbTest() =
     block:
@@ -262,8 +244,6 @@ when isMainModule:
         doAssert(toHex(crypt) == cfb128E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all192K)
       var iv = fromHex(cfbIV)
@@ -280,8 +260,6 @@ when isMainModule:
         doAssert(toHex(crypt) == cfb192E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all256K)
       var iv = fromHex(cfbIV)
@@ -298,8 +276,6 @@ when isMainModule:
         doAssert(toHex(crypt) == cfb256E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
 
   proc ctrTest() =
     block:
@@ -318,8 +294,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ctr128E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all192K)
       var iv = fromHex(ctrIV)
@@ -336,8 +310,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ctr192E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
     block:
       var key = fromHex(all256K)
       var iv = fromHex(ctrIV)
@@ -354,8 +326,6 @@ when isMainModule:
         doAssert(toHex(crypt) == ctr256E[i])
         ctx2.decrypt(addr crypt[0], addr check[0], uint(length))
         doAssert(toHex(check) == allP[i])
-      ctx1.clear()
-      ctx2.clear()
 
   ecbTest()
   cbcTest()

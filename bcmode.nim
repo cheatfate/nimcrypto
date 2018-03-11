@@ -103,15 +103,6 @@ proc decrypt*[T](ctx: ECB[T], inp: ptr uint8, oup: ptr uint8,
     ip = cast[ptr UncheckedArray[uint8]](cast[uint](ip) + blen)
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
 
-proc clear*[T](ctx: ECB[T]) =
-  mixin clear
-  assert(not isNil(ctx))
-  assert(ctx.sizeBlock != 0)
-  clear(ctx.cipher)
-  burnMem(addr ctx.tmp[0], MaxBlockBytesSize)
-  ctx.sizeBlock = 0
-  ctx.sizeKey = 0
-
 ## CBC (Cipher Block Chaining) Mode
 
 proc init*[T](ctx: CBC[T], keyBytes: ptr uint8, iv: ptr uint8) =
@@ -182,16 +173,6 @@ proc decrypt*[T](ctx: CBC[T], inp: ptr uint8, oup: ptr uint8,
     ip = cast[ptr UncheckedArray[uint8]](cast[uint](ip) + blen)
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
 
-proc clear*[T](ctx: CBC[T]) =
-  mixin clear
-  assert(not isNil(ctx))
-  assert(ctx.sizeBlock != 0)
-  clear(ctx.cipher)
-  burnMem(addr ctx.iv[0], MaxBlockBytesSize)
-  burnMem(addr ctx.tmp[0], MaxBlockBytesSize)
-  ctx.sizeBlock = 0
-  ctx.sizeKey = 0
-
 ## CTR (Counter) Mode
 
 proc inc128(counter: ptr UncheckedArray[uint8]) =
@@ -258,17 +239,6 @@ proc decrypt*[T](ctx: CTR[T], inp: ptr uint8, oup: ptr uint8,
   mixin encrypt
   result = encrypt(ctx, inp, oup, length)
 
-proc clear*[T](ctx: CTR[T]) =
-  mixin clear
-  assert(not isNil(ctx))
-  assert(ctx.sizeBlock != 0)
-  clear(ctx.cipher)
-  burnMem(addr ctx.iv[0], MaxBlockBytesSize)
-  burnMem(addr ctx.ecount[0], MaxBlockBytesSize)
-  ctx.num = 0
-  ctx.sizeBlock = 0
-  ctx.sizeKey = 0
-
 ## OFB (Output Feedback) Mode
 
 proc init*[T](ctx: OFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
@@ -305,15 +275,6 @@ proc decrypt*[T](ctx: OFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable, inline.} =
   mixin encrypt
   result = encrypt(ctx, inp, oup, length)
-
-proc clear*[T](ctx: OFB[T]) =
-  mixin clear
-  assert(not isNil(ctx))
-  assert(ctx.sizeBlock != 0)
-  clear(ctx.cipher)
-  burnMem(addr ctx.iv[0], MaxBlockBytesSize)
-  ctx.sizeBlock = 0
-  ctx.sizeKey = 0
 
 ## CFB (Cipher Feedback) Mode
 
@@ -369,12 +330,3 @@ proc decrypt*[T](ctx: CFB[T], inp: ptr uint8, oup: ptr uint8,
     inc(i)
     n = (n + 1) mod mask
   result = (uint)n
-
-proc clear*[T](ctx: CFB[T]) =
-  mixin clear
-  assert(not isNil(ctx))
-  assert(ctx.sizeBlock != 0)
-  clear(ctx.cipher)
-  burnMem(addr ctx.iv[0], MaxBlockBytesSize)
-  ctx.sizeBlock = 0
-  ctx.sizeKey = 0

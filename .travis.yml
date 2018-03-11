@@ -1,0 +1,32 @@
+sudo: false
+language: c
+os:
+  - linux
+before_script:
+  - git clone https://github.com/nim-lang/Nim.git
+  - cd Nim
+  - git clone --depth 1 https://github.com/nim-lang/csources
+  - cd csources && sh build.sh
+  - cd ..
+  - bin/nim c koch
+  - ./koch boot -d:release
+  - export PATH=$(pwd)/bin:$PATH
+  - cd ..
+script:
+  - cd tests
+  - nim c testblowfish.nim
+  - nim c testtwofish.nim
+  - nim c testrijndael.nim
+  - nim c testsha2.nim
+  - nim c testkeccak.nim
+  - nim c testripemd.nim
+  - nim c testhmac.nim
+  - nim c testbcmode.nim
+  - testblowfish
+  - testtwofish
+  - testrijndael
+  - testsha2
+  - testkeccak
+  - testripemd
+  - testhmac
+  - testbcmode

@@ -45,15 +45,14 @@ build_script:
   - nim c testripemd.nim
   - nim c testhmac.nim
   - nim c testbcmode.nim
-  - cd ..
 test_script:
-  - tests\testblowfish
-  - tests\testtwofish
-  - tests\testrijndael
-  - tests\testsha2
-  - tests\testkeccak
-  - tests\testripemd
-  - tests\testhmac
-  - tests\testbcmode
+  - testblowfish
+  - testtwofish
+  - testrijndael
+  - testsha2
+  - testkeccak
+  - testripemd
+  - testhmac
+  - testbcmode
 
 deploy: off

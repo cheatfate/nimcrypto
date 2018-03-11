@@ -22,11 +22,11 @@ script:
   - nim c testripemd.nim
   - nim c testhmac.nim
   - nim c testbcmode.nim
-  - testblowfish
-  - testtwofish
-  - testrijndael
-  - testsha2
-  - testkeccak
-  - testripemd
-  - testhmac
-  - testbcmode
+  - ./testblowfish
+  - ./testtwofish
+  - ./testrijndael
+  - ./testsha2
+  - ./testkeccak
+  - ./testripemd
+  - ./testhmac
+  - ./testbcmode

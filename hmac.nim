@@ -14,6 +14,7 @@ import hash
 from sha2 import sha224, sha256, sha384, sha512, sha512_224, sha512_256
 from ripemd import ripemd128, ripemd160, ripemd256, ripemd320
 from keccak import sha3_224, sha3_256, sha3_384, sha3_512
+from keccak import keccak224, keccak256, keccak384, keccak512
 
 const
   MaxHmacBlockSize = 256
@@ -44,13 +45,13 @@ proc init*[T](hmctx: hmac[T], key: ptr uint8, ulen: uint) =
     sizeBlock = 128'u
   elif (T is sha512_224) or (T is sha512_256):
     sizeBlock = 128'u
-  elif (T is sha3_224):
+  elif (T is sha3_224) or (T is keccak224):
     sizeBlock = 144'u
-  elif (T is sha3_256):
+  elif (T is sha3_256) or (T is keccak256):
     sizeBlock = 136'u
-  elif (T is sha3_384):
+  elif (T is sha3_384) or (T is keccak384):
     sizeBlock = 104'u
-  elif (T is sha3_512):
+  elif (T is sha3_512) or (T is keccak512):
     sizeBlock = 72'u
   else:
     {.fatal: "Choosen hash primitive is not yet supported!".}

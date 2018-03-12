@@ -1,0 +1,5 @@
+packageName   = "nimcrypto"
+version       = "0.0.1"
+author        = "Eugene Kabanov"
+description   = "Nim cryptographic library"
+license       = "MIT"

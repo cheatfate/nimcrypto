@@ -239,8 +239,6 @@ proc init*[T: sha3 | shake | keccak](ctx: var T) =
     ctx.sizeDigest = 64
     ctx.rsize = 200 - 2 * 64
 
-  echo repr ctx
-
 proc update*[T: sha3 | shake | keccak](ctx: var T, data: ptr uint8,
                                        ulen: uint) =
   var j = ctx.pt
@@ -287,7 +285,6 @@ proc output*[T: shake](ctx: var T, data: ptr uint8, ulen: uint): uint =
     result = ulen
 
 proc finish*[T: sha3 | keccak](ctx: var T, data: ptr uint8, ulen: uint): uint =
-  echo repr ctx
   finalizeKeccak(ctx)
 
   var d = cast[ptr UncheckedArray[uint8]](data)
@@ -300,3 +297,10 @@ proc finish*[T: sha3 | keccak](ctx: var T, data: ptr uint8, ulen: uint): uint =
 proc finish*[T: sha3 | keccak](ctx: var T): MdDigest =
   result.size = finish(ctx, cast[ptr uint8](addr result.data[0]),
                        MaxMdDigestLength)
+
+when isMainModule:
+  var ctx: keccak224
+  ctx.init()
+  ctx.update(nil, 0)
+  ## Must be F71837502BA8E10837BDD8D365ADB85591895602FC552B48B7390ABD
+  echo $ctx.finish()

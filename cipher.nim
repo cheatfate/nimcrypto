@@ -10,6 +10,6 @@
 ## This module implements abstract object for all block ciphers.
 
 type
-  CipherContext* = ref object of RootRef
+  CipherContext* = object
     sizeBlock*: int
     sizeKey*: int

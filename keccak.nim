@@ -32,22 +32,22 @@ const RNDC = [
 ]
 
 type
-  keccakContext = ref object of MdContext
+  keccakContext = object of MdContext
     q: array[25, uint64]
     pt: int
     rsize: int
     mdlen: int
 
-  keccak224* = ref object of keccakContext
-  keccak256* = ref object of keccakContext
-  keccak384* = ref object of keccakContext
-  keccak512* = ref object of keccakContext
-  sha3_224* = ref object of keccakContext
-  sha3_256* = ref object of keccakContext
-  sha3_384* = ref object of keccakContext
-  sha3_512* = ref object of keccakContext
-  shake128* = ref object of keccakContext
-  shake256* = ref object of keccakContext
+  keccak224* = keccakContext
+  keccak256* = keccakContext
+  keccak384* = keccakContext
+  keccak512* = keccakContext
+  sha3_224* = keccakContext
+  sha3_256* = keccakContext
+  sha3_384* = keccakContext
+  sha3_512* = keccakContext
+  shake128* = keccakContext
+  shake256* = keccakContext
 
   sha3* = sha3_224 | sha3_256 | sha3_384 | sha3_512
   keccak* = keccak224 | keccak256 | keccak384 | keccak512
@@ -218,7 +218,7 @@ proc keccakTransform(st: var array[25, uint64]) =
   st[23] = BSWAP(st[23])
   st[24] = BSWAP(st[24])
 
-proc init*[T: sha3 | shake | keccak](ctx: T) =
+proc init*[T: sha3 | shake | keccak](ctx: var T) =
   for i in 0..24:
     ctx.q[i] = 0'u64
   ctx.pt = 0
@@ -239,7 +239,10 @@ proc init*[T: sha3 | shake | keccak](ctx: T) =
     ctx.sizeDigest = 64
     ctx.rsize = 200 - 2 * 64
 
-proc update*[T: sha3 | shake | keccak](ctx: T, data: ptr uint8, ulen: uint) =
+  echo repr ctx
+
+proc update*[T: sha3 | shake | keccak](ctx: var T, data: ptr uint8,
+                                       ulen: uint) =
   var j = ctx.pt
   var s = cast[ptr UncheckedArray[uint8]](data)
   var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
@@ -252,7 +255,7 @@ proc update*[T: sha3 | shake | keccak](ctx: T, data: ptr uint8, ulen: uint) =
         j = 0
     ctx.pt = j
 
-proc finalizeKeccak[T: sha3 | keccak](ctx: T) =
+proc finalizeKeccak[T: sha3 | keccak](ctx: var T) =
   var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
   when T is sha3:
     d[ctx.pt] = d[ctx.pt] xor 0x06'u8
@@ -261,14 +264,14 @@ proc finalizeKeccak[T: sha3 | keccak](ctx: T) =
   d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
   keccakTransform(ctx.q)
 
-proc xof*[T: shake](ctx: T) =
+proc xof*[T: shake](ctx: var T) =
   var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
   d[ctx.pt] = d[ctx.pt] xor 0x1F'u8
   d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
   keccakTransform(ctx.q)
   ctx.pt = 0
 
-proc output*[T: shake](ctx: T, data: ptr uint8, ulen: uint): uint =
+proc output*[T: shake](ctx: var T, data: ptr uint8, ulen: uint): uint =
   var j = ctx.pt
   var s = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
   var d = cast[ptr UncheckedArray[uint8]](data)
@@ -283,7 +286,8 @@ proc output*[T: shake](ctx: T, data: ptr uint8, ulen: uint): uint =
     ctx.pt = j
     result = ulen
 
-proc finish*[T: sha3 | keccak](ctx: T, data: ptr uint8, ulen: uint): uint =
+proc finish*[T: sha3 | keccak](ctx: var T, data: ptr uint8, ulen: uint): uint =
+  echo repr ctx
   finalizeKeccak(ctx)
 
   var d = cast[ptr UncheckedArray[uint8]](data)
@@ -293,7 +297,6 @@ proc finish*[T: sha3 | keccak](ctx: T, data: ptr uint8, ulen: uint): uint =
       d[i] = s[i]
     result = ctx.sizeDigest
 
-proc finish*[T: sha3 | keccak](ctx: T): MdDigest =
-  result = MdDigest()
+proc finish*[T: sha3 | keccak](ctx: var T): MdDigest =
   result.size = finish(ctx, cast[ptr uint8](addr result.data[0]),
                        MaxMdDigestLength)

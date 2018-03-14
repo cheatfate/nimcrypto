@@ -25,9 +25,9 @@ install:
   - IF not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
   - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\Nim\bin;%PATH%
-  - git clone https://github.com/nim-lang/Nim.git %CD%\Nim
+  - git clone -b nimbus https://github.com/status-im/Nim.git %CD%\Nim
   - cd %CD%\Nim
-  - git clone --depth 1 https://github.com/nim-lang/csources
+  - git clone --depth 1 https://github.com/status-im/csources
   - cd csources
   - IF "%PLATFORM%" == "x64" ( build64.bat ) else ( build.bat )
   - cd ..

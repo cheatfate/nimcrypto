@@ -16,6 +16,15 @@ from ripemd import ripemd128, ripemd160, ripemd256, ripemd320
 from keccak import sha3_224, sha3_256, sha3_384, sha3_512
 from keccak import keccak224, keccak256, keccak384, keccak512
 
+type
+  Digests128* = ripemd128
+  Digests160* = ripemd160
+  Digests224* = sha224 | sha512_224 | sha3_224 | keccak224
+  Digests256* = ripemd256 | keccak256 | sha256 | sha3_256 | sha512_256
+  Digests320* = ripemd320
+  Digests384* = sha384 | keccak384 | sha3_384
+  Digests512* = sha512 | keccak512 | sha3_512
+
 const
   MaxHmacBlockSize = 256
 
@@ -85,17 +94,31 @@ proc update*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
 
-proc finish*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): uint =
-  mixin finish
+template finishImpl(a, c, d, e: untyped) =
   mixin update
-  var buffer: array[MaxMdDigestLength, uint8]
-  
-  let size = finish(hmctx.mdctx, addr buffer[0], MaxMdDigestLength)
-  update(hmctx.opadctx, addr buffer[0], size)
-  result = finish(hmctx.opadctx, data, ulen)
-
-proc finish*[T](hmctx: var HMAC[T]): MdDigest =
   mixin finish
-  result = MdDigest()
-  result.size = finish(hmctx, cast[ptr uint8](addr result.data[0]),
-                       MaxMdDigestLength)
+  var buffer: array[(c), uint8]
+  let size = finish((a).mdctx, addr buffer[0], uint((c)))
+  update((a).opadctx, addr buffer[0], size)
+  result = finish((a).opadctx, (d), (e))
+
+proc finish*[T: Digests128](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[128] =
+  finishImpl(hmctx, 128 div 8, data, ulen)
+
+proc finish*[T: Digests160](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[160] =
+  finishImpl(hmctx, 160 div 8, data, ulen)
+
+proc finish*[T: Digests224](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[224] =
+  finishImpl(hmctx, 224 div 8, data, ulen)
+
+proc finish*[T: Digests256](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[256] =
+  finishImpl(hmctx, 256 div 8, data, ulen)
+
+proc finish*[T: Digests320](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[320] =
+  finishImpl(hmctx, 320 div 8, data, ulen)
+
+proc finish*[T: Digests384](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[384] =
+  finishImpl(hmctx, 384 div 8, data, ulen)
+
+proc finish*[T: Digests512](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[512] =
+  finishImpl(hmctx, 512 div 8, data, ulen)

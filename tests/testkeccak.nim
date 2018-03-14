@@ -106,16 +106,6 @@ when isMainModule:
   #     ctx.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
   #   result = $ctx.finish()
 
-  proc millionTest[T](ctx: var T): string =
-    mixin init
-    mixin update
-    mixin finish
-    var msg = "a"
-    ctx.init()
-    for i in 1..1_000_000:
-      ctx.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    result = $ctx.finish()
-
   const codes = [
     "abc",
     "",
@@ -197,10 +187,22 @@ when isMainModule:
              check512 & " != " & stripSpaces(digest512[i]))
 
   # Million 'a' test
-  var mcheck224 = millionTest(sha224)
-  var mcheck256 = millionTest(sha256)
-  var mcheck384 = millionTest(sha384)
-  var mcheck512 = millionTest(sha512)
+  sha224.init()
+  sha256.init()
+  sha384.init()
+  sha512.init()
+  var msg = "a"
+  for i in 1..1_000_000:
+    sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+    sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+    sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+    sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+  
+  var mcheck224 = $sha224.finish()
+  var mcheck256 = $sha256.finish()
+  var mcheck384 = $sha384.finish()
+  var mcheck512 = $sha512.finish()
+
   doAssert(mcheck224 == stripSpaces(digest224[4]),
            mcheck224 & " != " & stripSpaces(digest224[4]))
   doAssert(mcheck256 == stripSpaces(digest256[4]),

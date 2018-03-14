@@ -535,7 +535,8 @@ proc finish*(ctx: var Sha2Context, pBytes: ptr uint8, nBytes: uint): uint =
       SET_QWORD(pBytes, 2, LSWAP(ctx.state[2]))
       SET_DWORD(pBytes, 6, LSWAP(ctx.state[3]).uint32)  
 
-proc finish*(ctx: var Sha2Context): MdDigest =
-  result = MdDigest()
-  result.size = finish(ctx, cast[ptr uint8](addr result.data[0]),
-                       MaxMdDigestLength)
+proc finish*[B: static[int],
+             S: static[int],
+             T: uint32|uint64](ctx: var Sha2Context[B, S, T]): MDigest[B] =
+  discard finish(ctx, cast[ptr uint8](addr result.data[0]),
+                 uint(len(result.data)))

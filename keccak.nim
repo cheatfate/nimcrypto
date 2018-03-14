@@ -291,13 +291,3 @@ proc finish*[B: static[int],
              K: static[KeccakKind]](ctx: var KeccakContext[B, K]): MDigest[B] =
   discard finish(ctx, cast[ptr uint8](addr result.data[0]),
                  uint(len(result.data)))
-
-proc digest*(HashType: typedesc, data: ptr uint8,
-             ulen: uint): MDigest[HashType.bits] =
-  var ctx: HashType
-  ctx.init()
-  ctx.update(data, dataLen)
-  result = ctx.finish()
-
-when isMainModule:
-  echo $digest[keccak224](nil, 0)

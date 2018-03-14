@@ -35,7 +35,7 @@ type
   KeccakKind = enum
     Sha3, Keccak, Shake
 
-  KeccakContext[bits: static[uint],
+  KeccakContext[bits: static[int],
                 kind: static[KeccakKind]] = object
     q: array[25, uint64]
     pt: int
@@ -287,9 +287,17 @@ proc finish*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
       d[i] = s[i]
     result = ctx.sizeDigest
 
-proc finish*[bits: static[uint], kind: static[KeccakKind]](ctx: var KeccakContext[bits, kind]): MDigest[bits] =
-  discard
+proc finish*[B: static[int],
+             K: static[KeccakKind]](ctx: var KeccakContext[B, K]): MDigest[B] =
+  discard finish(ctx, cast[ptr uint8](addr result.data[0]),
+                 uint(len(result.data)))
 
-# proc finish*(ctx: var KeccakContext): MdDigest[ctx.bits] =
-#   result.size = finish(ctx, cast[ptr uint8](addr result.data[0]),
-#                        MaxMdDigestLength)
+proc digest*(HashType: typedesc, data: ptr uint8,
+             ulen: uint): MDigest[HashType.bits] =
+  var ctx: HashType
+  ctx.init()
+  ctx.update(data, dataLen)
+  result = ctx.finish()
+
+when isMainModule:
+  echo $digest[keccak224](nil, 0)

@@ -718,6 +718,6 @@ proc finish*(ctx: var RipemdContext, data: ptr uint8, ulen: uint): uint =
       for i in 0..9:
         SET_DWORD(data, i, BSWAP(ctx.state[i]))
 
-proc finish*[B: static[int]](ctx: var RipemdContext[B]): MDigest[B] =
+proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr uint8](addr result.data[0]),
                  uint(len(result.data)))

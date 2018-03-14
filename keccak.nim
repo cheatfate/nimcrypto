@@ -287,7 +287,6 @@ proc finish*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
       d[i] = s[i]
     result = ctx.sizeDigest
 
-proc finish*[B: static[int],
-             K: static[KeccakKind]](ctx: var KeccakContext[B, K]): MDigest[B] =
+proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr uint8](addr result.data[0]),
                  uint(len(result.data)))

@@ -36,9 +36,7 @@ type
     opadctx: T
 
 proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
-  mixin init
-  mixin update
-  mixin finish
+  mixin init, update, finish
   var k: array[MaxHmacBlockSize, uint8]
   var ipad: array[MaxHmacBlockSize, uint8]
   var opad: array[MaxHmacBlockSize, uint8]
@@ -94,31 +92,13 @@ proc update*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
 
-template finishImpl(a, c, d, e: untyped) =
-  mixin update
-  mixin finish
-  var buffer: array[(c), uint8]
-  let size = finish((a).mdctx, addr buffer[0], uint((c)))
-  update((a).opadctx, addr buffer[0], size)
-  result = finish((a).opadctx, (d), (e))
+proc finish*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): int =
+  mixin update, finish
+  var buffer: array[hmctx.T.bits div 8, uint8]
+  let size = finish(hmctx.mdctx, addr buffer[0], uint(hmctx.T.bits div 8))
+  hmctx.opadctx.update(addr buffer[0], size)
+  result = hmctx.opadctx.finish(data, ulen)
 
-proc finish*[T: Digests128](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[128] =
-  finishImpl(hmctx, 128 div 8, data, ulen)
-
-proc finish*[T: Digests160](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[160] =
-  finishImpl(hmctx, 160 div 8, data, ulen)
-
-proc finish*[T: Digests224](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[224] =
-  finishImpl(hmctx, 224 div 8, data, ulen)
-
-proc finish*[T: Digests256](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[256] =
-  finishImpl(hmctx, 256 div 8, data, ulen)
-
-proc finish*[T: Digests320](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[320] =
-  finishImpl(hmctx, 320 div 8, data, ulen)
-
-proc finish*[T: Digests384](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[384] =
-  finishImpl(hmctx, 384 div 8, data, ulen)
-
-proc finish*[T: Digests512](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): MDigest[512] =
-  finishImpl(hmctx, 512 div 8, data, ulen)
+proc finish*[T](hmctx: var HMAC[T]): MDigest[hmctx.T.bits] =
+  discard finish(hmctx, cast[ptr uint8](addr result.data[0]),
+                 uint(len(result.data)))

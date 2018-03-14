@@ -405,12 +405,7 @@ template sizeBlock*(ctx: TwofishContext): int =
   (128)
 
 proc init*(ctx: var TwofishContext, key: ptr uint8, nkey: int = 0) {.inline.} =
-  when ctx.bits == 128:
-    initTwofishContext(ctx, 128, key)
-  elif ctx.bits == 192:
-    initTwofishContext(ctx, 192, key)
-  elif ctx.bits == 256:
-    initTwofishContext(ctx, 256, key)
+  initTwofishContext(ctx, ctx.bits, key)
 
 proc encrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =

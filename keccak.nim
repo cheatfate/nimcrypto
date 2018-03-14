@@ -51,10 +51,6 @@ type
   shake128* = KeccakContext[128, Shake]
   shake256* = KeccakContext[256, Shake]
 
-  sha3* = sha3_224 | sha3_256 | sha3_384 | sha3_512
-  keccak* = keccak224 | keccak256 | keccak384 | keccak512
-  shake* = shake128 | shake256
-
 template THETA1(a, b, c: untyped) =
   (a)[(c)] = (b)[(c)] xor (b)[(c) + 5] xor (b)[(c) + 10] xor
              (b)[(c) + 15] xor (b)[(c) + 20]
@@ -284,7 +280,6 @@ proc output*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
 
 proc finish*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
   finalizeKeccak(ctx)
-
   var d = cast[ptr UncheckedArray[uint8]](data)
   var s = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
   if ulen >= ctx.sizeDigest:

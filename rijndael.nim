@@ -996,12 +996,7 @@ template sizeBlock*(ctx: RijndaelContext): int =
   (128)
 
 proc init*(ctx: var RijndaelContext, key: ptr uint8, nkey: int = 0) {.inline.} =
-  when ctx.bits == 128:
-    ctx.Nr = rijndaelKeySetupDec(ctx, 128, key)
-  elif ctx.bits == 192:
-    ctx.Nr = rijndaelKeySetupDec(ctx, 192, key)
-  elif ctx.bits == 256:
-    ctx.Nr = rijndaelKeySetupDec(ctx, 256, key)
+  ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)
 
 proc encrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =

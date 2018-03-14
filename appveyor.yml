@@ -27,7 +27,7 @@ install:
   - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\Nim\bin;%PATH%
   - git clone -b nimbus https://github.com/status-im/Nim.git %CD%\Nim
   - cd %CD%\Nim
-  - git clone --depth 1 https://github.com/status-im/csources
+  - git clone --depth 1 https://github.com/nim-lang/csources
   - cd csources
   - IF "%PLATFORM%" == "x64" ( build64.bat ) else ( build.bat )
   - cd ..

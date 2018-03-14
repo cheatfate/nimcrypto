@@ -20,13 +20,13 @@ const
   MaxHmacBlockSize = 256
 
 type
-  hmac*[T] = ref object of RootRef
+  HMAC*[T] = object
     sizeBlock: uint
     sizeDigest: uint
     mdctx: T
     opadctx: T
 
-proc init*[T](hmctx: hmac[T], key: ptr uint8, ulen: uint) =
+proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
   mixin init
   mixin update
   mixin finish
@@ -81,11 +81,11 @@ proc init*[T](hmctx: hmac[T], key: ptr uint8, ulen: uint) =
   update(hmctx.mdctx, addr ipad[0], sizeBlock)
   update(hmctx.opadctx, addr opad[0], sizeBlock)
 
-proc update*[T](hmctx: hmac[T], data: ptr uint8, ulen: uint) =
+proc update*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
 
-proc finish*[T](hmctx: hmac[T], data: ptr uint8, ulen: uint): uint =
+proc finish*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): uint =
   mixin finish
   mixin update
   var buffer: array[MaxMdDigestLength, uint8]
@@ -94,7 +94,7 @@ proc finish*[T](hmctx: hmac[T], data: ptr uint8, ulen: uint): uint =
   update(hmctx.opadctx, addr buffer[0], size)
   result = finish(hmctx.opadctx, data, ulen)
 
-proc finish*[T](hmctx: hmac[T]): MdDigest =
+proc finish*[T](hmctx: var HMAC[T]): MdDigest =
   mixin finish
   result = MdDigest()
   result.size = finish(hmctx, cast[ptr uint8](addr result.data[0]),

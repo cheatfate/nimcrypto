@@ -35,7 +35,7 @@
 ## Warning #7:  Security engineering is risky and non-intuitive.  Have someone 
 ## check your work. If you don't know what you are doing, get help.
 
-import cipher, utils
+import utils
 
 const
   N = 16
@@ -313,13 +313,14 @@ const
            ]
 
 type
-  blowfishContext = ref object of CipherContext
+  BlowfishContext[bits: static[uint]] = object
+    sizeKey: int
     P: array[16 + 2, uint32]
     S: array[4, array[256, uint32]]
 
-  blowfish* = ref object of blowfishContext
+  blowfish* = BlowfishContext[64]
 
-template f(ctx: blowfishContext, x: uint32): uint32 =
+template f(ctx: var BlowfishContext, x: uint32): uint32 =
   var vx = x
   var d = cast[uint16](vx and 0xFF'u32)
   vx = vx shr 8
@@ -333,7 +334,8 @@ template f(ctx: blowfishContext, x: uint32): uint32 =
   vy = vy + ctx.S[3][d]
   vy
 
-proc blowfishEncrypt*(ctx: blowfishContext, inp: ptr uint8, oup: ptr uint8) =
+proc blowfishEncrypt*(ctx: var BlowfishContext, inp: ptr uint8,
+                      oup: ptr uint8) =
   var nxl = BSWAP(GET_DWORD(inp, 0))
   var nxr = BSWAP(GET_DWORD(inp, 1))
 
@@ -358,7 +360,8 @@ proc blowfishEncrypt*(ctx: blowfishContext, inp: ptr uint8, oup: ptr uint8) =
   SET_DWORD(oup, 0, BSWAP(nxl))
   SET_DWORD(oup, 1, BSWAP(nxr))
 
-proc blowfishDecrypt*(ctx: blowfishContext, inp: ptr uint8, oup: ptr uint8) =
+proc blowfishDecrypt*(ctx: var BlowfishContext, inp: ptr uint8,
+                      oup: ptr uint8) =
   var nxl = BSWAP(GET_DWORD(inp, 0))
   var nxr = BSWAP(GET_DWORD(inp, 1))
   var temp = 0'u32
@@ -382,7 +385,7 @@ proc blowfishDecrypt*(ctx: blowfishContext, inp: ptr uint8, oup: ptr uint8) =
   SET_DWORD(oup, 0, BSWAP(nxl))
   SET_DWORD(oup, 1, BSWAP(nxr))
 
-proc initBlowfishContext*(ctx: blowfishContext, key: ptr uint8, nkey: int) =
+proc initBlowfishContext*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) =
   var i = 0
   var j = 0
   var k = 0
@@ -431,15 +434,20 @@ proc initBlowfishContext*(ctx: blowfishContext, key: ptr uint8, nkey: int) =
       j = j + 2
     inc(i)
 
-proc init*[T: blowfish](ctx: T, key: ptr uint8, nkey: int) {.inline.} =
+template sizeKey*(ctx: BlowfishContext): int =
+  (ctx.sizeKey shr 3)
+
+template sizeBlock*(ctx: BlowfishContext): int =
+  (64)
+
+proc init*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) {.inline.} =
   ctx.sizeKey = nkey shl 3
   initBlowfishContext(ctx, key, ctx.sizeKey)
-  ctx.sizeBlock = 64
 
-proc encrypt*[T: blowfish](ctx: T, inbytes: ptr uint8,
-                           outbytes: ptr uint8) {.inline.} =
+proc encrypt*(ctx: var BlowfishContext, inbytes: ptr uint8,
+              outbytes: ptr uint8) {.inline.} =
   blowfishEncrypt(ctx, inbytes, outbytes)
 
-proc decrypt*[T: blowfish](ctx: T, inbytes: ptr uint8,
-                           outbytes: ptr uint8) {.inline.} =
+proc decrypt*(ctx: var BlowfishContext, inbytes: ptr uint8,
+              outbytes: ptr uint8) {.inline.} =
   blowfishDecrypt(ctx, inbytes, outbytes)

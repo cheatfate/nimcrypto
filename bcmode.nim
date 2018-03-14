@@ -19,35 +19,31 @@
 ## Tests made according to official test vectors (Appendix F)
 ## http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf
 
-import cipher, utils
+import utils
 
 const
   MaxBlockSize = 256
   MaxBlockBytesSize = MaxBlockSize shr 3
 
 type
-  BlockCipherContext = ref object of RootRef
-    sizeBlock: int
-    sizeKey: int
-
-  ECB*[T] = ref object of BlockCipherContext
+  ECB*[T] = object
     cipher: T
     tmp: array[MaxBlockBytesSize, uint8]
 
-  CBC*[T] = ref object of BlockCipherContext
+  CBC*[T] = object
     cipher: T
     iv: array[MaxBlockBytesSize, uint8]
     tmp: array[MaxBlockBytesSize, uint8]
 
-  OFB*[T] = ref object of BlockCipherContext
+  OFB*[T] = object
     cipher: T
     iv: array[MaxBlockBytesSize, uint8]
 
-  CFB*[T] = ref object of BlockCipherContext
+  CFB*[T] = object
     cipher: T
     iv: array[MaxBlockBytesSize, uint8]
 
-  CTR*[T] = ref object of BlockCipherContext
+  CTR*[T] = object
     cipher: T
     iv: array[MaxBlockBytesSize, uint8]
     ecount: array[MaxBlockBytesSize, uint8]
@@ -55,19 +51,24 @@ type
 
 ## ECB (Electronic Code Book) Mode
 
-proc init*[T](ctx: ECB[T], keyBytes: ptr uint8) =
+template sizeBlock*[T](ctx: ECB[T]): int =
+  mixin sizeBlock
+  sizeBlock(ctx.cipher)
+
+template sizeKey*[T](ctx: ECB[T]): int =
+  mixin sizeKey
+  sizeKey(ctx.cipher)
+
+proc init*[T](ctx: var ECB[T], keyBytes: ptr uint8) =
   mixin init
-  assert(not isNil(ctx) and not isNil(keyBytes))
-  ctx.cipher = T()
+  assert(not isNil(keyBytes))
   init(ctx.cipher, keyBytes)
-  ctx.sizeBlock = ctx.cipher.sizeBlock
-  ctx.sizeKey = ctx.cipher.sizeKey
   doAssert(ctx.sizeBlock <= MaxBlockSize)
 
-proc encrypt*[T](ctx: ECB[T], inp: ptr uint8, oup: ptr uint8,
+proc encrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
 
   var blen = uint(ctx.sizeBlock shr 3)
@@ -86,10 +87,10 @@ proc encrypt*[T](ctx: ECB[T], inp: ptr uint8, oup: ptr uint8,
     ip = cast[ptr UncheckedArray[uint8]](cast[uint](ip) + blen)
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
 
-proc decrypt*[T](ctx: ECB[T], inp: ptr uint8, oup: ptr uint8,
+proc decrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin decrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
   assert(length mod uint(ctx.sizeBlock shr 3) == 0)
 
@@ -105,20 +106,25 @@ proc decrypt*[T](ctx: ECB[T], inp: ptr uint8, oup: ptr uint8,
 
 ## CBC (Cipher Block Chaining) Mode
 
-proc init*[T](ctx: CBC[T], keyBytes: ptr uint8, iv: ptr uint8) =
+template sizeBlock*[T](ctx: CBC[T]): int =
+  mixin sizeBlock
+  sizeBlock(ctx.cipher)
+
+template sizeKey*[T](ctx: CBC[T]): int =
+  mixin sizeKey
+  sizeKey(ctx.cipher)
+
+proc init*[T](ctx: var CBC[T], keyBytes: ptr uint8, iv: ptr uint8) =
   mixin init
-  assert(not isNil(ctx) and not isNil(keyBytes) and not isNil(iv))
-  ctx.cipher = T()
+  assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
-  ctx.sizeBlock = ctx.cipher.sizeBlock
-  ctx.sizeKey = ctx.cipher.sizeKey
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
 
-proc encrypt*[T](ctx: CBC[T], inp: ptr uint8, oup: ptr uint8,
+proc encrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
 
   var blen = uint(ctx.sizeBlock shr 3)
@@ -144,10 +150,10 @@ proc encrypt*[T](ctx: CBC[T], inp: ptr uint8, oup: ptr uint8,
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
   copyMem(addr ctx.iv[0], cp, blen)
 
-proc decrypt*[T](ctx: CBC[T], inp: ptr uint8, oup: ptr uint8,
+proc decrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin decrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
 
   let blen = uint(ctx.sizeBlock shr 3)
@@ -175,6 +181,14 @@ proc decrypt*[T](ctx: CBC[T], inp: ptr uint8, oup: ptr uint8,
 
 ## CTR (Counter) Mode
 
+template sizeBlock*[T](ctx: CTR[T]): int =
+  mixin sizeBlock
+  sizeBlock(ctx.cipher)
+
+template sizeKey*[T](ctx: CTR[T]): int =
+  mixin sizeKey
+  sizeKey(ctx.cipher)
+
 proc inc128(counter: ptr UncheckedArray[uint8]) =
   var n = 16'u32
   var c = 1'u32
@@ -197,20 +211,17 @@ proc inc256(counter: ptr UncheckedArray[uint8]) =
     if n == 0:
       break
 
-proc init*[T](ctx: CTR[T], keyBytes: ptr uint8, iv: ptr uint8) =
+proc init*[T](ctx: var CTR[T], keyBytes: ptr uint8, iv: ptr uint8) =
   mixin init
-  assert(not isNil(ctx) and not isNil(keyBytes) and not isNil(iv))
-  ctx.cipher = T()
+  assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
-  ctx.sizeBlock = ctx.cipher.sizeBlock
-  ctx.sizeKey = ctx.cipher.sizeKey
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
 
-proc encrypt*[T](ctx: CTR[T], inp: ptr uint8, oup: ptr uint8,
+proc encrypt*[T](ctx: var CTR[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
   assert(ctx.sizeBlock == 128 or ctx.sizeBlock == 256)
   var n = ctx.num
@@ -234,27 +245,32 @@ proc encrypt*[T](ctx: CTR[T], inp: ptr uint8, oup: ptr uint8,
   ctx.num = uint(n)
   result = ctx.num
 
-proc decrypt*[T](ctx: CTR[T], inp: ptr uint8, oup: ptr uint8,
+proc decrypt*[T](ctx: var CTR[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable, inline.} =
   mixin encrypt
   result = encrypt(ctx, inp, oup, length)
 
 ## OFB (Output Feedback) Mode
 
-proc init*[T](ctx: OFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
+template sizeBlock*[T](ctx: OFB[T]): int =
+  mixin sizeBlock
+  sizeBlock(ctx.cipher)
+
+template sizeKey*[T](ctx: OFB[T]): int =
+  mixin sizeKey
+  sizeKey(ctx.cipher)
+
+proc init*[T](ctx: var OFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   mixin init
-  assert(not isNil(ctx) and not isNil(keyBytes) and not isNil(iv))
-  ctx.cipher = T()
+  assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
-  ctx.sizeBlock = ctx.cipher.sizeBlock
-  ctx.sizeKey = ctx.cipher.sizeKey
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
 
-proc encrypt*[T](ctx: OFB[T], inp: ptr uint8, oup: ptr uint8,
+proc encrypt*[T](ctx: var OFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
   assert(ctx.sizeBlock == 128 or ctx.sizeBlock == 256)
   var n = 0
@@ -271,27 +287,32 @@ proc encrypt*[T](ctx: OFB[T], inp: ptr uint8, oup: ptr uint8,
     inc(i)
     n = (n + 1) mod mask
 
-proc decrypt*[T](ctx: OFB[T], inp: ptr uint8, oup: ptr uint8,
+proc decrypt*[T](ctx: var OFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable, inline.} =
   mixin encrypt
   result = encrypt(ctx, inp, oup, length)
 
 ## CFB (Cipher Feedback) Mode
 
-proc init*[T](ctx: CFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
+template sizeBlock*[T](ctx: CFB[T]): int =
+  mixin sizeBlock
+  sizeBlock(ctx.cipher)
+
+template sizeKey*[T](ctx: CFB[T]): int =
+  mixin sizeKey
+  sizeKey(ctx.cipher)
+
+proc init*[T](ctx: var CFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   mixin init
-  assert(not isNil(ctx) and not isNil(keyBytes) and not isNil(iv))
-  ctx.cipher = T()
+  assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
-  ctx.sizeBlock = ctx.cipher.sizeBlock
-  ctx.sizeKey = ctx.cipher.sizeKey
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
 
-proc encrypt*[T](ctx: CFB[T], inp: ptr uint8, oup: ptr uint8,
+proc encrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
   var n = 0
   var i = 0'u
@@ -309,10 +330,10 @@ proc encrypt*[T](ctx: CFB[T], inp: ptr uint8, oup: ptr uint8,
     n = (n + 1) mod mask
   result = (uint)n
 
-proc decrypt*[T](ctx: CFB[T], inp: ptr uint8, oup: ptr uint8,
+proc decrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable, inline.} =
   mixin encrypt
-  assert(not isNil(ctx) and not isNil(inp) and not isNil(oup))
+  assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
   var n = 0
   var i = 0'u

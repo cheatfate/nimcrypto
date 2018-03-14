@@ -95,45 +95,63 @@ template RHO1(x): uint64 =
   ROR(x, 19) xor ROR(x, 61) xor (x shr 6)
 
 type
-  sha224* = ref object of MdContext
-    count: array[2, uint32]
-    state: array[8, uint32]
-    buffer: array[64, uint8]
+  Sha2Context[bits: static[int],
+              bsize: static[int],
+              T: uint32|uint64] = object
+    count: array[2, T]
+    state: array[8, T]
+    buffer: array[bsize, uint8]
 
-  sha256* = ref object of MdContext
-    count: array[2, uint32]
-    state: array[8, uint32]
-    buffer: array[64, uint8]
+  sha224* = Sha2Context[224, 64, uint32]
+  sha256* = Sha2Context[256, 64, uint32]
+  sha384* = Sha2Context[384, 128, uint64]
+  sha512* = Sha2Context[512, 128, uint64]
+  sha512_224* = Sha2Context[224, 128, uint64]
+  sha512_256* = Sha2Context[256, 128, uint64]
 
-  sha384* = ref object of MdContext
-    count: array[2, uint64]
-    state: array[8, uint64]
-    buffer: array[128, uint8]
+  # sha224* = ref object of MdContext
+  #   count: array[2, uint32]
+  #   state: array[8, uint32]
+  #   buffer: array[64, uint8]
 
-  sha512* = ref object of MdContext
-    count: array[2, uint64]
-    state: array[8, uint64]
-    buffer: array[128, uint8]
+  # sha256* = ref object of MdContext
+  #   count: array[2, uint32]
+  #   state: array[8, uint32]
+  #   buffer: array[64, uint8]
 
-  sha512_224* = ref object of MdContext
-    count: array[2, uint64]
-    state: array[8, uint64]
-    buffer: array[128, uint8]
+  # sha384* = ref object of MdContext
+  #   count: array[2, uint64]
+  #   state: array[8, uint64]
+  #   buffer: array[128, uint8]
 
-  sha512_256* = ref object of MdContext
-    count: array[2, uint64]
-    state: array[8, uint64]
-    buffer: array[128, uint8]
+  # sha512* = ref object of MdContext
+  #   count: array[2, uint64]
+  #   state: array[8, uint64]
+  #   buffer: array[128, uint8]
 
-type
-  sha2* = sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
-  sha2s = sha224 | sha256
-  sha2b = sha384 | sha512 | sha512_224 | sha512_256
+  # sha512_224* = ref object of MdContext
+  #   count: array[2, uint64]
+  #   state: array[8, uint64]
+  #   buffer: array[128, uint8]
 
-proc init*[T: sha2](ctx: T) =
+  # sha512_256* = ref object of MdContext
+  #   count: array[2, uint64]
+  #   state: array[8, uint64]
+  #   buffer: array[128, uint8]
+
+# type
+#   sha2* = sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
+  
+template sizeDigest*(ctx: Sha2Context): uint =
+  (ctx.bits div 8)
+
+template sizeBlock*(ctx: Sha2Context): uint =
+  (ctx.bsize)
+
+proc init*(ctx: var Sha2Context) =
   ctx.count[0] = 0
   ctx.count[1] = 0
-  when T is sha224:
+  when ctx.bits == 224 and ctx.bsize == 64:
     ctx.state[0] = 0xC1059ED8'u32
     ctx.state[1] = 0x367CD507'u32
     ctx.state[2] = 0x3070DD17'u32
@@ -142,9 +160,7 @@ proc init*[T: sha2](ctx: T) =
     ctx.state[5] = 0x68581511'u32
     ctx.state[6] = 0x64F98FA7'u32
     ctx.state[7] = 0xBEFA4FA4'u32
-    ctx.sizeBlock = 64
-    ctx.sizeDigest = 28
-  elif T is sha256:
+  elif ctx.bits == 256 and ctx.bsize == 64:
     ctx.state[0] = 0x6A09E667'u32
     ctx.state[1] = 0xBB67AE85'u32
     ctx.state[2] = 0x3C6EF372'u32
@@ -153,9 +169,7 @@ proc init*[T: sha2](ctx: T) =
     ctx.state[5] = 0x9B05688C'u32
     ctx.state[6] = 0x1F83D9AB'u32
     ctx.state[7] = 0x5BE0CD19'u32
-    ctx.sizeBlock = 64
-    ctx.sizeDigest = 32
-  elif T is sha384:
+  elif ctx.bits == 384 and ctx.bsize == 128:
     ctx.state[0] = 0xCBBB9D5DC1059ED8'u64
     ctx.state[1] = 0x629A292A367CD507'u64
     ctx.state[2] = 0x9159015A3070DD17'u64
@@ -164,9 +178,7 @@ proc init*[T: sha2](ctx: T) =
     ctx.state[5] = 0x8EB44A8768581511'u64
     ctx.state[6] = 0xDB0C2E0D64F98FA7'u64
     ctx.state[7] = 0x47B5481DBEFA4FA4'u64
-    ctx.sizeBlock = 128
-    ctx.sizeDigest = 48
-  elif T is sha512:
+  elif ctx.bits == 512 and ctx.bsize == 128:
     ctx.state[0] = 0x6A09E667F3BCC908'u64
     ctx.state[1] = 0xBB67AE8584CAA73B'u64
     ctx.state[2] = 0x3C6EF372FE94F82B'u64
@@ -175,9 +187,7 @@ proc init*[T: sha2](ctx: T) =
     ctx.state[5] = 0x9B05688C2B3E6C1F'u64
     ctx.state[6] = 0x1F83D9ABFB41BD6B'u64
     ctx.state[7] = 0x5BE0CD19137E2179'u64
-    ctx.sizeBlock = 128
-    ctx.sizeDigest = 64
-  elif T is sha512_224:
+  elif ctx.bits == 224 and ctx.bsize == 128:
     ctx.state[0] = 0x8C3D37C819544DA2'u64
     ctx.state[1] = 0x73E1996689DCD4D6'u64
     ctx.state[2] = 0x1DFAB7AE32FF9C82'u64
@@ -186,9 +196,7 @@ proc init*[T: sha2](ctx: T) =
     ctx.state[5] = 0x77E36F7304C48942'u64
     ctx.state[6] = 0x3F9D85A86A1D36C8'u64
     ctx.state[7] = 0x1112E6AD91D692A1'u64
-    ctx.sizeBlock = 128
-    ctx.sizeDigest = 28
-  else:
+  elif ctx.bits == 256 and ctx.bsize == 128:
     ctx.state[0] = 0x22312194FC2BF72C'u64
     ctx.state[1] = 0x9F555FA3C84C64C2'u64
     ctx.state[2] = 0x2393B86B6F53B151'u64
@@ -197,8 +205,6 @@ proc init*[T: sha2](ctx: T) =
     ctx.state[5] = 0xBE5E1E2553863992'u64
     ctx.state[6] = 0x2B0199FC2C85B8AA'u64
     ctx.state[7] = 0x0EB72DDC81C52CA2'u64
-    ctx.sizeBlock = 128
-    ctx.sizeDigest = 32
 
 when not smallCode:
   template ROUND256(a, b, c, d, e, f, g, h, z) =
@@ -456,11 +462,11 @@ proc sha512Transform(state: var array[8, uint64], data: ptr uint8) =
   state[6] += s6
   state[7] += s7
 
-proc update*[T: sha2](ctx: T, data: ptr uint8, inlen: uint) =
+proc update*(ctx: var Sha2Context, data: ptr uint8, inlen: uint) =
   var pos = 0'u
   var length = inlen
 
-  when (T is sha256) or (T is sha224):
+  when ctx.bsize == 64:
     while length > 0'u:
       let offset = uint(ctx.count[0] and 0x3F)
       let size = min(64'u - offset, length)
@@ -473,8 +479,7 @@ proc update*[T: sha2](ctx: T, data: ptr uint8, inlen: uint) =
         ctx.count[1] += 1'u32
       if (ctx.count[0] and 0x3F) == 0:
         sha256Transform(ctx.state, addr(ctx.buffer[0]))
-  elif (T is sha384) or (T is sha512) or
-       (T is sha512_256) or (T is sha512_224):
+  elif ctx.bsize == 128:
     while length > 0'u:
       let offset = uint(ctx.count[0] and 0x7F)
       let size = min(128'u - offset, length)
@@ -488,7 +493,7 @@ proc update*[T: sha2](ctx: T, data: ptr uint8, inlen: uint) =
       if (ctx.count[0] and 0x7F) == 0:
         sha512Transform(ctx.state, addr(ctx.buffer[0]))
 
-proc finalize256(ctx: sha2s) =
+proc finalize256(ctx: var Sha2Context) =
   var buffer = addr(ctx.buffer[0])
   var j = int(ctx.count[0] and 0x3F)
   ctx.buffer[j] = 0x80
@@ -505,7 +510,7 @@ proc finalize256(ctx: sha2s) =
   SET_DWORD(buffer, 15, LSWAP(ctx.count[0]))
   sha256Transform(ctx.state, buffer)
 
-proc finalize512(ctx: sha2b) =
+proc finalize512(ctx: var Sha2Context) =
   var buffer = addr(ctx.buffer[0])
   var j = int(ctx.count[0] and 0x7F)
   ctx.buffer[j] = 0x80
@@ -522,48 +527,48 @@ proc finalize512(ctx: sha2b) =
   SET_QWORD(buffer, 15, LSWAP(ctx.count[0]))
   sha512Transform(ctx.state, buffer)
 
-proc finish*[T: sha2](ctx: T, pBytes: ptr uint8, nBytes: uint): uint =
+proc finish*(ctx: var Sha2Context, pBytes: ptr uint8, nBytes: uint): uint =
   result = 0
-  when T is sha224:
+  when ctx.bits == 224 and ctx.bsize == 64:
     finalize256(ctx)
     if nBytes >= 28'u:
-      result = 28
+      result = sizeDigest(ctx)
       for i in 0..6:
         SET_DWORD(pBytes, i, LSWAP(ctx.state[i]))
-  elif T is sha256:
+  elif ctx.bits == 256 and ctx.bsize == 64:
     finalize256(ctx)
     if nBytes >= 32'u:
-      result = 32
+      result = sizeDigest(ctx)
       for i in 0..7:
         SET_DWORD(pBytes, i, LSWAP(ctx.state[i]))
-  elif T is sha384:
+  elif ctx.bits == 384 and ctx.bsize == 128:
     finalize512(ctx)
     if nBytes >= 48'u:
-      result = 48
+      result = sizeDigest(ctx)
       for i in 0..5:
         SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
-  elif T is sha512:
+  elif ctx.bits == 512 and ctx.bsize == 128:
     finalize512(ctx)
     if nBytes >= 64'u:
-      result = 64
+      result = sizeDigest(ctx)
       for i in 0..7:
         SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
-  elif T is sha512_256:
+  elif ctx.bits == 256 and ctx.bsize == 128:
     finalize512(ctx)
     if nBytes >= 32'u:
-      result = 32
+      result = sizeDigest(ctx)
       for i in 0..3:
         SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
-  else:
+  elif ctx.bits == 224 and ctx.bsize == 128:
     finalize512(ctx)
     if nBytes >= 28'u:
-      result = 28
+      result = sizeDigest(ctx)
       SET_QWORD(pBytes, 0, LSWAP(ctx.state[0]))
       SET_QWORD(pBytes, 1, LSWAP(ctx.state[1]))
       SET_QWORD(pBytes, 2, LSWAP(ctx.state[2]))
       SET_DWORD(pBytes, 6, LSWAP(ctx.state[3]).uint32)  
 
-proc finish*[T: sha2](ctx: T): MdDigest =
+proc finish*(ctx: var Sha2Context): MdDigest =
   result = MdDigest()
   result.size = finish(ctx, cast[ptr uint8](addr result.data[0]),
                        MaxMdDigestLength)

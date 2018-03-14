@@ -32,22 +32,24 @@ const RNDC = [
 ]
 
 type
-  keccakContext = object of MdContext
+  KeccakKind = enum
+    Sha3, Keccak, Shake
+
+  KeccakContext[bits: static[uint],
+                kind: static[KeccakKind]] = object
     q: array[25, uint64]
     pt: int
-    rsize: int
-    mdlen: int
 
-  keccak224* = keccakContext
-  keccak256* = keccakContext
-  keccak384* = keccakContext
-  keccak512* = keccakContext
-  sha3_224* = keccakContext
-  sha3_256* = keccakContext
-  sha3_384* = keccakContext
-  sha3_512* = keccakContext
-  shake128* = keccakContext
-  shake256* = keccakContext
+  keccak224* = KeccakContext[224, Keccak]
+  keccak256* = KeccakContext[256, Keccak]
+  keccak384* = KeccakContext[384, Keccak]
+  keccak512* = KeccakContext[512, Keccak]
+  sha3_224* = KeccakContext[224, Sha3]
+  sha3_256* = KeccakContext[256, Sha3]
+  sha3_384* = KeccakContext[384, Sha3]
+  sha3_512* = KeccakContext[512, Sha3]
+  shake128* = KeccakContext[128, Shake]
+  shake256* = KeccakContext[256, Shake]
 
   sha3* = sha3_224 | sha3_256 | sha3_384 | sha3_512
   keccak* = keccak224 | keccak256 | keccak384 | keccak512
@@ -218,29 +220,20 @@ proc keccakTransform(st: var array[25, uint64]) =
   st[23] = BSWAP(st[23])
   st[24] = BSWAP(st[24])
 
-proc init*[T: sha3 | shake | keccak](ctx: var T) =
-  for i in 0..24:
-    ctx.q[i] = 0'u64
-  ctx.pt = 0
-  ctx.sizeBlock = 1600
-  when T is shake128:
-    ctx.sizeDigest = 16
-    ctx.rsize = 200 - 2 * 16
-  elif (T is keccak224) or (T is sha3_224):
-    ctx.sizeDigest = 28
-    ctx.rsize = 200 - 2 * 28
-  elif (T is keccak256) or (T is sha3_256) or (T is shake256):
-    ctx.sizeDigest = 32
-    ctx.rsize = 200 - 2 * 32
-  elif (T is keccak384) or (T is sha3_384):
-    ctx.sizeDigest = 48
-    ctx.rsize = 200 - 2 * 48
-  elif (T is keccak512) or (T is sha3_512):
-    ctx.sizeDigest = 64
-    ctx.rsize = 200 - 2 * 64
+template sizeDigest*(ctx: KeccakContext): uint =
+  (ctx.bits div 8)
 
-proc update*[T: sha3 | shake | keccak](ctx: var T, data: ptr uint8,
-                                       ulen: uint) =
+template sizeBlock*(ctx: KeccakContext): uint =
+  1600
+
+template rsize(ctx: KeccakContext): int =
+  200 - 2 * (ctx.bits div 8)
+
+proc init*(ctx: var KeccakContext) =
+  zeroMem(addr ctx.q[0], sizeof(uint64) * 25)
+  ctx.pt = 0
+
+proc update*(ctx: var KeccakContext, data: ptr uint8, ulen: uint) =
   var j = ctx.pt
   var s = cast[ptr UncheckedArray[uint8]](data)
   var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
@@ -253,23 +246,28 @@ proc update*[T: sha3 | shake | keccak](ctx: var T, data: ptr uint8,
         j = 0
     ctx.pt = j
 
-proc finalizeKeccak[T: sha3 | keccak](ctx: var T) =
+proc finalizeKeccak(ctx: var KeccakContext) =
   var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
-  when T is sha3:
+  when ctx.kind == Sha3:
     d[ctx.pt] = d[ctx.pt] xor 0x06'u8
   else:
     d[ctx.pt] = d[ctx.pt] xor 0x01'u8
   d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
   keccakTransform(ctx.q)
 
-proc xof*[T: shake](ctx: var T) =
+proc xof*(ctx: var KeccakContext) =
+  when ctx.kind != Shake:
+    {.error: "Only `Shake128` and `Shake256` types are supported".}
+  assert(ctx.kind == Shake)
   var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
   d[ctx.pt] = d[ctx.pt] xor 0x1F'u8
   d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
   keccakTransform(ctx.q)
   ctx.pt = 0
 
-proc output*[T: shake](ctx: var T, data: ptr uint8, ulen: uint): uint =
+proc output*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
+  when ctx.kind != Shake:
+    {.error: "Only `Shake128` and `Shake256` types are supported".}
   var j = ctx.pt
   var s = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
   var d = cast[ptr UncheckedArray[uint8]](data)
@@ -284,7 +282,7 @@ proc output*[T: shake](ctx: var T, data: ptr uint8, ulen: uint): uint =
     ctx.pt = j
     result = ulen
 
-proc finish*[T: sha3 | keccak](ctx: var T, data: ptr uint8, ulen: uint): uint =
+proc finish*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
   finalizeKeccak(ctx)
 
   var d = cast[ptr UncheckedArray[uint8]](data)
@@ -294,13 +292,6 @@ proc finish*[T: sha3 | keccak](ctx: var T, data: ptr uint8, ulen: uint): uint =
       d[i] = s[i]
     result = ctx.sizeDigest
 
-proc finish*[T: sha3 | keccak](ctx: var T): MdDigest =
+proc finish*(ctx: var KeccakContext): MdDigest =
   result.size = finish(ctx, cast[ptr uint8](addr result.data[0]),
                        MaxMdDigestLength)
-
-when isMainModule:
-  var ctx: keccak224
-  ctx.init()
-  ctx.update(nil, 0)
-  ## Must be F71837502BA8E10837BDD8D365ADB85591895602FC552B48B7390ABD
-  echo $ctx.finish()

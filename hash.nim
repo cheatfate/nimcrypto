@@ -4,11 +4,11 @@ const
   MaxMdDigestLength* = 64
 
 type
-  MdContext* = object of RootObj
+  MdContext* = ref object of RootRef
     sizeBlock*: uint
     sizeDigest*: uint
 
-  MdDigest* = object
+  MdDigest* = ref object of RootRef
     size*: uint
     data*: array[MaxMdDigestLength, uint8]
 

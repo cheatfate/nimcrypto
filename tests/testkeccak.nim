@@ -44,8 +44,6 @@ when isMainModule:
   ## KECCAK-224
   for item in testVectors("ShortMsgKAT_224.txt"):
     kec224.init()
-    echo "AFTER INIT"
-    echo repr kec224
     if (item.length mod 8) == 0:
       var data: seq[uint8]
       var length = item.length div 8
@@ -54,12 +52,8 @@ when isMainModule:
       copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
               len(msg))
       kec224.update(addr data[0], uint(length))
-      echo "AFTER UPDATE"
-      echo repr kec224
       var check = $kec224.finish()
-      echo check
-      echo item.digest
-      assert(item.digest == check)
+      doAssert(item.digest == check)
 
   ## KECCAK-256
   for item in testVectors("ShortMsgKAT_256.txt"):

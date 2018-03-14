@@ -83,8 +83,8 @@ when isMainModule:
   proc ecbTest() =
     block:
       var key = fromHex(all128K)
-      var ctx1 = ECB[aes128]()
-      var ctx2 = ECB[aes128]()
+      var ctx1: ECB[aes128]
+      var ctx2: ECB[aes128]
       ctx1.init(addr key[0])
       ctx2.init(addr key[0])
       for i in 0..3:
@@ -98,8 +98,8 @@ when isMainModule:
         doAssert(toHex(check) == allP[i])
     block:
       var key = fromHex(all192K)
-      var ctx1 = ECB[aes192]()
-      var ctx2 = ECB[aes192]()
+      var ctx1: ECB[aes192]
+      var ctx2: ECB[aes192]
       ctx1.init(addr key[0])
       ctx2.init(addr key[0])
       for i in 0..3:
@@ -113,8 +113,8 @@ when isMainModule:
         doAssert(toHex(check) == allP[i])
     block:
       var key = fromHex(all256K)
-      var ctx1 = ECB[aes256]()
-      var ctx2 = ECB[aes256]()
+      var ctx1: ECB[aes256]
+      var ctx2: ECB[aes256]
       ctx1.init(addr key[0])
       ctx2.init(addr key[0])
       for i in 0..3:
@@ -131,8 +131,8 @@ when isMainModule:
     block:
       var key = fromHex(all128K)
       var iv = fromHex(cbcIV)
-      var ctx1 = CBC[aes128]()
-      var ctx2 = CBC[aes128]()
+      var ctx1: CBC[aes128]
+      var ctx2: CBC[aes128]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -147,8 +147,8 @@ when isMainModule:
     block:
       var key = fromHex(all192K)
       var iv = fromHex(cbcIV)
-      var ctx1 = CBC[aes192]()
-      var ctx2 = CBC[aes192]()
+      var ctx1: CBC[aes192]
+      var ctx2: CBC[aes192]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -163,8 +163,8 @@ when isMainModule:
     block:
       var key = fromHex(all256K)
       var iv = fromHex(cbcIV)
-      var ctx1 = CBC[aes256]()
-      var ctx2 = CBC[aes256]()
+      var ctx1: CBC[aes256]
+      var ctx2: CBC[aes256]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -181,8 +181,8 @@ when isMainModule:
     block:
       var key = fromHex(all128K)
       var iv = fromHex(ofbIV)
-      var ctx1 = OFB[aes128]()
-      var ctx2 = OFB[aes128]()
+      var ctx1: OFB[aes128]
+      var ctx2: OFB[aes128]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -197,8 +197,8 @@ when isMainModule:
     block:
       var key = fromHex(all192K)
       var iv = fromHex(ofbIV)
-      var ctx1 = OFB[aes192]()
-      var ctx2 = OFB[aes192]()
+      var ctx1: OFB[aes192]
+      var ctx2: OFB[aes192]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -213,8 +213,8 @@ when isMainModule:
     block:
       var key = fromHex(all256K)
       var iv = fromHex(ofbIV)
-      var ctx1 = OFB[aes256]()
-      var ctx2 = OFB[aes256]()
+      var ctx1: OFB[aes256]
+      var ctx2: OFB[aes256]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -231,8 +231,8 @@ when isMainModule:
     block:
       var key = fromHex(all128K)
       var iv = fromHex(cfbIV)
-      var ctx1 = CFB[aes128]()
-      var ctx2 = CFB[aes128]()
+      var ctx1: CFB[aes128]
+      var ctx2: CFB[aes128]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -247,8 +247,8 @@ when isMainModule:
     block:
       var key = fromHex(all192K)
       var iv = fromHex(cfbIV)
-      var ctx1 = CFB[aes192]()
-      var ctx2 = CFB[aes192]()
+      var ctx1: CFB[aes192]
+      var ctx2: CFB[aes192]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -263,8 +263,8 @@ when isMainModule:
     block:
       var key = fromHex(all256K)
       var iv = fromHex(cfbIV)
-      var ctx1 = CFB[aes256]()
-      var ctx2 = CFB[aes256]()
+      var ctx1: CFB[aes256]
+      var ctx2: CFB[aes256]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -281,8 +281,8 @@ when isMainModule:
     block:
       var key = fromHex(all128K)
       var iv = fromHex(ctrIV)
-      var ctx1 = CTR[aes128]()
-      var ctx2 = CTR[aes128]()
+      var ctx1: CTR[aes128]
+      var ctx2: CTR[aes128]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -297,8 +297,8 @@ when isMainModule:
     block:
       var key = fromHex(all192K)
       var iv = fromHex(ctrIV)
-      var ctx1 = CTR[aes192]()
-      var ctx2 = CTR[aes192]()
+      var ctx1: CTR[aes192]
+      var ctx2: CTR[aes192]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:
@@ -313,8 +313,8 @@ when isMainModule:
     block:
       var key = fromHex(all256K)
       var iv = fromHex(ctrIV)
-      var ctx1 = CTR[aes256]()
-      var ctx2 = CTR[aes256]()
+      var ctx1: CTR[aes256]
+      var ctx2: CTR[aes256]
       ctx1.init(addr key[0], addr iv[0])
       ctx2.init(addr key[0], addr iv[0])
       for i in 0..3:

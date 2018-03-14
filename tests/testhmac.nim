@@ -70,7 +70,7 @@ block:
   for i in 0..(len(ripemd128digests) - 1):
     var key = fromHex(stripSpaces(ripemd128keys[i]))
     var data = fromHex(stripSpaces(ripemddata[i]))
-    var ctx = hmac[ripemd128]()
+    var ctx: HMAC[ripemd128]
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
     var digest = $ctx.finish()
@@ -86,7 +86,7 @@ block:
   for i in 0..(len(ripemd160digests) - 1):
     var key = fromHex(stripSpaces(ripemd160keys[i]))
     var data = fromHex(stripSpaces(ripemddata[i]))
-    var ctx = hmac[ripemd160]()
+    var ctx: HMAC[ripemd160]
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
     var digest = $ctx.finish()
@@ -183,7 +183,7 @@ const sha512digests = [
 block:
   stdout.write("HMAC-SHA2-224: ")
   var status = true
-  var ctx224 = hmac[sha224]()
+  var ctx224: HMAC[sha224]
   for i in 0..(len(sha2keys) - 1):
     var key = fromHex(stripSpaces(sha2keys[i]))
     var data = fromHex(stripSpaces(sha2data[i]))
@@ -200,7 +200,7 @@ block:
 block:
   stdout.write("HMAC-SHA2-256: ")
   var status = true
-  var ctx256 = hmac[sha256]()
+  var ctx256: HMAC[sha256]
   for i in 0..(len(sha2keys) - 1):
     var key = fromHex(stripSpaces(sha2keys[i]))
     var data = fromHex(stripSpaces(sha2data[i]))
@@ -217,7 +217,7 @@ block:
 block:
   stdout.write("HMAC-SHA2-384: ")
   var status = true
-  var ctx384 = hmac[sha384]()
+  var ctx384: HMAC[sha384]
   for i in 0..(len(sha2keys) - 1):
     var key = fromHex(stripSpaces(sha2keys[i]))
     var data = fromHex(stripSpaces(sha2data[i]))
@@ -234,7 +234,7 @@ block:
 block:
   stdout.write("HMAC-SHA2-512: ")
   var status = true
-  var ctx512 = hmac[sha512]()
+  var ctx512: HMAC[sha512]
   for i in 0..(len(sha2keys) - 1):
     var key = fromHex(stripSpaces(sha2keys[i]))
     var data = fromHex(stripSpaces(sha2data[i]))
@@ -355,7 +355,7 @@ const sha3_512digests = [
 block:
   stdout.write("HMAC-SHA3-224: ")
   var status = true
-  var ctx = hmac[sha3_224]()
+  var ctx: HMAC[sha3_224]
   for i in 0..(len(sha3texts) - 1):
     var key = fromHex(stripSpaces(sha3_224keys[i]))
     var data = fromHex(stripSpaces(sha3texts[i]))
@@ -372,7 +372,7 @@ block:
 block:
   stdout.write("HMAC-SHA3-256: ")
   var status = true
-  var ctx = hmac[sha3_256]()
+  var ctx: HMAC[sha3_256]
   for i in 0..(len(sha3texts) - 1):
     var key = fromHex(stripSpaces(sha3_256keys[i]))
     var data = fromHex(stripSpaces(sha3texts[i]))
@@ -389,7 +389,7 @@ block:
 block:
   stdout.write("HMAC-SHA3-384: ")
   var status = true
-  var ctx = hmac[sha3_384]()
+  var ctx: HMAC[sha3_384]
   for i in 0..(len(sha3texts) - 1):
     var key = fromHex(stripSpaces(sha3_384keys[i]))
     var data = fromHex(stripSpaces(sha3texts[i]))
@@ -406,7 +406,7 @@ block:
 block:
   stdout.write("HMAC-SHA3-512: ")
   var status = true
-  var ctx = hmac[sha3_512]()
+  var ctx: HMAC[sha3_512]
   for i in 0..(len(sha3texts) - 1):
     var key = fromHex(stripSpaces(sha3_512keys[i]))
     var data = fromHex(stripSpaces(sha3texts[i]))

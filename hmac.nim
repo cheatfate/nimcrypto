@@ -16,24 +16,21 @@ from ripemd import ripemd128, ripemd160, ripemd256, ripemd320
 from keccak import sha3_224, sha3_256, sha3_384, sha3_512
 from keccak import keccak224, keccak256, keccak384, keccak512
 
-type
-  Digests128* = ripemd128
-  Digests160* = ripemd160
-  Digests224* = sha224 | sha512_224 | sha3_224 | keccak224
-  Digests256* = ripemd256 | keccak256 | sha256 | sha3_256 | sha512_256
-  Digests320* = ripemd320
-  Digests384* = sha384 | keccak384 | sha3_384
-  Digests512* = sha512 | keccak512 | sha3_512
-
 const
   MaxHmacBlockSize = 256
 
 type
-  HMAC*[T] = object
+  HMAC*[HashType] = object
     sizeBlock: uint
     sizeDigest: uint
-    mdctx: T
-    opadctx: T
+    mdctx: HashType
+    opadctx: HashType
+
+template sizeDigest*(hmctx: HMAC): int =
+  sizeDigest(hmctx.mdctx)
+
+template sizeBlock*(hmctx: HMAC): int =
+  hmctx.sizeBlock
 
 proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
   mixin init, update, finish
@@ -88,17 +85,18 @@ proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
   update(hmctx.mdctx, addr ipad[0], sizeBlock)
   update(hmctx.opadctx, addr opad[0], sizeBlock)
 
-proc update*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint) =
+proc update*(hmctx: var HMAC, data: ptr uint8, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
 
-proc finish*[T](hmctx: var HMAC[T], data: ptr uint8, ulen: uint): int =
+proc finish*(hmctx: var HMAC, data: ptr uint8, ulen: uint): uint =
   mixin update, finish
-  var buffer: array[hmctx.T.bits div 8, uint8]
-  let size = finish(hmctx.mdctx, addr buffer[0], uint(hmctx.T.bits div 8))
+  var buffer: array[hmctx.HashType.bits div 8, uint8]
+  let size = finish(hmctx.mdctx, addr buffer[0],
+                    uint(hmctx.HashType.bits div 8))
   hmctx.opadctx.update(addr buffer[0], size)
   result = hmctx.opadctx.finish(data, ulen)
 
-proc finish*[T](hmctx: var HMAC[T]): MDigest[hmctx.T.bits] =
+proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   discard finish(hmctx, cast[ptr uint8](addr result.data[0]),
                  uint(len(result.data)))

@@ -95,9 +95,9 @@ template RHO1(x): uint64 =
   ROR(x, 19) xor ROR(x, 61) xor (x shr 6)
 
 type
-  Sha2Context[bits: static[int],
-              bsize: static[int],
-              T: uint32|uint64] = object
+  Sha2Context*[bits: static[int],
+               bsize: static[int],
+               T: uint32|uint64] = object
     count: array[2, T]
     state: array[8, T]
     buffer: array[bsize, uint8]

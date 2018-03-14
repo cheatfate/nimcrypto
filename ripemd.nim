@@ -23,7 +23,7 @@
 import hash, utils
 
 type
-  RipemdContext[bits: static[int]] = object
+  RipemdContext*[bits: static[int]] = object
     count: array[2, uint32]
     state: array[bits div 32, uint32]
     buffer: array[64, uint8]

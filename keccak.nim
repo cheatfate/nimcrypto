@@ -32,11 +32,11 @@ const RNDC = [
 ]
 
 type
-  KeccakKind = enum
+  KeccakKind* = enum
     Sha3, Keccak, Shake
 
-  KeccakContext[bits: static[int],
-                kind: static[KeccakKind]] = object
+  KeccakContext*[bits: static[int],
+                 kind: static[KeccakKind]] = object
     q: array[25, uint64]
     pt: int
 

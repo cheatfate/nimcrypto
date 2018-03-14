@@ -21,16 +21,10 @@ const
 
 type
   HMAC*[HashType] = object
-    sizeBlock: uint
-    sizeDigest: uint
+    sizeBlock*: uint
+    sizeDigest*: uint
     mdctx: HashType
     opadctx: HashType
-
-template sizeDigest*(hmctx: HMAC): int =
-  sizeDigest(hmctx.mdctx)
-
-template sizeBlock*(hmctx: HMAC): int =
-  hmctx.sizeBlock
 
 proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
   mixin init, update, finish

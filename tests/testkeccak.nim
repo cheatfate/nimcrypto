@@ -106,7 +106,10 @@ when isMainModule:
   #     ctx.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
   #   result = $ctx.finish()
 
-  proc millionTest[T: sha3 | keccak](ctx: var T): string =
+  proc millionTest[T](ctx: var T): string =
+    mixin init
+    mixin update
+    mixin finish
     var msg = "a"
     ctx.init()
     for i in 1..1_000_000:

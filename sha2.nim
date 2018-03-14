@@ -109,39 +109,6 @@ type
   sha512_224* = Sha2Context[224, 128, uint64]
   sha512_256* = Sha2Context[256, 128, uint64]
 
-  # sha224* = ref object of MdContext
-  #   count: array[2, uint32]
-  #   state: array[8, uint32]
-  #   buffer: array[64, uint8]
-
-  # sha256* = ref object of MdContext
-  #   count: array[2, uint32]
-  #   state: array[8, uint32]
-  #   buffer: array[64, uint8]
-
-  # sha384* = ref object of MdContext
-  #   count: array[2, uint64]
-  #   state: array[8, uint64]
-  #   buffer: array[128, uint8]
-
-  # sha512* = ref object of MdContext
-  #   count: array[2, uint64]
-  #   state: array[8, uint64]
-  #   buffer: array[128, uint8]
-
-  # sha512_224* = ref object of MdContext
-  #   count: array[2, uint64]
-  #   state: array[8, uint64]
-  #   buffer: array[128, uint8]
-
-  # sha512_256* = ref object of MdContext
-  #   count: array[2, uint64]
-  #   state: array[8, uint64]
-  #   buffer: array[128, uint8]
-
-# type
-#   sha2* = sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
-  
 template sizeDigest*(ctx: Sha2Context): uint =
   (ctx.bits div 8)
 

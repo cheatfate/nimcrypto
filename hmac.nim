@@ -26,20 +26,20 @@ type
     opadctx: HashType
 
 template sizeBlock*(h: HMAC[Sha2Context]): uint =
-  uint(Sha2Context.bsize)
+  uint(h.HashType.bsize)
 
 template sizeBlock*(h: HMAC[RipemdContext]): uint =
   64'u
 
 template sizeBlock*(h: HMAC[KeccakContext]): uint =
-  if KeccakContext.kind == Keccak or KeccakContext.kind == Sha3:
-    when KeccakContext.bits == 224:
+  when h.HashType.kind == Keccak or h.HashType.kind == Sha3:
+    when h.HashType.bits == 224:
       144'u
-    elif KeccakContext.bits == 256:
+    elif h.HashType.bits == 256:
       136'u
-    elif KeccakContext.bits == 384:
+    elif h.HashType.bits == 384:
       104'u
-    elif KeccakContext.bits == 512:
+    elif h.HashType.bits == 512:
       72'u
     else:
       {.fatal: "Choosen hash primitive is not yet supported!".}
@@ -55,53 +55,29 @@ proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
   var k: array[MaxHmacBlockSize, uint8]
   var ipad: array[MaxHmacBlockSize, uint8]
   var opad: array[MaxHmacBlockSize, uint8]
-  # var sizeBlock: uint
-
-  # when (T is ripemd128) or (T is ripemd160):
-  #   sizeBlock = 64'u
-  # elif (T is ripemd256) or (T is ripemd320):
-  #   sizeBlock = 64'u
-  # elif (T is sha224) or (T is sha256):
-  #   sizeBlock = 64'u
-  # elif (T is sha384) or (T is sha512):
-  #   sizeBlock = 128'u
-  # elif (T is sha512_224) or (T is sha512_256):
-  #   sizeBlock = 128'u
-  # elif (T is sha3_224) or (T is keccak224):
-  #   sizeBlock = 144'u
-  # elif (T is sha3_256) or (T is keccak256):
-  #   sizeBlock = 136'u
-  # elif (T is sha3_384) or (T is keccak384):
-  #   sizeBlock = 104'u
-  # elif (T is sha3_512) or (T is keccak512):
-  #   sizeBlock = 72'u
-  # else:
-  #   {.fatal: "Choosen hash primitive is not yet supported!".}
+  const sizeBlock = hmctx.sizeBlock
 
   hmctx.mdctx = T()
   hmctx.opadctx = T()
   init(hmctx.opadctx)
 
   if not isNil(key):
-    # hmctx.sizeBlock = sizeBlock
-    # hmctx.sizeDigest = hmctx.opadctx.sizeDigest
-
-    if ulen > hmctx.sizeBlock:
+    if ulen > sizeBlock:
       init(hmctx.mdctx)
       update(hmctx.mdctx, key, ulen)
-      discard finish(hmctx.mdctx, addr k[0], hmctx.sizeBlock)
+      discard finish(hmctx.mdctx, addr k[0], sizeBlock)
     else:
       if ulen > 0'u: copyMem(addr k[0], key, ulen)
 
   var i = 0'u
-  while i < hmctx.sizeBlock:
+  while i < sizeBlock:
     opad[i] = 0x5C'u8 xor k[i]
     ipad[i] = 0x36'u8 xor k[i]
     inc(i)
 
   init(hmctx.mdctx)
-  update(hmctx.mdctx, addr ipad[0], hmctx.sizeBlock)
-  update(hmctx.opadctx, addr opad[0], hmctx.sizeBlock)
+  update(hmctx.mdctx, addr ipad[0], sizeBlock)
+  update(hmctx.opadctx, addr opad[0], sizeBlock)
 
 proc update*(hmctx: var HMAC, data: ptr uint8, ulen: uint) =
   mixin update

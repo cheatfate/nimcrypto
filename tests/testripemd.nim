@@ -98,6 +98,25 @@ when isMainModule:
       $digest256 & " != " & stripSpaces(RipeMD256C[i]))
     doAssert($digest320 == stripSpaces(RipeMD320C[i]),
       $digest320 & " != " & stripSpaces(RipeMD320C[i]))
+
+    var dcheck128 = $ripemd128.digest(cast [ptr uint8](addr a[0]),
+                                      uint(len(a)))
+    var dcheck160 = $ripemd160.digest(cast [ptr uint8](addr a[0]),
+                                      uint(len(a)))
+    var dcheck256 = $ripemd256.digest(cast [ptr uint8](addr a[0]),
+                                      uint(len(a)))
+    var dcheck320 = $ripemd320.digest(cast [ptr uint8](addr a[0]),
+                                      uint(len(a)))
+
+    doAssert($dcheck128 == stripSpaces(RipeMD128C[i]),
+      $dcheck128 & " != " & stripSpaces(Ripemd128C[i]))
+    doAssert($dcheck160 == stripSpaces(RipeMD160C[i]),
+      $dcheck160 & " != " & stripSpaces(RipeMD160C[i]))
+    doAssert($dcheck256 == stripSpaces(RipeMD256C[i]),
+      $dcheck256 & " != " & stripSpaces(RipeMD256C[i]))
+    doAssert($dcheck320 == stripSpaces(RipeMD320C[i]),
+      $dcheck320 & " != " & stripSpaces(RipeMD320C[i]))
+
     inc(i)
 
   ctx128.init()

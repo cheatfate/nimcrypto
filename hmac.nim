@@ -94,3 +94,10 @@ proc finish*(hmctx: var HMAC, data: ptr uint8, ulen: uint): uint =
 proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   discard finish(hmctx, cast[ptr uint8](addr result.data[0]),
                  uint(len(result.data)))
+
+proc hmac*(HashType: typedesc, key: ptr uint8, klen: uint,
+           data: ptr uint8, ulen: uint): MDigest[HashType.bits] =
+  var ctx: HMAC[HashType]
+  ctx.init(key, klen)
+  ctx.update(data, ulen)
+  result = ctx.finish()

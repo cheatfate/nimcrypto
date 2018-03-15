@@ -74,8 +74,10 @@ when isMainModule:
     var digest = stripSpaces(digest224[i])
     init(ctx224)
     ctx224.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
-    var check = $ctx224.finish()
-    doAssert(check == digest)
+    var check1 = $ctx224.finish()
+    var check2 = $sha224.digest(cast[ptr uint8](addr plaintext[0]),
+                                uint(len(plaintext)))
+    doAssert(check1 == digest and check2 == digest)
     inc(i)
 
   # SHA 256
@@ -85,8 +87,10 @@ when isMainModule:
     var digest = stripSpaces(digest256[i])
     init(ctx256)
     ctx256.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
-    var check = $ctx256.finish()
-    doAssert(check == digest)
+    var check1 = $ctx256.finish()
+    var check2 = $sha256.digest(cast[ptr uint8](addr plaintext[0]),
+                                uint(len(plaintext)))
+    doAssert(check1 == digest and check2 == digest)
     inc(i)
 
   # SHA 384
@@ -96,8 +100,10 @@ when isMainModule:
     var digest = stripSpaces(digest384[i])
     init(ctx384)
     ctx384.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
-    var check = $ctx384.finish()
-    doAssert(check == digest)
+    var check1 = $ctx384.finish()
+    var check2 = $sha384.digest(cast[ptr uint8](addr plaintext[0]),
+                                uint(len(plaintext)))
+    doAssert(check1 == digest and check2 == digest)
     inc(i)
 
   # SHA 512
@@ -107,8 +113,10 @@ when isMainModule:
     var digest = stripSpaces(digest512[i])
     init(ctx512)
     ctx512.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
-    var check = $ctx512.finish()
-    doAssert(check == digest)
+    var check1 = $ctx512.finish()
+    var check2 = $sha512.digest(cast[ptr uint8](addr plaintext[0]),
+                                uint(len(plaintext)))
+    doAssert(check1 == digest and check2 == digest)
     inc(i)
 
   # SHA 512/224
@@ -118,8 +126,10 @@ when isMainModule:
     var digest = stripSpaces(digest512_224[i])
     init(ctx512_224)
     ctx512_224.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
-    var check = $ctx512_224.finish()
-    doAssert(check == digest)
+    var check1 = $ctx512_224.finish()
+    var check2 = $sha512_224.digest(cast[ptr uint8](addr plaintext[0]),
+                                    uint(len(plaintext)))
+    doAssert(check1 == digest and check2 == digest)
     inc(i)
 
   # SHA 512/256
@@ -129,6 +139,8 @@ when isMainModule:
     var digest = stripSpaces(digest512_256[i])
     init(ctx512_256)
     ctx512_256.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
-    var check = $ctx512_256.finish()
-    doAssert(check == digest)
+    var check1 = $ctx512_256.finish()
+    var check2 = $sha512_256.digest(cast[ptr uint8](addr plaintext[0]),
+                                    uint(len(plaintext)))
+    doAssert(check1 == digest and check2 == digest)
     inc(i)

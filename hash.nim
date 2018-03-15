@@ -13,3 +13,11 @@ proc `$`*(digest: MDigest): string =
   while i < uint(len(digest.data)):
     result &= hexChar(cast[uint8](digest.data[i]))
     inc(i)
+
+proc digest*(HashType: typedesc, data: ptr uint8,
+             ulen: uint): MDigest[HashType.bits] =
+  mixin init, update, finish
+  var ctx: HashType
+  ctx.init()
+  ctx.update(data, ulen)
+  result = ctx.finish()

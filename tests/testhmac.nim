@@ -73,9 +73,16 @@ block:
     var ctx: HMAC[ripemd128]
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var digest = $ctx.finish()
-    if digest != ripemd128digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & ripemd128digests[i]
+    var digest1 = $ctx.finish()
+    var digest2 = $ripemd128.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest1 != ripemd128digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest1 & " != " & ripemd128digests[i]
+      status = false
+    if digest2 != ripemd128digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest2 & " != " & ripemd128digests[i]
       status = false
   if status:
     echo "OK"
@@ -89,13 +96,20 @@ block:
     var ctx: HMAC[ripemd160]
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var digest = $ctx.finish()
-    if digest != ripemd160digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & ripemd160digests[i]
+    var digest1 = $ctx.finish()
+    var digest2 = $ripemd160.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest1 != ripemd160digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest1 & " != " & ripemd160digests[i]
+      status = false
+    if digest2 != ripemd160digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest2 & " != " & ripemd160digests[i]
       status = false
   if status:
     echo "OK"
-    
+
 # SHA2 224/256/384/512 test vectors
 # [https://tools.ietf.org/html/rfc4231].
 
@@ -190,9 +204,16 @@ block:
     var digest = stripSpaces(sha224digests[i])
     ctx224.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx224.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx224.finish()
-    if digest != check:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check
+    var check1 = $ctx224.finish()
+    var check2 = $sha224.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
       status = false
   if status:
     echo "OK"
@@ -207,9 +228,16 @@ block:
     var digest = stripSpaces(sha256digests[i])
     ctx256.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx256.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx256.finish()
-    if digest != check:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check
+    var check1 = $ctx256.finish()
+    var check2 = $sha256.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
       status = false
   if status:
     echo "OK"
@@ -224,9 +252,16 @@ block:
     var digest = stripSpaces(sha384digests[i])
     ctx384.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx384.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx384.finish()
-    if digest != check:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check
+    var check1 = $ctx384.finish()
+    var check2 = $sha384.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
       status = false
   if status:
     echo "OK"
@@ -241,9 +276,16 @@ block:
     var digest = stripSpaces(sha512digests[i])
     ctx512.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx512.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx512.finish()
-    if digest != check:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check
+    var check1 = $ctx512.finish()
+    var check2 = $sha512.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
       status = false
   if status:
     echo "OK"
@@ -362,9 +404,16 @@ block:
     var digest = stripSpaces(sha3_224digests[i])
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx.finish()
-    if digest != check:
-      echo "FAILED\n" & $digest & " != " & check
+    var check1 = $ctx.finish()
+    var check2 = $sha3_224.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $digest & " != " & check2
       status = false
   if status:
     echo "OK"
@@ -379,9 +428,16 @@ block:
     var digest = stripSpaces(sha3_256digests[i])
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx.finish()
-    if digest != check:
-      echo "FAILED\n" & $digest & " != " & check
+    var check1 = $ctx.finish()
+    var check2 = $sha3_256.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $digest & " != " & check2
       status = false
   if status:
     echo "OK"
@@ -396,9 +452,16 @@ block:
     var digest = stripSpaces(sha3_384digests[i])
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx.finish()
-    if digest != check:
-      echo "FAILED\n" & $digest & " != " & check
+    var check1 = $ctx.finish()
+    var check2 = $sha3_384.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $digest & " != " & check2
       status = false
   if status:
     echo "OK"
@@ -413,9 +476,16 @@ block:
     var digest = stripSpaces(sha3_512digests[i])
     ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
     ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check = $ctx.finish()
-    if digest != check:
-      echo "FAILED\n" & $digest & " != " & check
+    var check1 = $ctx.finish()
+    var check2 = $sha3_512.hmac(
+      cast[ptr uint8](addr key[0]), uint(len(key)),
+      cast[ptr uint8](addr data[0]), uint(len(data))
+    )
+    if digest != check1:
+      echo "FAILED\n" & $digest & " != " & check1
+      status = false
+    if digest != check2:
+      echo "FAILED\n" & $digest & " != " & check2
       status = false
   if status:
     echo "OK"

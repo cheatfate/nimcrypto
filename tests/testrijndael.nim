@@ -136,7 +136,7 @@ when isMainModule:
     while i < len(testsP128):
       var key = fromHex(EPkey)
       var data = fromHex(testsP128[i])
-      var ctx = aes128()
+      var ctx: aes128
       ctx.init(addr key[0])
       ctx.encrypt(addr data[0], addr data[0])
       doAssert(fromHex(testsE128[i]) == data)
@@ -149,7 +149,7 @@ when isMainModule:
     while i < len(testsP192):
       var key = fromHex(EPkey)
       var data = fromHex(testsP192[i])
-      var ctx = aes192()
+      var ctx: aes192
       ctx.init(addr key[0])
       ctx.encrypt(addr data[0], addr data[0])
       doAssert(fromHex(testsE192[i]) == data)
@@ -162,7 +162,7 @@ when isMainModule:
     while i < len(testsP256):
       var key = fromHex(EPkey)
       var data = fromHex(testsP256[i])
-      var ctx = aes256()
+      var ctx: aes256
       ctx.init(addr key[0])
       ctx.encrypt(addr data[0], addr data[0])
       doAssert(fromHex(testsE256[i]) == data)
@@ -175,7 +175,7 @@ when isMainModule:
     while i < len(testsK128):
       var key = fromHex(testsK128[i])
       var data = fromHex(KCdata)
-      var ctx = aes128()
+      var ctx: aes128
       ctx.init(addr key[0])
       ctx.encrypt(addr data[0], addr data[0])
       doAssert(fromHex(testsC128[i]) == data)
@@ -188,7 +188,7 @@ when isMainModule:
     while i < len(testsK192):
       var key = fromHex(testsK192[i])
       var data = fromHex(KCdata)
-      var ctx = aes192()
+      var ctx: aes192
       ctx.init(addr key[0])
       ctx.encrypt(addr data[0], addr data[0])
       doAssert(fromHex(testsC192[i]) == data)
@@ -201,7 +201,7 @@ when isMainModule:
     while i < len(testsK256):
       var key = fromHex(testsK256[i])
       var data = fromHex(KCdata)
-      var ctx = aes256()
+      var ctx: aes256
       ctx.init(addr key[0])
       ctx.encrypt(addr data[0], addr data[0])
       doAssert(fromHex(testsC256[i]) == data)

@@ -1,20 +1,15 @@
 import utils
 
 const
-  MaxMdDigestLength* = 64
+  MaxMDigestLength* = 64
 
 type
-  MdContext* = ref object of RootRef
-    sizeBlock*: uint
-    sizeDigest*: uint
+  MDigest*[bits: static[int]] = object
+    data*: array[bits div 8, uint8]
 
-  MdDigest* = ref object of RootRef
-    size*: uint
-    data*: array[MaxMdDigestLength, uint8]
-
-proc `$`*(digest: MdDigest): string =
+proc `$`*(digest: MDigest): string =
   result = ""
   var i = 0'u
-  while i < digest.size:
+  while i < uint(len(digest.data)):
     result &= hexChar(cast[uint8](digest.data[i]))
     inc(i)

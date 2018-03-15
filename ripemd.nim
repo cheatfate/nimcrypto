@@ -23,27 +23,15 @@
 import hash, utils
 
 type
-  ripemd128* = ref object of MdContext
+  RipemdContext*[bits: static[int]] = object
     count: array[2, uint32]
-    state: array[4, uint32]
+    state: array[bits div 32, uint32]
     buffer: array[64, uint8]
 
-  ripemd160* = ref object of MdContext
-    count: array[2, uint32]
-    state: array[5, uint32]
-    buffer: array[64, uint8]
-
-  ripemd256* = ref object of MdContext
-    count: array[2, uint32]
-    state: array[8, uint32]
-    buffer: array[64, uint8]
-
-  ripemd320* = ref object of MdContext
-    count: array[2, uint32]
-    state: array[10, uint32]
-    buffer: array[64, uint8]
-    
-  ripemd* = ripemd128 | ripemd160 | ripemd256 | ripemd320
+  ripemd128* = RipemdContext[128]
+  ripemd160* = RipemdContext[160]
+  ripemd256* = RipemdContext[256]
+  ripemd320* = RipemdContext[320]
 
 # Five basic functions F(), G() and H()
 template F(x, y, z: untyped): untyped =
@@ -612,29 +600,30 @@ proc ripemd320Transform(state: var array[10, uint32], data: ptr uint8) =
   state[8] = state[8] + ddd
   state[9] = state[9] + eee
 
-proc init*[T: ripemd](ctx: T) =
+template sizeDigest*(ctx: RipemdContext): uint =
+  (ctx.bits div 8)
+
+template sizeBlock*(ctx: RipemdContext): uint =
+  64
+
+proc init*(ctx: var RipemdContext) =
   ctx.count[0] = 0
   ctx.count[1] = 0
 
-  for i in 0..15:
-    ctx.buffer[i] = 0
+  zeroMem(addr ctx.buffer[0], sizeof(uint8) * 64)
 
-  when T is ripemd128:
+  when ctx.bits == 128:
     ctx.state[0] = 0x67452301'u32
     ctx.state[1] = 0xEFCDAB89'u32
     ctx.state[2] = 0x98BADCFE'u32
     ctx.state[3] = 0x10325476'u32
-    ctx.sizeBlock = 64
-    ctx.sizeDigest = 16
-  elif T is ripemd160:
+  elif ctx.bits == 160:
     ctx.state[0] = 0x67452301'u32
     ctx.state[1] = 0xEFCDAB89'u32
     ctx.state[2] = 0x98BADCFE'u32
     ctx.state[3] = 0x10325476'u32
     ctx.state[4] = 0xC3D2E1F0'u32
-    ctx.sizeBlock = 64
-    ctx.sizeDigest = 20
-  elif T is ripemd256:
+  elif ctx.bits == 256:
     ctx.state[0] = 0x67452301'u32
     ctx.state[1] = 0xEFCDAB89'u32
     ctx.state[2] = 0x98BADCFE'u32
@@ -643,9 +632,7 @@ proc init*[T: ripemd](ctx: T) =
     ctx.state[5] = 0xFEDCBA98'u32
     ctx.state[6] = 0x89ABCDEF'u32
     ctx.state[7] = 0x01234567'u32
-    ctx.sizeBlock = 64
-    ctx.sizeDigest = 32
-  else:
+  elif ctx.bits == 320:
     ctx.state[0] = 0x67452301'u32
     ctx.state[1] = 0xEFCDAB89'u32
     ctx.state[2] = 0x98BADCFE'u32
@@ -656,10 +643,8 @@ proc init*[T: ripemd](ctx: T) =
     ctx.state[7] = 0x89ABCDEF'u32
     ctx.state[8] = 0x01234567'u32
     ctx.state[9] = 0x3C2D1E0F'u32
-    ctx.sizeBlock = 64
-    ctx.sizeDigest = 40
 
-proc update*[T: ripemd](ctx: T, data: ptr uint8, ulen: uint) =
+proc update*(ctx: var RipemdContext, data: ptr uint8, ulen: uint) =
   var pos = 0'u
   var length = ulen
 
@@ -674,66 +659,65 @@ proc update*[T: ripemd](ctx: T, data: ptr uint8, ulen: uint) =
     if ctx.count[0] < uint32(size):
       ctx.count[1] += 1'u32
     if (ctx.count[0] and 0x3F) == 0:
-      when T is ripemd128:
+      when ctx.bits == 128:
         ripemd128Transform(ctx.state, addr(ctx.buffer[0]))
-      elif T is ripemd160:
+      elif ctx.bits == 160:
         ripemd160Transform(ctx.state, addr(ctx.buffer[0]))
-      elif T is ripemd256:
+      elif ctx.bits == 256:
         ripemd256Transform(ctx.state, addr(ctx.buffer[0]))
-      else:
+      elif ctx.bits == 320:
         ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
 
-proc finalize[T: ripemd](ctx: T) =
+proc finalize(ctx: var RipemdContext) =
   let size = (ctx.count[0] and 0x3F)
   var buffer = addr(ctx.buffer[0])
   zeroMem(addr(ctx.buffer[size]), 0x40'u - size)
   ctx.buffer[size] = 0x80
   if size > 55'u32:
-    when T is ripemd128:
+    when ctx.bits == 128:
       ripemd128Transform(ctx.state, addr(ctx.buffer[0]))
-    elif T is ripemd160:
+    elif ctx.bits == 160:
       ripemd160Transform(ctx.state, addr(ctx.buffer[0]))
-    elif T is ripemd256:
+    elif ctx.bits == 256:
       ripemd256Transform(ctx.state, addr(ctx.buffer[0]))
-    else:
+    elif ctx.bits == 320:
       ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
     zeroMem(addr(ctx.buffer[0]), 0x40)
   SET_DWORD(buffer, 14, (ctx.count[0]) shl 3)
   SET_DWORD(buffer, 15, (ctx.count[0] shr 29) or (ctx.count[1] shl 3))
-  when T is ripemd128:
+  when ctx.bits == 128:
     ripemd128Transform(ctx.state, addr(ctx.buffer[0]))
-  elif T is ripemd160:
+  elif ctx.bits == 160:
     ripemd160Transform(ctx.state, addr(ctx.buffer[0]))
-  elif T is ripemd256:
+  elif ctx.bits == 256:
     ripemd256Transform(ctx.state, addr(ctx.buffer[0]))
-  else:
+  elif ctx.bits == 320:
     ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
 
-proc finish*[T: ripemd](ctx: T, data: ptr uint8, ulen: uint): uint =
+proc finish*(ctx: var RipemdContext, data: ptr uint8, ulen: uint): uint =
   result = 0
   finalize(ctx)
-  when T is ripemd128:
+  when ctx.bits == 128:
     if ulen >= 16'u:
-      result = 16
+      result = sizeDigest(ctx)
       for i in 0..3:
         SET_DWORD(data, i, BSWAP(ctx.state[i]))
-  elif T is ripemd160:
+  elif ctx.bits == 160:
     if ulen >= 20'u:
-      result = 20
+      result = sizeDigest(ctx)
       for i in 0..4:
         SET_DWORD(data, i, BSWAP(ctx.state[i]))
-  elif T is ripemd256:
+  elif ctx.bits == 256:
     if ulen >= 32'u:
-      result = 32
+      result = sizeDigest(ctx)
       for i in 0..7:
         SET_DWORD(data, i, BSWAP(ctx.state[i]))
-  else:
+  elif ctx.bits == 320:
     if ulen >= 40'u:
-      result = 40
+      result = sizeDigest(ctx)
       for i in 0..9:
         SET_DWORD(data, i, BSWAP(ctx.state[i]))
 
-proc finish*[T: ripemd](ctx: T): MdDigest =
-  result = MdDigest()
-  result.size = finish(ctx, cast[ptr uint8](addr result.data[0]),
-                       MaxMdDigestLength)
+proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
+  discard finish(ctx, cast[ptr uint8](addr result.data[0]),
+                 uint(len(result.data)))

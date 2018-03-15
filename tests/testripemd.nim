@@ -1,13 +1,6 @@
 import ../hash, ../utils, ../ripemd
 
 when isMainModule:
-  proc millionTest[T: ripemd](ctx: T): MdDigest =
-    var am = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    ctx.init()
-    for i in 0..(15625 - 1):
-      ctx.update(cast[ptr uint8](addr am[0]), uint(len(am)))
-    result = ctx.finish()
-
   const vectors = [
     "",
     "a",
@@ -73,10 +66,10 @@ when isMainModule:
        965E8C8509E63D1DBDDECC503E2B63EB9245BB66"""
   ]
 
-  var ctx128 = ripemd128()
-  var ctx160 = ripemd160()
-  var ctx256 = ripemd256()
-  var ctx320 = ripemd320()
+  var ctx128: ripemd128
+  var ctx160: ripemd160
+  var ctx256: ripemd256
+  var ctx320: ripemd320
   var i = 0
 
   for item in vectors:
@@ -112,10 +105,16 @@ when isMainModule:
   ctx256.init()
   ctx320.init()
 
-  var digest128 = millionTest(ctx128)
-  var digest160 = millionTest(ctx160)
-  var digest256 = millionTest(ctx256)
-  var digest320 = millionTest(ctx320)
+  var am = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  for i in 0..(15625 - 1):
+    ctx128.update(cast[ptr uint8](addr am[0]), uint(len(am)))
+    ctx160.update(cast[ptr uint8](addr am[0]), uint(len(am)))
+    ctx256.update(cast[ptr uint8](addr am[0]), uint(len(am)))
+    ctx320.update(cast[ptr uint8](addr am[0]), uint(len(am)))
+  var digest128 = ctx128.finish()
+  var digest160 = ctx160.finish()
+  var digest256 = ctx256.finish()
+  var digest320 = ctx320.finish()
 
   doAssert($digest128 == stripSpaces(Ripemd128C[8]),
     $digest128 & " != " & stripSpaces(Ripemd128C[8]))

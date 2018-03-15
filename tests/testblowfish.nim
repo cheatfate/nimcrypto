@@ -125,7 +125,7 @@ when isMainModule:
       0x5A5479AD'u32, 0xFA52D080'u32
     ]
 
-  var ctx = blowfish()
+  var ctx: blowfish
   for i in 0..<NUM_VARIABLE_KEY_TESTS:
     var key = variable_key[i]
     ctx.init(addr key[0], len(key))

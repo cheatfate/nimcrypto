@@ -15,7 +15,7 @@
 ## Tests made according to official test vectors
 ## [https://www.schneier.com/code/ecb_ival.txt].
 
-import cipher, utils
+import utils
 
 const
   RS_MOD = 0x14D
@@ -169,14 +169,13 @@ const
   ]
 
 type
-  twofishContext* = ref object of CipherContext
+  TwofishContext[bits: static[uint]] = object
     S: array[4, array[256, uint32]]
     K: array[40, uint32]
 
-  twofish128* = ref object of twofishContext
-  twofish192* = ref object of twofishContext
-  twofish256* = ref object of twofishContext
-  twofish* = twofish128 | twofish192 | twofish256
+  twofish128* = TwofishContext[128]
+  twofish192* = TwofishContext[192]
+  twofish256* = TwofishContext[256]
 
 template bn(x, n: uint32): uint8 =
   cast[uint8]((x shr (n * 8)) and 0xFF'u32)
@@ -311,7 +310,7 @@ template DEC_ROUND(CTX, R0, R1, R2, R3, round) =
   R2 = ROL(R2, 1) xor (T0 + T1 + CTX.K[2 * round + 8])
   R3 = ROR(R3 xor (T0 + 2'u32 * T1 + CTX.K[2 * round + 9]), 1)
 
-proc twofishEncrypt(ctx: twofishContext, inp: ptr uint8, oup: ptr uint8) =
+proc twofishEncrypt(ctx: var TwofishContext, inp: ptr uint8, oup: ptr uint8) =
   var T0, T1: uint32
 
   var r3 = ctx.K[3] xor BSWAP(GET_DWORD(inp, 3))
@@ -341,7 +340,7 @@ proc twofishEncrypt(ctx: twofishContext, inp: ptr uint8, oup: ptr uint8) =
   SET_DWORD(oup, 1, BSWAP(r3 xor ctx.K[5]))
   SET_DWORD(oup, 0, BSWAP(r2 xor ctx.K[4]))
 
-proc twofishDecrypt(ctx: twofishContext, inp: ptr uint8, oup: ptr uint8) =
+proc twofishDecrypt(ctx: var TwofishContext, inp: ptr uint8, oup: ptr uint8) =
   var T0, T1: uint32
 
   var r3 = ctx.K[7] xor BSWAP(GET_DWORD(inp, 3))
@@ -371,7 +370,7 @@ proc twofishDecrypt(ctx: twofishContext, inp: ptr uint8, oup: ptr uint8) =
   SET_DWORD(oup, 1, BSWAP(r3 xor ctx.K[1]))
   SET_DWORD(oup, 0, BSWAP(r2 xor ctx.K[0]))
 
-proc initTwofishContext(ctx: twofishContext, N: int, key: ptr uint8) =
+proc initTwofishContext(ctx: var TwofishContext, N: int, key: ptr uint8) =
   var
     A, B: uint32
 
@@ -399,24 +398,19 @@ proc initTwofishContext(ctx: twofishContext, N: int, key: ptr uint8) =
 
   fullKey(S, k.int32, ctx.S)
 
-proc init*[T: twofish](ctx: T, key: ptr uint8, nkey: int = 0) {.inline.} =
-  when T is twofish128:
-    initTwofishContext(ctx, 128, key)
-    ctx.sizeKey = 128
-    ctx.sizeBlock = 128
-  elif T is twofish192:
-    initTwofishContext(ctx, 192, key)
-    ctx.sizeKey = 192
-    ctx.sizeBlock = 128
-  else:
-    initTwofishContext(ctx, 256, key)
-    ctx.sizeKey = 256
-    ctx.sizeBlock = 128
+template sizeKey*(ctx: TwofishContext): int =
+  (ctx.bits div 8)
 
-proc encrypt*[T: twofish](ctx: T, inbytes: ptr uint8,
-                          outbytes: ptr uint8) {.inline.} =
+template sizeBlock*(ctx: TwofishContext): int =
+  (128)
+
+proc init*(ctx: var TwofishContext, key: ptr uint8, nkey: int = 0) {.inline.} =
+  initTwofishContext(ctx, ctx.bits, key)
+
+proc encrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
+              outbytes: ptr uint8) {.inline.} =
   twofishEncrypt(ctx, inbytes, outbytes)
 
-proc decrypt*[T: twofish](ctx: T, inbytes: ptr uint8,
-                          outbytes: ptr uint8) {.inline.} =
+proc decrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
+              outbytes: ptr uint8) {.inline.} =
   twofishDecrypt(ctx, inbytes, outbytes)

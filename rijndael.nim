@@ -17,7 +17,7 @@
 ## Tests made according to official test vectors (Appendix B and Appendix C)
 ## [http://csrc.nist.gov/groups/STM/cavp/documents/aes/AESAVS.pdf].
 
-import cipher, utils
+import utils
 
 const
   MaxNr = 14
@@ -704,20 +704,20 @@ template VSWAP(a, b) =
   b = temp
 
 type
-  rijndaelContext = ref object of CipherContext
+  RijndaelContext[bits: static[uint]] = object
     RKe: array[4 * (MaxNr + 1), uint32]
     RKd: array[4 * (MaxNr + 1), uint32]
     Nr: int
 
-  rijndael128* = ref object of rijndaelContext
-  rijndael192* = ref object of rijndaelContext
-  rijndael256* = ref object of rijndaelContext
+  rijndael128* = RijndaelContext[128]
+  rijndael192* = RijndaelContext[192]
+  rijndael256* = RijndaelContext[256]
   aes128* = rijndael128
   aes192* = rijndael192
   aes256* = rijndael256
-  rijndael = rijndael128 | rijndael192 | rijndael256 | aes128 | aes192 | aes256
 
-proc rijndaelKeySetupEnc(ctx: rijndaelContext, N: int, key: ptr uint8): int =
+proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
+                         N: int, key: ptr uint8): int =
   ctx.RKe[0] = GETU32(key, 0)
   ctx.RKe[1] = GETU32(key, 4)
   ctx.RKe[2] = GETU32(key, 8)
@@ -796,7 +796,8 @@ proc rijndaelKeySetupEnc(ctx: rijndaelContext, N: int, key: ptr uint8): int =
           ctx.RKe[offset + 15] = ctx.RKe[offset + 7] xor ctx.RKe[offset + 14]
           inc(offset, 8)
 
-proc rijndaelKeySetupDec(ctx: rijndaelContext, N: int, key: ptr uint8): int =
+proc rijndaelKeySetupDec(ctx: var RijndaelContext, N: int,
+                         key: ptr uint8): int =
   result = rijndaelKeySetupEnc(ctx, N, key)
   ctx.RKd = ctx.RKe
   var temp = 0'u32
@@ -879,7 +880,8 @@ template DEC_ROUND(D0, D1, D2, D3, S0, S1, S2, S3, RK, ROUND) =
        Td3[S0 and 0xFF] xor
        RK[ROUND * 4 + 3]
 
-proc rijndaelEncrypt*(ctx: rijndaelContext, inp: ptr uint8, oup: ptr uint8) =
+proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr uint8,
+                      oup: ptr uint8) =
   var t0, t1, t2, t3: uint32
 
   var s0 = GETU32(inp, 0) xor ctx.RKe[0]
@@ -931,7 +933,8 @@ proc rijndaelEncrypt*(ctx: rijndaelContext, inp: ptr uint8, oup: ptr uint8) =
   PUTU32(oup, 8, s2)
   PUTU32(oup, 12, s3)
 
-proc rijndaelDecrypt*(ctx: rijndaelContext, inp: ptr uint8, oup: ptr uint8) =
+proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr uint8,
+                      oup: ptr uint8) =
   var t0, t1, t2, t3: uint32
 
   var s0 = GETU32(inp, 0) xor ctx.RKd[0]
@@ -983,27 +986,22 @@ proc rijndaelDecrypt*(ctx: rijndaelContext, inp: ptr uint8, oup: ptr uint8) =
   PUTU32(oup, 8, s2)
   PUTU32(oup, 12, s3)
 
-proc initRijndaelContext*(ctx: rijndaelContext, N: int, key: ptr uint8) =
+proc initRijndaelContext*(ctx: var RijndaelContext, N: int, key: ptr uint8) =
   ctx.Nr = rijndaelKeySetupDec(ctx, N, key)
 
-proc init*[T: rijndael](ctx: T, key: ptr uint8, nkey: int = 0) {.inline.} =
-  when (T is rijndael128) or (T is aes128):
-    ctx.Nr = rijndaelKeySetupDec(ctx, 128, key)
-    ctx.sizeKey = 128
-    ctx.sizeBlock = 128
-  elif (T is rijndael192) or (T is aes192):
-    ctx.Nr = rijndaelKeySetupDec(ctx, 192, key)
-    ctx.sizeKey = 192
-    ctx.sizeBlock = 128
-  else:
-    ctx.Nr = rijndaelKeySetupDec(ctx, 256, key)
-    ctx.sizeKey = 256
-    ctx.sizeBlock = 128
+template sizeKey*(ctx: RijndaelContext): int =
+  (ctx.bits div 8)
 
-proc encrypt*[T: rijndael](ctx: T, inbytes: ptr uint8,
-                           outbytes: ptr uint8) {.inline.} =
+template sizeBlock*(ctx: RijndaelContext): int =
+  (128)
+
+proc init*(ctx: var RijndaelContext, key: ptr uint8, nkey: int = 0) {.inline.} =
+  ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)
+
+proc encrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
+              outbytes: ptr uint8) {.inline.} =
   rijndaelEncrypt(ctx, inbytes, outbytes)
 
-proc decrypt*[T: rijndael](ctx: T, inbytes: ptr uint8,
-                           outbytes: ptr uint8) {.inline.} =
+proc decrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
+              outbytes: ptr uint8) {.inline.} =
   rijndaelDecrypt(ctx, inbytes, outbytes)

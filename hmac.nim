@@ -11,59 +11,57 @@
 ## [http://www.ietf.org/rfc/rfc2104.txt].
 
 import hash
-from sha2 import sha224, sha256, sha384, sha512, sha512_224, sha512_256
-from ripemd import ripemd128, ripemd160, ripemd256, ripemd320
-from keccak import sha3_224, sha3_256, sha3_384, sha3_512
-from keccak import keccak224, keccak256, keccak384, keccak512
+from sha2 import Sha2Context
+from ripemd import RipemdContext
+from keccak import KeccakContext
 
 const
   MaxHmacBlockSize = 256
 
 type
-  hmac*[T] = ref object of RootRef
-    sizeBlock: uint
-    sizeDigest: uint
-    mdctx: T
-    opadctx: T
+  HMAC*[HashType] = object
+    # sizeBlock*: uint
+    # sizeDigest*: uint
+    mdctx: HashType
+    opadctx: HashType
 
-proc init*[T](hmctx: hmac[T], key: ptr uint8, ulen: uint) =
-  mixin init
-  mixin update
-  mixin finish
+template sizeBlock*(h: HMAC[Sha2Context]): uint =
+  uint(h.HashType.bsize)
+
+template sizeBlock*(h: HMAC[RipemdContext]): uint =
+  64'u
+
+template sizeBlock*(h: HMAC[KeccakContext]): uint =
+  when h.HashType.kind == Keccak or h.HashType.kind == Sha3:
+    when h.HashType.bits == 224:
+      144'u
+    elif h.HashType.bits == 256:
+      136'u
+    elif h.HashType.bits == 384:
+      104'u
+    elif h.HashType.bits == 512:
+      72'u
+    else:
+      {.fatal: "Choosen hash primitive is not yet supported!".}
+  else:
+    {.fatal: "Choosen hash primitive is not yet supported!".}
+
+template sizeDigest*(h: HMAC[Sha2Context]): uint = Sha2Context.bits
+template sizeDigest*(h: HMAC[RipemdContext]): uint = RipemdContext.bits
+template sizeDigest*(h: HMAC[KeccakContext]): uint = KeccakContext.bits
+
+proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
+  mixin init, update, finish
   var k: array[MaxHmacBlockSize, uint8]
   var ipad: array[MaxHmacBlockSize, uint8]
   var opad: array[MaxHmacBlockSize, uint8]
-  var sizeBlock: uint
-
-  when (T is ripemd128) or (T is ripemd160):
-    sizeBlock = 64'u
-  elif (T is ripemd256) or (T is ripemd320):
-    sizeBlock = 64'u
-  elif (T is sha224) or (T is sha256):
-    sizeBlock = 64'u
-  elif (T is sha384) or (T is sha512):
-    sizeBlock = 128'u
-  elif (T is sha512_224) or (T is sha512_256):
-    sizeBlock = 128'u
-  elif (T is sha3_224) or (T is keccak224):
-    sizeBlock = 144'u
-  elif (T is sha3_256) or (T is keccak256):
-    sizeBlock = 136'u
-  elif (T is sha3_384) or (T is keccak384):
-    sizeBlock = 104'u
-  elif (T is sha3_512) or (T is keccak512):
-    sizeBlock = 72'u
-  else:
-    {.fatal: "Choosen hash primitive is not yet supported!".}
+  const sizeBlock = hmctx.sizeBlock
 
   hmctx.mdctx = T()
   hmctx.opadctx = T()
   init(hmctx.opadctx)
 
   if not isNil(key):
-    hmctx.sizeBlock = sizeBlock
-    hmctx.sizeDigest = hmctx.opadctx.sizeDigest
-
     if ulen > sizeBlock:
       init(hmctx.mdctx)
       update(hmctx.mdctx, key, ulen)
@@ -81,21 +79,18 @@ proc init*[T](hmctx: hmac[T], key: ptr uint8, ulen: uint) =
   update(hmctx.mdctx, addr ipad[0], sizeBlock)
   update(hmctx.opadctx, addr opad[0], sizeBlock)
 
-proc update*[T](hmctx: hmac[T], data: ptr uint8, ulen: uint) =
+proc update*(hmctx: var HMAC, data: ptr uint8, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
 
-proc finish*[T](hmctx: hmac[T], data: ptr uint8, ulen: uint): uint =
-  mixin finish
-  mixin update
-  var buffer: array[MaxMdDigestLength, uint8]
-  
-  let size = finish(hmctx.mdctx, addr buffer[0], MaxMdDigestLength)
-  update(hmctx.opadctx, addr buffer[0], size)
-  result = finish(hmctx.opadctx, data, ulen)
+proc finish*(hmctx: var HMAC, data: ptr uint8, ulen: uint): uint =
+  mixin update, finish
+  var buffer: array[hmctx.HashType.bits div 8, uint8]
+  let size = finish(hmctx.mdctx, addr buffer[0],
+                    uint(hmctx.HashType.bits div 8))
+  hmctx.opadctx.update(addr buffer[0], size)
+  result = hmctx.opadctx.finish(data, ulen)
 
-proc finish*[T](hmctx: hmac[T]): MdDigest =
-  mixin finish
-  result = MdDigest()
-  result.size = finish(hmctx, cast[ptr uint8](addr result.data[0]),
-                       MaxMdDigestLength)
+proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
+  discard finish(hmctx, cast[ptr uint8](addr result.data[0]),
+                 uint(len(result.data)))

@@ -1,4 +1,4 @@
-import ../utils, ../bcmode, ../rijndael
+import nimcrypto/utils, nimcrypto/bcmode, nimcrypto/rijndael
 
 when isMainModule:
   const

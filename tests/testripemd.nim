@@ -1,4 +1,4 @@
-import ../hash, ../utils, ../ripemd
+import nimcrypto/hash, nimcrypto/utils, nimcrypto/ripemd
 
 when isMainModule:
   const vectors = [

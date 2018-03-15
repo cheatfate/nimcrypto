@@ -1,4 +1,4 @@
-import ../hash, ../sha2, ../utils
+import nimcrypto/hash, nimcrypto/sha2, nimcrypto/utils
 
 when isMainModule:
   const

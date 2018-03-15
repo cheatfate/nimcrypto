@@ -1,5 +1,5 @@
-import ../hmac, ../hash, ../utils
-import ../sha2, ../ripemd, ../keccak
+import nimcrypto/hmac, nimcrypto/hash, nimcrypto/utils
+import nimcrypto/sha2, nimcrypto/ripemd, nimcrypto/keccak
 
 # RIPEMD 128/160 test vectors
 # https://tools.ietf.org/html/rfc2286

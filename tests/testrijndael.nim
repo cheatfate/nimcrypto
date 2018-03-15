@@ -1,4 +1,4 @@
-import ../rijndael, ../utils
+import nimcrypto/rijndael, nimcrypto/utils
 
 when isMainModule:
   const

@@ -1,4 +1,4 @@
-import ../twofish, ../utils
+import nimcrypto/twofish, nimcrypto/utils
 
 when isMainModule:
   proc test[T](n: int): seq[uint8] =

@@ -1,4 +1,4 @@
-import ../blowfish
+import nimcrypto/blowfish
 
 when isMainModule:
   const

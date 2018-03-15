@@ -1,4 +1,4 @@
-import ../sysrand
+import nimcrypto/sysrand
 
 when isMainModule:
   var buffer: array[1024, uint8]

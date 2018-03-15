@@ -1,4 +1,4 @@
-import ../hash, ../keccak, ../utils
+import nimcrypto/hash, nimcrypto/keccak, nimcrypto/utils
 from strutils import parseInt
 
 type

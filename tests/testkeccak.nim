@@ -54,7 +54,9 @@ when isMainModule:
       kec224.update(addr data[0], uint(length))
       var check1 = $kec224.finish()
       var check2 = $keccak224.digest(addr data[0], uint(length))
-      doAssert(item.digest == check1 and item.digest == check2)
+      var check3 = $keccak224.digest(data, 0, length)
+      doAssert(item.digest == check1 and item.digest == check2 and
+               item.digest == check3)
 
   ## KECCAK-256
   for item in testVectors("ShortMsgKAT_256.txt"):
@@ -69,7 +71,9 @@ when isMainModule:
       kec256.update(addr data[0], uint(length))
       var check1 = $kec256.finish()
       var check2 = $keccak256.digest(addr data[0], uint(length))
-      doAssert(item.digest == check1 and item.digest == check2)
+      var check3 = $keccak256.digest(data, 0, length)
+      doAssert(item.digest == check1 and item.digest == check2 and
+               item.digest == check3)
 
   ## KECCAK-384
   for item in testVectors("ShortMsgKAT_384.txt"):
@@ -84,7 +88,9 @@ when isMainModule:
       kec384.update(addr data[0], uint(length))
       var check1 = $kec384.finish()
       var check2 = $keccak384.digest(addr data[0], uint(length))
-      doAssert(item.digest == check1 and item.digest == check2)
+      var check3 = $keccak384.digest(data, 0, length)
+      doAssert(item.digest == check1 and item.digest == check2 and
+               item.digest == check3)
 
   ## KECCAK-512
   for item in testVectors("ShortMsgKAT_512.txt"):
@@ -99,7 +105,9 @@ when isMainModule:
       kec512.update(addr data[0], uint(length))
       var check1 = $kec512.finish()
       var check2 = $keccak512.digest(addr data[0], uint(length))
-      doAssert(item.digest == check1 and item.digest == check2)
+      var check3 = $keccak512.digest(data, 0, length)
+      doAssert(item.digest == check1 and item.digest == check2 and
+               item.digest == check3)
 
   ## SHA3 TESTS
 
@@ -206,6 +214,19 @@ when isMainModule:
              dcheck384 & " != " & stripSpaces(digest384[i]))
     doAssert(dcheck512 == stripSpaces(digest512[i]),
              dcheck512 & " != " & stripSpaces(digest512[i]))
+    # openarray[T] test
+    var ocheck224 = $sha3_224.digest(msg)
+    var ocheck256 = $sha3_256.digest(msg)
+    var ocheck384 = $sha3_384.digest(msg)
+    var ocheck512 = $sha3_512.digest(msg)
+    doAssert(ocheck224 == stripSpaces(digest224[i]),
+             ocheck224 & " != " & stripSpaces(digest224[i]))
+    doAssert(ocheck256 == stripSpaces(digest256[i]),
+             ocheck256 & " != " & stripSpaces(digest256[i]))
+    doAssert(ocheck384 == stripSpaces(digest384[i]),
+             ocheck384 & " != " & stripSpaces(digest384[i]))
+    doAssert(ocheck512 == stripSpaces(digest512[i]),
+             ocheck512 & " != " & stripSpaces(digest512[i]))
 
   # Million 'a' test
   sha224.init()

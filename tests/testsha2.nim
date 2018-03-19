@@ -77,7 +77,8 @@ when isMainModule:
     var check1 = $ctx224.finish()
     var check2 = $sha224.digest(cast[ptr uint8](addr plaintext[0]),
                                 uint(len(plaintext)))
-    doAssert(check1 == digest and check2 == digest)
+    var check3 = $sha224.digest(plaintext)
+    doAssert(check1 == digest and check2 == digest and check3 == digest)
     inc(i)
 
   # SHA 256
@@ -90,7 +91,8 @@ when isMainModule:
     var check1 = $ctx256.finish()
     var check2 = $sha256.digest(cast[ptr uint8](addr plaintext[0]),
                                 uint(len(plaintext)))
-    doAssert(check1 == digest and check2 == digest)
+    var check3 = $sha256.digest(plaintext)
+    doAssert(check1 == digest and check2 == digest and check3 == digest)
     inc(i)
 
   # SHA 384
@@ -103,7 +105,8 @@ when isMainModule:
     var check1 = $ctx384.finish()
     var check2 = $sha384.digest(cast[ptr uint8](addr plaintext[0]),
                                 uint(len(plaintext)))
-    doAssert(check1 == digest and check2 == digest)
+    var check3 = $sha384.digest(plaintext)
+    doAssert(check1 == digest and check2 == digest and check3 == digest)
     inc(i)
 
   # SHA 512
@@ -116,7 +119,8 @@ when isMainModule:
     var check1 = $ctx512.finish()
     var check2 = $sha512.digest(cast[ptr uint8](addr plaintext[0]),
                                 uint(len(plaintext)))
-    doAssert(check1 == digest and check2 == digest)
+    var check3 = $sha512.digest(plaintext)
+    doAssert(check1 == digest and check2 == digest and check3 == digest)
     inc(i)
 
   # SHA 512/224
@@ -129,7 +133,8 @@ when isMainModule:
     var check1 = $ctx512_224.finish()
     var check2 = $sha512_224.digest(cast[ptr uint8](addr plaintext[0]),
                                     uint(len(plaintext)))
-    doAssert(check1 == digest and check2 == digest)
+    var check3 = $sha512_224.digest(plaintext)
+    doAssert(check1 == digest and check2 == digest and check3 == digest)
     inc(i)
 
   # SHA 512/256
@@ -142,5 +147,6 @@ when isMainModule:
     var check1 = $ctx512_256.finish()
     var check2 = $sha512_256.digest(cast[ptr uint8](addr plaintext[0]),
                                     uint(len(plaintext)))
-    doAssert(check1 == digest and check2 == digest)
+    var check3 = $sha512_256.digest(plaintext)
+    doAssert(check1 == digest and check2 == digest and check3 == digest)
     inc(i)

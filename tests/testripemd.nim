@@ -117,6 +117,20 @@ when isMainModule:
     doAssert($dcheck320 == stripSpaces(RipeMD320C[i]),
       $dcheck320 & " != " & stripSpaces(RipeMD320C[i]))
 
+    var ocheck128 = $ripemd128.digest(a)
+    var ocheck160 = $ripemd160.digest(a)
+    var ocheck256 = $ripemd256.digest(a)
+    var ocheck320 = $ripemd320.digest(a)
+
+    doAssert($ocheck128 == stripSpaces(RipeMD128C[i]),
+      $ocheck128 & " != " & stripSpaces(Ripemd128C[i]))
+    doAssert($ocheck160 == stripSpaces(RipeMD160C[i]),
+      $ocheck160 & " != " & stripSpaces(RipeMD160C[i]))
+    doAssert($ocheck256 == stripSpaces(RipeMD256C[i]),
+      $ocheck256 & " != " & stripSpaces(RipeMD256C[i]))
+    doAssert($ocheck320 == stripSpaces(RipeMD320C[i]),
+      $ocheck320 & " != " & stripSpaces(RipeMD320C[i]))    
+
     inc(i)
 
   ctx128.init()

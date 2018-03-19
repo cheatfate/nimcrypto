@@ -78,11 +78,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var digest3 = $ripemd128.hmac(key, data)
+    var digest4 = $ripemd128.hmac(key, data, 0, len(data))
     if digest1 != ripemd128digests[i]:
       echo "FAILED\n" & $i & ". " & $digest1 & " != " & ripemd128digests[i]
       status = false
     if digest2 != ripemd128digests[i]:
       echo "FAILED\n" & $i & ". " & $digest2 & " != " & ripemd128digests[i]
+      status = false
+    if digest3 != ripemd128digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest3 & " != " & ripemd128digests[i]
+      status = false
+    if digest4 != ripemd128digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest4 & " != " & ripemd128digests[i]
       status = false
   if status:
     echo "OK"
@@ -106,6 +114,14 @@ block:
       status = false
     if digest2 != ripemd160digests[i]:
       echo "FAILED\n" & $i & ". " & $digest2 & " != " & ripemd160digests[i]
+      status = false
+    var digest3 = $ripemd160.hmac(key, data)
+    var digest4 = $ripemd160.hmac(key, data, 0, len(data))
+    if digest3 != ripemd160digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest3 & " != " & ripemd160digests[i]
+      status = false
+    if digest4 != ripemd160digests[i]:
+      echo "FAILED\n" & $i & ". " & $digest4 & " != " & ripemd160digests[i]
       status = false
   if status:
     echo "OK"
@@ -209,11 +225,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha224.hmac(key, data)
+    var check4 = $sha224.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
       status = false
   if status:
     echo "OK"
@@ -233,11 +257,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha256.hmac(key, data)
+    var check4 = $sha256.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
       status = false
   if status:
     echo "OK"
@@ -257,11 +289,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha384.hmac(key, data)
+    var check4 = $sha384.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
       status = false
   if status:
     echo "OK"
@@ -281,11 +321,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha512.hmac(key, data)
+    var check4 = $sha512.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $i & ". " & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
       status = false
   if status:
     echo "OK"
@@ -409,11 +457,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha3_224.hmac(key, data)
+    var check4 = $sha3_224.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $digest & " != " & check4
       status = false
   if status:
     echo "OK"
@@ -433,11 +489,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha3_256.hmac(key, data)
+    var check4 = $sha3_256.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $digest & " != " & check4
       status = false
   if status:
     echo "OK"
@@ -457,11 +521,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha3_384.hmac(key, data)
+    var check4 = $sha3_384.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $digest & " != " & check4
       status = false
   if status:
     echo "OK"
@@ -481,11 +553,19 @@ block:
       cast[ptr uint8](addr key[0]), uint(len(key)),
       cast[ptr uint8](addr data[0]), uint(len(data))
     )
+    var check3 = $sha3_512.hmac(key, data)
+    var check4 = $sha3_512.hmac(key, data, 0, len(data))
     if digest != check1:
       echo "FAILED\n" & $digest & " != " & check1
       status = false
     if digest != check2:
       echo "FAILED\n" & $digest & " != " & check2
+      status = false
+    if digest != check3:
+      echo "FAILED\n" & $digest & " != " & check3
+      status = false
+    if digest != check4:
+      echo "FAILED\n" & $digest & " != " & check4
       status = false
   if status:
     echo "OK"

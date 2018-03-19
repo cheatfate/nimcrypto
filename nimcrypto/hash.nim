@@ -21,3 +21,18 @@ proc digest*(HashType: typedesc, data: ptr uint8,
   ctx.init()
   ctx.update(data, ulen)
   result = ctx.finish()
+
+proc digest*[T](HashType: typedesc, data: openarray[T],
+                ostart: int = -1, ofinish: int = -1): MDigest[HashType.bits] =
+  mixin init, update, finish
+  var ctx: HashType
+  assert(ostart >= -1 and ofinish >= -1)
+  let so = if ostart == -1: 0 else: ostart
+  let eo = if ofinish == -1: uint(len(data)) else: uint(ofinish - so)
+  ctx.init()
+  assert(uint(so) <= eo)
+  if eo == 0:
+    result = ctx.finish()
+  else:
+    ctx.update(cast[ptr uint8](unsafeAddr data[so]), uint(sizeof(T)) * eo)
+    result = ctx.finish()

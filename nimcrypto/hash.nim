@@ -31,7 +31,7 @@ proc digest*[T](HashType: typedesc, data: openarray[T],
   let eo = if ofinish == -1: uint(len(data)) else: uint(ofinish - so)
   ctx.init()
   assert(uint(so) <= eo)
-  assert(eo <= len(data))
+  assert(eo <= uint(len(data)))
   if eo == 0:
     result = ctx.finish()
   else:

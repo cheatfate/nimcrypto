@@ -112,7 +112,7 @@ proc hmac*[A, B](HashType: typedesc, key: openarray[A],
   let eo = if ofinish == -1: uint(len(data)) else: uint(ofinish - so)
   ctx.init(cast[ptr uint8](unsafeAddr key[0]), uint(sizeof(A) * len(key)))
   assert(uint(so) <= eo)
-  assert(eo <= len(data))
+  assert(eo <= uint(len(data)))
   if eo == 0:
     result = ctx.finish()
   else:

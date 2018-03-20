@@ -16,7 +16,7 @@
 ## [https://homes.esat.kuleuven.be/~bosselae/ripemd160/ps/AB-9601/rmd160.c]
 ##
 ## This module includes support of RIPEMD-128/160/256/320.
-## 
+##
 ## Tests made according to official test vectors
 ## [https://homes.esat.kuleuven.be/~bosselae/ripemd160.html].
 
@@ -32,6 +32,7 @@ type
   ripemd160* = RipemdContext[160]
   ripemd256* = RipemdContext[256]
   ripemd320* = RipemdContext[320]
+  ripemd* = ripemd128 | ripemd160 | ripemd256 | ripemd320
 
 # Five basic functions F(), G() and H()
 template F(x, y, z: untyped): untyped =
@@ -604,7 +605,20 @@ template sizeDigest*(ctx: RipemdContext): uint =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: RipemdContext): uint =
-  64
+  (64)
+
+template sizeDigest*(r: typedesc[ripemd]): int =
+  when r is ripemd128:
+    (16)
+  elif r is ripemd160:
+    (20)
+  elif r is ripemd256:
+    (32)
+  elif r is ripemd320:
+    (40)
+
+template sizeBlock*(r: typedesc[ripemd]): int =
+  (64)
 
 proc init*(ctx: var RipemdContext) =
   ctx.count[0] = 0

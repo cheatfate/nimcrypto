@@ -50,6 +50,8 @@ type
   sha3_512* = KeccakContext[512, Sha3]
   shake128* = KeccakContext[128, Shake]
   shake256* = KeccakContext[256, Shake]
+  keccak* = keccak224 | keccak256 | keccak384 | keccak512 |
+            sha3_224 | sha3_256 | sha3_384 | sha3_512
 
 template THETA1(a, b, c: untyped) =
   (a)[(c)] = (b)[(c)] xor (b)[(c) + 5] xor (b)[(c) + 10] xor
@@ -220,10 +222,25 @@ template sizeDigest*(ctx: KeccakContext): uint =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: KeccakContext): uint =
-  1600
+  (200)
 
 template rsize(ctx: KeccakContext): int =
   200 - 2 * (ctx.bits div 8)
+
+template sizeDigest*(r: typedesc[keccak | shake128 | shake256]): int =
+  when r is shake128:
+    (16)
+  elif r is keccak224 or r is sha3_224:
+    (28)
+  elif r is keccak256 or r is sha3_256 or r is shake256:
+    (32)
+  elif r is keccak384 or r is sha3_384:
+    (48)
+  elif r is keccak512 or r is sha3_512:
+    (64)
+
+template sizeBlock*(r: typedesc[keccak | shake128 | shake256]): int =
+  (200)
 
 proc init*(ctx: var KeccakContext) =
   zeroMem(addr ctx.q[0], sizeof(uint64) * 25)

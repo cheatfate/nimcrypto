@@ -176,6 +176,7 @@ type
   twofish128* = TwofishContext[128]
   twofish192* = TwofishContext[192]
   twofish256* = TwofishContext[256]
+  twofish* = twofish128 | twofish192 | twofish256
 
 template bn(x, n: uint32): uint8 =
   cast[uint8]((x shr (n * 8)) and 0xFF'u32)
@@ -402,6 +403,17 @@ template sizeKey*(ctx: TwofishContext): int =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: TwofishContext): int =
+  (128)
+
+template sizeKey*(r: typedesc[twofish]): int =
+  when r is twofish128:
+    (16)
+  elif r is twofish192:
+    (24)
+  elif r is twofish256:
+    (32)
+
+template sizeBlock*(r: typedesc[twofish]): int =
   (128)
 
 proc init*(ctx: var TwofishContext, key: ptr uint8, nkey: int = 0) {.inline.} =

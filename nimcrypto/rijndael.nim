@@ -715,6 +715,7 @@ type
   aes128* = rijndael128
   aes192* = rijndael192
   aes256* = rijndael256
+  rijndael* = rijndael128 | rijndael192 | rijndael256 | aes128 | aes192 | aes256
 
 proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
                          N: int, key: ptr uint8): int =
@@ -904,7 +905,7 @@ proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr uint8,
     if ctx.Nr > 12:
       ENC_ROUND(s0, s1, s2, s3, t0, t1, t2, t3, ctx.RKe, 12)
       ENC_ROUND(t0, t1, t2, t3, s0, s1, s2, s3, ctx.RKe, 13)
-  
+
   let offset = (ctx.Nr shl 2).uint32
 
   s0 = (Te4[(t0 shr 24)] and 0xFF000000'u32) xor
@@ -927,7 +928,7 @@ proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr uint8,
        (Te4[(t1 shr 8) and 0xFF] and 0x0000FF00'u32) xor
        (Te4[t2 and 0xFF] and 0x000000FF'u32) xor
        ctx.RKe[offset + 3]
-  
+
   PUTU32(oup, 0, s0)
   PUTU32(oup, 4, s1)
   PUTU32(oup, 8, s2)
@@ -957,7 +958,7 @@ proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr uint8,
     if ctx.Nr > 12:
       DEC_ROUND(s0, s1, s2, s3, t0, t1, t2, t3, ctx.RKd, 12)
       DEC_ROUND(t0, t1, t2, t3, s0, s1, s2, s3, ctx.RKd, 13)
-  
+
   let offset = (ctx.Nr shl 2).uint32
 
   s0 = (Td4[(t0 shr 24)] and 0xFF000000'u32) xor
@@ -980,7 +981,7 @@ proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr uint8,
        (Td4[(t1 shr 8) and 0xFF] and 0x0000FF00'u32) xor
        (Td4[t0 and 0xFF] and 0x000000FF'u32) xor
        ctx.RKd[offset + 3]
-  
+
   PUTU32(oup, 0, s0)
   PUTU32(oup, 4, s1)
   PUTU32(oup, 8, s2)
@@ -993,6 +994,17 @@ template sizeKey*(ctx: RijndaelContext): int =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: RijndaelContext): int =
+  (128)
+
+template sizeKey*(r: typedesc[rijndael]): int =
+  when r is aes128 or r is rijndael128:
+    (16)
+  elif r is aes192 or r is rijndael192:
+    (24)
+  elif r is aes256 or r is rijndael256:
+    (32)
+
+template sizeBlock*(r: typedesc[rijndael]): int =
   (128)
 
 proc init*(ctx: var RijndaelContext, key: ptr uint8, nkey: int = 0) {.inline.} =

@@ -108,12 +108,29 @@ type
   sha512* = Sha2Context[512, 128, uint64]
   sha512_224* = Sha2Context[224, 128, uint64]
   sha512_256* = Sha2Context[256, 128, uint64]
+  sha2* = sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
 
 template sizeDigest*(ctx: Sha2Context): uint =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: Sha2Context): uint =
   (ctx.bsize)
+
+template sizeDigest*(r: typedesc[sha2]): int =
+  when r is sha224 or r is sha512_224:
+    (28)
+  elif r is sha256 or r is sha512_256:
+    (32)
+  elif r is sha384:
+    (48)
+  elif r is sha512:
+    (64)
+
+template sizeBlock*(r: typedesc[sha2]): int =
+  when r is sha224 or r is sha256:
+    (64)
+  else:
+    (128)
 
 proc init*(ctx: var Sha2Context) =
   ctx.count[0] = 0
@@ -533,7 +550,7 @@ proc finish*(ctx: var Sha2Context, pBytes: ptr uint8, nBytes: uint): uint =
       SET_QWORD(pBytes, 0, LSWAP(ctx.state[0]))
       SET_QWORD(pBytes, 1, LSWAP(ctx.state[1]))
       SET_QWORD(pBytes, 2, LSWAP(ctx.state[2]))
-      SET_DWORD(pBytes, 6, LSWAP(ctx.state[3]).uint32)  
+      SET_DWORD(pBytes, 6, LSWAP(ctx.state[3]).uint32)
 
 proc finish*(ctx: var Sha2Context): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr uint8](addr result.data[0]),

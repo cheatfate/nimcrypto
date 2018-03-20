@@ -12,7 +12,7 @@
 ## Code based on `C implementation of the Blowfish algorithm` created by
 ## Paul Kocher [https://www.schneier.com/code/bfsh-koc.zip].
 ##
-## Tests made according to official test vectors by Eric Young 
+## Tests made according to official test vectors by Eric Young
 ## [https://www.schneier.com/code/vectors.txt] and adopted version by
 ## Randy L. Milbert [https://www.schneier.com/code/vectors2.txt], except
 ## chaining mode tests.
@@ -22,7 +22,7 @@
 ##
 ## Some warnings from Paul Kocher:
 ##
-## Warning #1:  The code does not check key lengths. (Caveat encryptor.) 
+## Warning #1:  The code does not check key lengths. (Caveat encryptor.)
 ## Warning #2:  Beware that Blowfish keys repeat such that "ab" = "abab".
 ## Warning #3:  It is normally a good idea to zeroize the BLOWFISH_CTX before
 ## freeing it.
@@ -32,7 +32,7 @@
 ## Warning #5:  Make sure to use a reasonable mode of operation for your
 ## application.  (If you don't know what CBC mode is, see Warning #7.)
 ## Warning #6:  This code is susceptible to timing attacks.
-## Warning #7:  Security engineering is risky and non-intuitive.  Have someone 
+## Warning #7:  Security engineering is risky and non-intuitive.  Have someone
 ## check your work. If you don't know what you are doing, get help.
 
 import utils
@@ -422,7 +422,7 @@ proc initBlowfishContext*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) =
     ctx.P[i] = datarl[0]
     ctx.P[i + 1] = datarl[1]
     i = i + 2
-  
+
   i = 0
   while i < 4:
     j = 0
@@ -438,6 +438,12 @@ template sizeKey*(ctx: BlowfishContext): int =
   (ctx.sizeKey shr 3)
 
 template sizeBlock*(ctx: BlowfishContext): int =
+  (64)
+
+template sizeKey*(r: typedesc[blowfish]): int =
+  {.error: "Could not obtain key size of Blowfish cipher at compile-time".}
+
+template sizeBlock*(r: typedesc[blowfish]): int =
   (64)
 
 proc init*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) {.inline.} =

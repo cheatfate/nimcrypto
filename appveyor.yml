@@ -34,8 +34,8 @@ install:
   - bin\nim c koch
   - koch boot -d:release
   - koch nimble
+build_script:
   - cd C:\projects\nimcrypto
-
 test_script:
   - nimble tests
 

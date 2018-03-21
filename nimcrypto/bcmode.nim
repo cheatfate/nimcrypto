@@ -71,7 +71,7 @@ proc encrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
   assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
 
-  var blen = uint(ctx.sizeBlock shr 3)
+  var blen = uint(ctx.sizeBlock)
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var tp = cast[ptr UncheckedArray[uint8]](addr ctx.tmp[0])
@@ -92,9 +92,9 @@ proc decrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
   mixin decrypt
   assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
-  assert(length mod uint(ctx.sizeBlock shr 3) == 0)
+  assert(length mod uint(ctx.sizeBlock) == 0)
 
-  var blen = uint(ctx.sizeBlock shr 3)
+  var blen = uint(ctx.sizeBlock)
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var i = length
@@ -119,7 +119,7 @@ proc init*[T](ctx: var CBC[T], keyBytes: ptr uint8, iv: ptr uint8) =
   assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
+  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
 proc encrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
@@ -127,7 +127,7 @@ proc encrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
   assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
 
-  var blen = uint(ctx.sizeBlock shr 3)
+  var blen = uint(ctx.sizeBlock)
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var cp = cast[ptr UncheckedArray[uint8]](addr ctx.iv[0])
@@ -156,7 +156,7 @@ proc decrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
   assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
 
-  let blen = uint(ctx.sizeBlock shr 3)
+  let blen = uint(ctx.sizeBlock)
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var tp = cast[ptr UncheckedArray[uint8]](addr ctx.tmp[0])
@@ -216,27 +216,27 @@ proc init*[T](ctx: var CTR[T], keyBytes: ptr uint8, iv: ptr uint8) =
   assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
+  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
 proc encrypt*[T](ctx: var CTR[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
   assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
-  assert(ctx.sizeBlock == 128 or ctx.sizeBlock == 256)
+  assert(ctx.sizeBlock == (128 div 8) or ctx.sizeBlock == (256 div 8))
   var n = ctx.num
   var i = 0'u
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var cp = cast[ptr UncheckedArray[uint8]](addr ctx.iv[0])
-  let mask = uint(ctx.sizeBlock shr 3)
+  let mask = uint(ctx.sizeBlock)
 
   while i < length:
     if n == 0:
       ctx.cipher.encrypt(addr ctx.iv[0], addr ctx.ecount[0])
-      if ctx.sizeBlock == 128:
+      if ctx.sizeBlock == (128 div 8):
         inc128(cp)
-      elif ctx.sizeBlock == 256:
+      elif ctx.sizeBlock == (256 div 8):
         inc256(cp)
     op[i] = cast[uint8](ip[i] xor ctx.ecount[n])
     inc(i)
@@ -265,20 +265,20 @@ proc init*[T](ctx: var OFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
+  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
 proc encrypt*[T](ctx: var OFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
   assert(not isNil(inp) and not isNil(oup))
   assert(length != 0)
-  assert(ctx.sizeBlock == 128 or ctx.sizeBlock == 256)
+  assert(ctx.sizeBlock == (128 div 8) or ctx.sizeBlock == (256 div 8))
   var n = 0
   var i = 0'u
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var cp = cast[ptr UncheckedArray[uint8]](addr ctx.iv[0])
-  let mask = ctx.sizeBlock shr 3
+  let mask = ctx.sizeBlock
 
   while i < length:
     if n == 0:
@@ -307,7 +307,7 @@ proc init*[T](ctx: var CFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock shr 3)
+  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
 proc encrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
@@ -319,7 +319,7 @@ proc encrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var cp = cast[ptr UncheckedArray[uint8]](addr ctx.iv[0])
-  let mask = ctx.sizeBlock shr 3
+  let mask = ctx.sizeBlock
 
   while i < length:
     if n == 0:
@@ -340,7 +340,7 @@ proc decrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
   var ip = cast[ptr UncheckedArray[uint8]](inp)
   var op = cast[ptr UncheckedArray[uint8]](oup)
   var cp = cast[ptr UncheckedArray[uint8]](addr ctx.iv[0])
-  let mask = ctx.sizeBlock shr 3
+  let mask = ctx.sizeBlock
 
   while i < length:
     if n == 0:

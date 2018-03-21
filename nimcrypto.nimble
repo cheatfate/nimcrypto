@@ -18,3 +18,4 @@ task tests, "Runs the test suite":
   exec "nim c -r tests/testtwofish"
   exec "nim c -r tests/testblowfish"
   exec "nim c -r tests/testbcmode"
+  exec "nim c -r tests/testsysrand"

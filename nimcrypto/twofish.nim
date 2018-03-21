@@ -403,7 +403,7 @@ template sizeKey*(ctx: TwofishContext): int =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: TwofishContext): int =
-  (128)
+  (16)
 
 template sizeKey*(r: typedesc[twofish]): int =
   when r is twofish128:
@@ -414,7 +414,7 @@ template sizeKey*(r: typedesc[twofish]): int =
     (32)
 
 template sizeBlock*(r: typedesc[twofish]): int =
-  (128)
+  (16)
 
 proc init*(ctx: var TwofishContext, key: ptr uint8, nkey: int = 0) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)

@@ -994,7 +994,7 @@ template sizeKey*(ctx: RijndaelContext): int =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: RijndaelContext): int =
-  (128)
+  (16)
 
 template sizeKey*(r: typedesc[rijndael]): int =
   when r is aes128 or r is rijndael128:
@@ -1005,7 +1005,7 @@ template sizeKey*(r: typedesc[rijndael]): int =
     (32)
 
 template sizeBlock*(r: typedesc[rijndael]): int =
-  (128)
+  (16)
 
 proc init*(ctx: var RijndaelContext, key: ptr uint8, nkey: int = 0) {.inline.} =
   ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)

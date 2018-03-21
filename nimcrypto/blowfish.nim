@@ -438,13 +438,13 @@ template sizeKey*(ctx: BlowfishContext): int =
   (ctx.sizeKey shr 3)
 
 template sizeBlock*(ctx: BlowfishContext): int =
-  (64)
+  (8)
 
 template sizeKey*(r: typedesc[blowfish]): int =
   {.error: "Could not obtain key size of Blowfish cipher at compile-time".}
 
 template sizeBlock*(r: typedesc[blowfish]): int =
-  (64)
+  (8)
 
 proc init*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) {.inline.} =
   ctx.sizeKey = nkey shl 3

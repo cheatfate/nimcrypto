@@ -12,23 +12,8 @@ before_script:
   - cd ..
   - bin/nim c koch
   - ./koch boot -d:release
+  - ./koch nimble
   - export PATH=$(pwd)/bin:$PATH
   - cd ..
 script:
-  - cd tests
-  - nim c testblowfish.nim
-  - nim c testtwofish.nim
-  - nim c testrijndael.nim
-  - nim c testsha2.nim
-  - nim c testkeccak.nim
-  - nim c testripemd.nim
-  - nim c testhmac.nim
-  - nim c testbcmode.nim
-  - ./testblowfish
-  - ./testtwofish
-  - ./testrijndael
-  - ./testsha2
-  - ./testkeccak
-  - ./testripemd
-  - ./testhmac
-  - ./testbcmode
+  - nimble tests

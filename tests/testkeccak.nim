@@ -42,7 +42,7 @@ when isMainModule:
   var kec512: keccak512
 
   ## KECCAK-224
-  for item in testVectors("ShortMsgKAT_224.txt"):
+  for item in testVectors("tests/ShortMsgKAT_224.txt"):
     kec224.init()
     if (item.length mod 8) == 0:
       var data: seq[uint8]
@@ -59,7 +59,7 @@ when isMainModule:
                item.digest == check3)
 
   ## KECCAK-256
-  for item in testVectors("ShortMsgKAT_256.txt"):
+  for item in testVectors("tests/ShortMsgKAT_256.txt"):
     kec256.init()
     if (item.length mod 8) == 0:
       var data: seq[uint8]
@@ -76,7 +76,7 @@ when isMainModule:
                item.digest == check3)
 
   ## KECCAK-384
-  for item in testVectors("ShortMsgKAT_384.txt"):
+  for item in testVectors("tests/ShortMsgKAT_384.txt"):
     kec384.init()
     if (item.length mod 8) == 0:
       var data: seq[uint8]
@@ -93,7 +93,7 @@ when isMainModule:
                item.digest == check3)
 
   ## KECCAK-512
-  for item in testVectors("ShortMsgKAT_512.txt"):
+  for item in testVectors("tests/ShortMsgKAT_512.txt"):
     kec512.init()
     if (item.length mod 8) == 0:
       var data: seq[uint8]

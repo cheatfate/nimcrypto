@@ -1,5 +1,6 @@
 import nimcrypto/hmac, nimcrypto/hash, nimcrypto/utils
 import nimcrypto/sha2, nimcrypto/ripemd, nimcrypto/keccak
+import unittest
 
 # RIPEMD 128/160 test vectors
 # https://tools.ietf.org/html/rfc2286
@@ -63,68 +64,6 @@ const ripemd128digests = [
   "E79808F24B25FD031C155F0D551D9A3A", "DC732928DE98104A1F59D373C150ACBB",
   "5C6BEC96793E16D40690C237635F30C5"
 ]
-
-block:
-  stdout.write("HMAC-RIPEMD-128: ")
-  var status = true
-  for i in 0..(len(ripemd128digests) - 1):
-    var key = fromHex(stripSpaces(ripemd128keys[i]))
-    var data = fromHex(stripSpaces(ripemddata[i]))
-    var ctx: HMAC[ripemd128]
-    ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var digest1 = $ctx.finish()
-    var digest2 = $ripemd128.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var digest3 = $ripemd128.hmac(key, data)
-    var digest4 = $ripemd128.hmac(key, data, 0, len(data))
-    if digest1 != ripemd128digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest1 & " != " & ripemd128digests[i]
-      status = false
-    if digest2 != ripemd128digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest2 & " != " & ripemd128digests[i]
-      status = false
-    if digest3 != ripemd128digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest3 & " != " & ripemd128digests[i]
-      status = false
-    if digest4 != ripemd128digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest4 & " != " & ripemd128digests[i]
-      status = false
-  if status:
-    echo "OK"
-
-block:
-  stdout.write("HMAC-RIPEMD-160: ")
-  var status = true
-  for i in 0..(len(ripemd160digests) - 1):
-    var key = fromHex(stripSpaces(ripemd160keys[i]))
-    var data = fromHex(stripSpaces(ripemddata[i]))
-    var ctx: HMAC[ripemd160]
-    ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var digest1 = $ctx.finish()
-    var digest2 = $ripemd160.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    if digest1 != ripemd160digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest1 & " != " & ripemd160digests[i]
-      status = false
-    if digest2 != ripemd160digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest2 & " != " & ripemd160digests[i]
-      status = false
-    var digest3 = $ripemd160.hmac(key, data)
-    var digest4 = $ripemd160.hmac(key, data, 0, len(data))
-    if digest3 != ripemd160digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest3 & " != " & ripemd160digests[i]
-      status = false
-    if digest4 != ripemd160digests[i]:
-      echo "FAILED\n" & $i & ". " & $digest4 & " != " & ripemd160digests[i]
-      status = false
-  if status:
-    echo "OK"
 
 # SHA2 224/256/384/512 test vectors
 # [https://tools.ietf.org/html/rfc4231].
@@ -209,134 +148,6 @@ const sha512digests = [
   """E37B6A775DC87DBAA4DFA9F96E5E3FFDDEBD71F8867289865DF5A32D20CDC944
      B6022CAC3C4982B10D5EEB55C3E4DE15134676FB6DE0446065C97440FA8C6A58"""
 ]
-
-block:
-  stdout.write("HMAC-SHA2-224: ")
-  var status = true
-  var ctx224: HMAC[sha224]
-  for i in 0..(len(sha2keys) - 1):
-    var key = fromHex(stripSpaces(sha2keys[i]))
-    var data = fromHex(stripSpaces(sha2data[i]))
-    var digest = stripSpaces(sha224digests[i])
-    ctx224.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx224.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx224.finish()
-    var check2 = $sha224.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha224.hmac(key, data)
-    var check4 = $sha224.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
-
-block:
-  stdout.write("HMAC-SHA2-256: ")
-  var status = true
-  var ctx256: HMAC[sha256]
-  for i in 0..(len(sha2keys) - 1):
-    var key = fromHex(stripSpaces(sha2keys[i]))
-    var data = fromHex(stripSpaces(sha2data[i]))
-    var digest = stripSpaces(sha256digests[i])
-    ctx256.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx256.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx256.finish()
-    var check2 = $sha256.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha256.hmac(key, data)
-    var check4 = $sha256.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
-
-block:
-  stdout.write("HMAC-SHA2-384: ")
-  var status = true
-  var ctx384: HMAC[sha384]
-  for i in 0..(len(sha2keys) - 1):
-    var key = fromHex(stripSpaces(sha2keys[i]))
-    var data = fromHex(stripSpaces(sha2data[i]))
-    var digest = stripSpaces(sha384digests[i])
-    ctx384.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx384.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx384.finish()
-    var check2 = $sha384.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha384.hmac(key, data)
-    var check4 = $sha384.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
-
-block:
-  stdout.write("HMAC-SHA2-512: ")
-  var status = true
-  var ctx512: HMAC[sha512]
-  for i in 0..(len(sha2keys) - 1):
-    var key = fromHex(stripSpaces(sha2keys[i]))
-    var data = fromHex(stripSpaces(sha2data[i]))
-    var digest = stripSpaces(sha512digests[i])
-    ctx512.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx512.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx512.finish()
-    var check2 = $sha512.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha512.hmac(key, data)
-    var check4 = $sha512.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $i & ". " & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
 
 # SHA3 224/256/384/512 test vectors
 # [https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values#aMsgAuth].
@@ -442,130 +253,186 @@ const sha3_512digests = [
      8F5E590EE736969F445643A58BEE7EE0CBBBB2E14775584435D36AD0DE6B9499"""
 ]
 
-block:
-  stdout.write("HMAC-SHA3-224: ")
-  var status = true
-  var ctx: HMAC[sha3_224]
-  for i in 0..(len(sha3texts) - 1):
-    var key = fromHex(stripSpaces(sha3_224keys[i]))
-    var data = fromHex(stripSpaces(sha3texts[i]))
-    var digest = stripSpaces(sha3_224digests[i])
-    ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx.finish()
-    var check2 = $sha3_224.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha3_224.hmac(key, data)
-    var check4 = $sha3_224.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
+suite "HMAC Tests":
+  test "HMAC-RIPEMD-128 test vectors":
+    for i in 0..(len(ripemd128digests) - 1):
+      var key = fromHex(stripSpaces(ripemd128keys[i]))
+      var data = fromHex(stripSpaces(ripemddata[i]))
+      var ctx: HMAC[ripemd128]
+      ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var digest1 = $ctx.finish()
+      var digest2 = $ripemd128.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var digest3 = $ripemd128.hmac(key, data)
+      var digest4 = $ripemd128.hmac(key, data, 0, len(data))
+      check(digest1 == ripemd128digests[i] and
+            digest2 == ripemd128digests[i] and
+            digest3 == ripemd128digests[i] and
+            digest4 == ripemd128digests[i])
 
-block:
-  stdout.write("HMAC-SHA3-256: ")
-  var status = true
-  var ctx: HMAC[sha3_256]
-  for i in 0..(len(sha3texts) - 1):
-    var key = fromHex(stripSpaces(sha3_256keys[i]))
-    var data = fromHex(stripSpaces(sha3texts[i]))
-    var digest = stripSpaces(sha3_256digests[i])
-    ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx.finish()
-    var check2 = $sha3_256.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha3_256.hmac(key, data)
-    var check4 = $sha3_256.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
+  test "HMAC-RIPEMD-160 test vectors":
+    for i in 0..(len(ripemd160digests) - 1):
+      var key = fromHex(stripSpaces(ripemd160keys[i]))
+      var data = fromHex(stripSpaces(ripemddata[i]))
+      var ctx: HMAC[ripemd160]
+      ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var digest1 = $ctx.finish()
+      var digest2 = $ripemd160.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var digest3 = $ripemd160.hmac(key, data)
+      var digest4 = $ripemd160.hmac(key, data, 0, len(data))
 
-block:
-  stdout.write("HMAC-SHA3-384: ")
-  var status = true
-  var ctx: HMAC[sha3_384]
-  for i in 0..(len(sha3texts) - 1):
-    var key = fromHex(stripSpaces(sha3_384keys[i]))
-    var data = fromHex(stripSpaces(sha3texts[i]))
-    var digest = stripSpaces(sha3_384digests[i])
-    ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx.finish()
-    var check2 = $sha3_384.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha3_384.hmac(key, data)
-    var check4 = $sha3_384.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
+      check(digest1 == ripemd160digests[i] and
+            digest2 == ripemd160digests[i] and
+            digest3 == ripemd160digests[i] and
+            digest4 == ripemd160digests[i])
 
-block:
-  stdout.write("HMAC-SHA3-512: ")
-  var status = true
-  var ctx: HMAC[sha3_512]
-  for i in 0..(len(sha3texts) - 1):
-    var key = fromHex(stripSpaces(sha3_512keys[i]))
-    var data = fromHex(stripSpaces(sha3texts[i]))
-    var digest = stripSpaces(sha3_512digests[i])
-    ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
-    ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
-    var check1 = $ctx.finish()
-    var check2 = $sha3_512.hmac(
-      cast[ptr uint8](addr key[0]), uint(len(key)),
-      cast[ptr uint8](addr data[0]), uint(len(data))
-    )
-    var check3 = $sha3_512.hmac(key, data)
-    var check4 = $sha3_512.hmac(key, data, 0, len(data))
-    if digest != check1:
-      echo "FAILED\n" & $digest & " != " & check1
-      status = false
-    if digest != check2:
-      echo "FAILED\n" & $digest & " != " & check2
-      status = false
-    if digest != check3:
-      echo "FAILED\n" & $digest & " != " & check3
-      status = false
-    if digest != check4:
-      echo "FAILED\n" & $digest & " != " & check4
-      status = false
-  if status:
-    echo "OK"
+  test "HMAC-SHA2-224 test vectors":
+    var ctx224: HMAC[sha224]
+    for i in 0..(len(sha2keys) - 1):
+      var key = fromHex(stripSpaces(sha2keys[i]))
+      var data = fromHex(stripSpaces(sha2data[i]))
+      var digest = stripSpaces(sha224digests[i])
+      ctx224.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx224.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx224.finish()
+      var check2 = $sha224.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha224.hmac(key, data)
+      var check4 = $sha224.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)
+
+  test "HMAC-SHA2-256 test vectors":
+    var ctx256: HMAC[sha256]
+    for i in 0..(len(sha2keys) - 1):
+      var key = fromHex(stripSpaces(sha2keys[i]))
+      var data = fromHex(stripSpaces(sha2data[i]))
+      var digest = stripSpaces(sha256digests[i])
+      ctx256.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx256.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx256.finish()
+      var check2 = $sha256.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha256.hmac(key, data)
+      var check4 = $sha256.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)
+
+  test "HMAC-SHA2-384 test vectors":
+    var ctx384: HMAC[sha384]
+    for i in 0..(len(sha2keys) - 1):
+      var key = fromHex(stripSpaces(sha2keys[i]))
+      var data = fromHex(stripSpaces(sha2data[i]))
+      var digest = stripSpaces(sha384digests[i])
+      ctx384.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx384.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx384.finish()
+      var check2 = $sha384.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha384.hmac(key, data)
+      var check4 = $sha384.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)
+
+  test "HMAC-SHA2-512 test vectors":
+    var ctx512: HMAC[sha512]
+    for i in 0..(len(sha2keys) - 1):
+      var key = fromHex(stripSpaces(sha2keys[i]))
+      var data = fromHex(stripSpaces(sha2data[i]))
+      var digest = stripSpaces(sha512digests[i])
+      ctx512.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx512.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx512.finish()
+      var check2 = $sha512.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha512.hmac(key, data)
+      var check4 = $sha512.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)
+
+  test "HMAC-SHA3-224 test vectors":
+    var ctx: HMAC[sha3_224]
+    for i in 0..(len(sha3texts) - 1):
+      var key = fromHex(stripSpaces(sha3_224keys[i]))
+      var data = fromHex(stripSpaces(sha3texts[i]))
+      var digest = stripSpaces(sha3_224digests[i])
+      ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx.finish()
+      var check2 = $sha3_224.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha3_224.hmac(key, data)
+      var check4 = $sha3_224.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)
+
+  test "HMAC-SHA3-256 test vectors":
+    var ctx: HMAC[sha3_256]
+    for i in 0..(len(sha3texts) - 1):
+      var key = fromHex(stripSpaces(sha3_256keys[i]))
+      var data = fromHex(stripSpaces(sha3texts[i]))
+      var digest = stripSpaces(sha3_256digests[i])
+      ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx.finish()
+      var check2 = $sha3_256.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha3_256.hmac(key, data)
+      var check4 = $sha3_256.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)
+
+  test "HMAC-SHA3-384 test vectors":
+    var ctx: HMAC[sha3_384]
+    for i in 0..(len(sha3texts) - 1):
+      var key = fromHex(stripSpaces(sha3_384keys[i]))
+      var data = fromHex(stripSpaces(sha3texts[i]))
+      var digest = stripSpaces(sha3_384digests[i])
+      ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx.finish()
+      var check2 = $sha3_384.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha3_384.hmac(key, data)
+      var check4 = $sha3_384.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)
+
+  test "HMAC-SHA3-512 test vectors":
+    var ctx: HMAC[sha3_512]
+    for i in 0..(len(sha3texts) - 1):
+      var key = fromHex(stripSpaces(sha3_512keys[i]))
+      var data = fromHex(stripSpaces(sha3texts[i]))
+      var digest = stripSpaces(sha3_512digests[i])
+      ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
+      ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
+      var check1 = $ctx.finish()
+      var check2 = $sha3_512.hmac(
+        cast[ptr uint8](addr key[0]), uint(len(key)),
+        cast[ptr uint8](addr data[0]), uint(len(data))
+      )
+      var check3 = $sha3_512.hmac(key, data)
+      var check4 = $sha3_512.hmac(key, data, 0, len(data))
+      check(check1 == digest and check2 == digest and
+            check3 == digest and check4 == digest)

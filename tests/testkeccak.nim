@@ -1,5 +1,6 @@
 import nimcrypto/hash, nimcrypto/keccak, nimcrypto/utils
 from strutils import parseInt
+import unittest
 
 type
   TestVector = object
@@ -32,7 +33,8 @@ iterator testVectors(filename: string): TestVector =
       vector = TestVector()
   close(file)
 
-when isMainModule:
+
+suite "KECCAK/SHA3 Tests":
   ## KECCAK TESTS
   ## This tests performed only for full byte message value
 
@@ -41,73 +43,77 @@ when isMainModule:
   var kec384: keccak384
   var kec512: keccak512
 
-  ## KECCAK-224
-  for item in testVectors("tests/ShortMsgKAT_224.txt"):
-    kec224.init()
-    if (item.length mod 8) == 0:
-      var data: seq[uint8]
-      var length = item.length div 8
-      data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
-      var msg = fromHex(item.message)
-      copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-              len(msg))
-      kec224.update(addr data[0], uint(length))
-      var check1 = $kec224.finish()
-      var check2 = $keccak224.digest(addr data[0], uint(length))
-      var check3 = $keccak224.digest(data, 0, length)
-      doAssert(item.digest == check1 and item.digest == check2 and
-               item.digest == check3)
+  test "KECCAK-224 test vectors":
+    ## KECCAK-224
+    for item in testVectors("tests/ShortMsgKAT_224.txt"):
+      kec224.init()
+      if (item.length mod 8) == 0:
+        var data: seq[uint8]
+        var length = item.length div 8
+        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        var msg = fromHex(item.message)
+        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                len(msg))
+        kec224.update(addr data[0], uint(length))
+        var check1 = $kec224.finish()
+        var check2 = $keccak224.digest(addr data[0], uint(length))
+        var check3 = $keccak224.digest(data, 0, length)
+        check(item.digest == check1 and item.digest == check2 and
+              item.digest == check3)
 
-  ## KECCAK-256
-  for item in testVectors("tests/ShortMsgKAT_256.txt"):
-    kec256.init()
-    if (item.length mod 8) == 0:
-      var data: seq[uint8]
-      var length = item.length div 8
-      data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
-      var msg = fromHex(item.message)
-      copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-              len(msg))
-      kec256.update(addr data[0], uint(length))
-      var check1 = $kec256.finish()
-      var check2 = $keccak256.digest(addr data[0], uint(length))
-      var check3 = $keccak256.digest(data, 0, length)
-      doAssert(item.digest == check1 and item.digest == check2 and
-               item.digest == check3)
+  test "KECCAK-256 test vectors":
+    ## KECCAK-256
+    for item in testVectors("tests/ShortMsgKAT_256.txt"):
+      kec256.init()
+      if (item.length mod 8) == 0:
+        var data: seq[uint8]
+        var length = item.length div 8
+        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        var msg = fromHex(item.message)
+        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                len(msg))
+        kec256.update(addr data[0], uint(length))
+        var check1 = $kec256.finish()
+        var check2 = $keccak256.digest(addr data[0], uint(length))
+        var check3 = $keccak256.digest(data, 0, length)
+        check(item.digest == check1 and item.digest == check2 and
+              item.digest == check3)
 
-  ## KECCAK-384
-  for item in testVectors("tests/ShortMsgKAT_384.txt"):
-    kec384.init()
-    if (item.length mod 8) == 0:
-      var data: seq[uint8]
-      var length = item.length div 8
-      data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
-      var msg = fromHex(item.message)
-      copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-              len(msg))
-      kec384.update(addr data[0], uint(length))
-      var check1 = $kec384.finish()
-      var check2 = $keccak384.digest(addr data[0], uint(length))
-      var check3 = $keccak384.digest(data, 0, length)
-      doAssert(item.digest == check1 and item.digest == check2 and
-               item.digest == check3)
+  test "KECCAK-384 test vectors":
+    ## KECCAK-384
+    for item in testVectors("tests/ShortMsgKAT_384.txt"):
+      kec384.init()
+      if (item.length mod 8) == 0:
+        var data: seq[uint8]
+        var length = item.length div 8
+        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        var msg = fromHex(item.message)
+        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                len(msg))
+        kec384.update(addr data[0], uint(length))
+        var check1 = $kec384.finish()
+        var check2 = $keccak384.digest(addr data[0], uint(length))
+        var check3 = $keccak384.digest(data, 0, length)
+        check(item.digest == check1 and item.digest == check2 and
+              item.digest == check3)
 
-  ## KECCAK-512
-  for item in testVectors("tests/ShortMsgKAT_512.txt"):
-    kec512.init()
-    if (item.length mod 8) == 0:
-      var data: seq[uint8]
-      var length = item.length div 8
-      data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
-      var msg = fromHex(item.message)
-      copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-              len(msg))
-      kec512.update(addr data[0], uint(length))
-      var check1 = $kec512.finish()
-      var check2 = $keccak512.digest(addr data[0], uint(length))
-      var check3 = $keccak512.digest(data, 0, length)
-      doAssert(item.digest == check1 and item.digest == check2 and
-               item.digest == check3)
+  test "KECCAK-512 test vectors":
+    ## KECCAK-512
+    for item in testVectors("tests/ShortMsgKAT_512.txt"):
+      kec512.init()
+      if (item.length mod 8) == 0:
+        var data: seq[uint8]
+        var length = item.length div 8
+        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        var msg = fromHex(item.message)
+        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                len(msg))
+        kec512.update(addr data[0], uint(length))
+        var check1 = $kec512.finish()
+        var check2 = $keccak512.digest(addr data[0], uint(length))
+        var check3 = $keccak512.digest(data, 0, length)
+        check(item.digest == check1 and item.digest == check2 and
+              item.digest == check3)
 
   ## SHA3 TESTS
 
@@ -175,98 +181,56 @@ when isMainModule:
   var sha384 = sha3_384()
   var sha512 = sha3_512()
 
-  for i in 0..(len(codes) - 1):
-    var msg = stripSpaces(codes[i])
+  test "SHA3 224/256/384/512 test vectors":
+    for i in 0..(len(codes) - 1):
+      var msg = stripSpaces(codes[i])
+      sha224.init()
+      sha256.init()
+      sha384.init()
+      sha512.init()
+      sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      check($sha224.finish() == stripSpaces(digest224[i]))
+      check($sha256.finish() == stripSpaces(digest256[i]))
+      check($sha384.finish() == stripSpaces(digest384[i]))
+      check($sha512.finish() == stripSpaces(digest512[i]))
+      # One liner test
+      var dcheck224 = $sha3_224.digest(cast[ptr uint8](addr msg[0]),
+                                       uint(len(msg)))
+      var dcheck256 = $sha3_256.digest(cast[ptr uint8](addr msg[0]),
+                                       uint(len(msg)))
+      var dcheck384 = $sha3_384.digest(cast[ptr uint8](addr msg[0]),
+                                       uint(len(msg)))
+      var dcheck512 = $sha3_512.digest(cast[ptr uint8](addr msg[0]),
+                                       uint(len(msg)))
+      check(dcheck224 == stripSpaces(digest224[i]))
+      check(dcheck256 == stripSpaces(digest256[i]))
+      check(dcheck384 == stripSpaces(digest384[i]))
+      check(dcheck512 == stripSpaces(digest512[i]))
+      # openarray[T] test
+      check($sha3_224.digest(msg) == stripSpaces(digest224[i]))
+      check($sha3_256.digest(msg) == stripSpaces(digest256[i]))
+      check($sha3_384.digest(msg) == stripSpaces(digest384[i]))
+      check($sha3_512.digest(msg) == stripSpaces(digest512[i]))
+
+  test "SHA3 224/256/384/512 million test":
+    # Million 'a' test
     sha224.init()
     sha256.init()
     sha384.init()
     sha512.init()
-    sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    var check224 = $sha224.finish()
-    var check256 = $sha256.finish()
-    var check384 = $sha384.finish()
-    var check512 = $sha512.finish()
-    doAssert(check224 == stripSpaces(digest224[i]),
-             check224 & " != " & stripSpaces(digest224[i]))
-    doAssert(check256 == stripSpaces(digest256[i]),
-             check256 & " != " & stripSpaces(digest256[i]))
-    doAssert(check384 == stripSpaces(digest384[i]),
-             check384 & " != " & stripSpaces(digest384[i]))
-    doAssert(check512 == stripSpaces(digest512[i]),
-             check512 & " != " & stripSpaces(digest512[i]))
-    # One liner test
-    var dcheck224 = $sha3_224.digest(cast[ptr uint8](addr msg[0]),
-                                     uint(len(msg)))
-    var dcheck256 = $sha3_256.digest(cast[ptr uint8](addr msg[0]),
-                                     uint(len(msg)))
-    var dcheck384 = $sha3_384.digest(cast[ptr uint8](addr msg[0]),
-                                     uint(len(msg)))
-    var dcheck512 = $sha3_512.digest(cast[ptr uint8](addr msg[0]),
-                                     uint(len(msg)))
-    doAssert(dcheck224 == stripSpaces(digest224[i]),
-             dcheck224 & " != " & stripSpaces(digest224[i]))
-    doAssert(dcheck256 == stripSpaces(digest256[i]),
-             dcheck256 & " != " & stripSpaces(digest256[i]))
-    doAssert(dcheck384 == stripSpaces(digest384[i]),
-             dcheck384 & " != " & stripSpaces(digest384[i]))
-    doAssert(dcheck512 == stripSpaces(digest512[i]),
-             dcheck512 & " != " & stripSpaces(digest512[i]))
-    # openarray[T] test
-    var ocheck224 = $sha3_224.digest(msg)
-    var ocheck256 = $sha3_256.digest(msg)
-    var ocheck384 = $sha3_384.digest(msg)
-    var ocheck512 = $sha3_512.digest(msg)
-    doAssert(ocheck224 == stripSpaces(digest224[i]),
-             ocheck224 & " != " & stripSpaces(digest224[i]))
-    doAssert(ocheck256 == stripSpaces(digest256[i]),
-             ocheck256 & " != " & stripSpaces(digest256[i]))
-    doAssert(ocheck384 == stripSpaces(digest384[i]),
-             ocheck384 & " != " & stripSpaces(digest384[i]))
-    doAssert(ocheck512 == stripSpaces(digest512[i]),
-             ocheck512 & " != " & stripSpaces(digest512[i]))
-
-  # Million 'a' test
-  sha224.init()
-  sha256.init()
-  sha384.init()
-  sha512.init()
-  var msg = "a"
-  for i in 1..1_000_000:
-    sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-
-  var mcheck224 = $sha224.finish()
-  var mcheck256 = $sha256.finish()
-  var mcheck384 = $sha384.finish()
-  var mcheck512 = $sha512.finish()
-
-  doAssert(mcheck224 == stripSpaces(digest224[4]),
-           mcheck224 & " != " & stripSpaces(digest224[4]))
-  doAssert(mcheck256 == stripSpaces(digest256[4]),
-           mcheck256 & " != " & stripSpaces(digest256[4]))
-  doAssert(mcheck384 == stripSpaces(digest384[4]),
-           mcheck384 & " != " & stripSpaces(digest384[4]))
-  doAssert(mcheck512 == stripSpaces(digest512[4]),
-           mcheck512 & " != " & stripSpaces(digest512[4]))
-
-  # # Extreme test
-  # var echeck224 = extremeTest(sha224)
-  # var echeck256 = extremeTest(sha256)
-  # var echeck384 = extremeTest(sha384)
-  # var echeck512 = extremeTest(sha512)
-  # doAssert(echeck224 == stripSpaces(digest224[5]),
-  #          echeck224 & " != " & stripSpaces(digest224[5]))
-  # doAssert(echeck256 == stripSpaces(digest256[5]),
-  #          echeck256 & " != " & stripSpaces(digest256[5]))
-  # doAssert(echeck384 == stripSpaces(digest384[5]),
-  #          echeck384 & " != " & stripSpaces(digest384[5]))
-  # doAssert(echeck512 == stripSpaces(digest512[5]),
-  #          echeck512 & " != " & stripSpaces(digest512[5]))
+    var msg = "a"
+    for i in 1..1_000_000:
+      sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+    check($sha224.finish() == stripSpaces(digest224[4]))
+    check($sha256.finish() == stripSpaces(digest256[4]))
+    check($sha384.finish() == stripSpaces(digest384[4]))
+    check($sha512.finish() == stripSpaces(digest512[4]))
 
   const shake128inputs = [
     "A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3",
@@ -356,9 +320,10 @@ when isMainModule:
     """
   ]
 
+
   # SHAKE-128 TESTS
-  block:
-    var check: array[512, uint8]
+  test "SHAKE-128 test vectors":
+    var chk: array[512, uint8]
     var buf: array[32, uint8]
     var sctx = shake128()
     for t in 0..1:
@@ -371,14 +336,12 @@ when isMainModule:
       for i in 0..15:
         discard sctx.output(addr buf[0], uint(len(buf)))
         for j in 0..31:
-          check[i * 32 + j] = buf[j]
-      var hexcheck = toHex(check)
-      doAssert(hexcheck == stripSpaces(shake128digests[t]),
-               hexcheck & " != " & stripSpaces(shake128digests[t]))
+          chk[i * 32 + j] = buf[j]
+      check(toHex(chk) == stripSpaces(shake128digests[t]))
 
   # SHAKE-256 TEST
-  block:
-    var check: array[512, uint8]
+  test "SHAKE-256 test vectors":
+    var chk: array[512, uint8]
     var buf: array[32, uint8]
     var sctx = shake256()
     for t in 0..1:
@@ -391,7 +354,5 @@ when isMainModule:
       for i in 0..15:
         discard sctx.output(addr buf[0], uint(len(buf)))
         for j in 0..31:
-          check[i * 32 + j] = buf[j]
-      var hexcheck = toHex(check)
-      doAssert(hexcheck == stripSpaces(shake256digests[t]),
-               hexcheck & " != " & stripSpaces(shake256digests[t]))
+          chk[i * 32 + j] = buf[j]
+      check(toHex(chk) == stripSpaces(shake256digests[t]))

@@ -104,17 +104,17 @@ proc hmac*(HashType: typedesc, key: ptr uint8, klen: uint,
 
 proc hmac*[A, B](HashType: typedesc, key: openarray[A],
                  data: openarray[B],
-                 ostart: int = -1, ofinish: int = -1): MDigest[HashType.bits] =
+                 ostart: int = 0, ofinish: int = -1): MDigest[HashType.bits] =
   var ctx: HMAC[HashType]
-  assert(len(key) > 0)
-  assert(ostart >= -1 and ofinish >= -1)
-  let so = if ostart == -1: 0 else: ostart
-  let eo = if ofinish == -1: uint(len(data)) else: uint(ofinish - so)
-  ctx.init(cast[ptr uint8](unsafeAddr key[0]), uint(sizeof(A) * len(key)))
-  assert(uint(so) <= eo)
-  assert(eo <= uint(len(data)))
-  if eo == 0:
+  let so = if ostart < 0: (len(data) + ostart) else: ostart
+  let eo = if ofinish < 0: (len(data) + ofinish) else: ofinish
+  let length = (eo - so + 1) * sizeof(B)
+  if len(key) == 0:
+    ctx.init(nil, 0)
+  else:
+    ctx.init(cast[ptr uint8](unsafeAddr key[0]), uint(sizeof(A) * len(key)))
+  if length <= 0:
     result = ctx.finish()
   else:
-    ctx.update(cast[ptr uint8](unsafeAddr data[so]), uint(sizeof(B)) * eo)
+    ctx.update(cast[ptr uint8](unsafeAddr data[so]), uint(length))
     result = ctx.finish()

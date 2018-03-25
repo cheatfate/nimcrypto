@@ -50,16 +50,29 @@ suite "KECCAK/SHA3 Tests":
       if (item.length mod 8) == 0:
         var data: seq[uint8]
         var length = item.length div 8
-        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        data = newSeq[uint8](length)
         var msg = fromHex(item.message)
-        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-                len(msg))
-        kec224.update(addr data[0], uint(length))
-        var check1 = $kec224.finish()
-        var check2 = $keccak224.digest(addr data[0], uint(length))
-        var check3 = $keccak224.digest(data, 0, length)
-        check(item.digest == check1 and item.digest == check2 and
-              item.digest == check3)
+        # Nim do not allow `addr data[0]` if `data` is empty array,
+        # so we need to handle it in different way
+        if len(data) > 0:
+          copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                  len(msg))
+          kec224.update(addr data[0], uint(length))
+          var check1 = $kec224.finish()
+          var check2 = $keccak224.digest(addr data[0], uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+        else:
+          kec224.update(nil, uint(length))
+          var check1 = $kec224.finish()
+          var check2 = $keccak224.digest(nil, uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+
+        var check3 = $keccak224.digest(data, 0, length - 1)
+        check item.digest == check3
 
   test "KECCAK-256 test vectors":
     ## KECCAK-256
@@ -68,16 +81,28 @@ suite "KECCAK/SHA3 Tests":
       if (item.length mod 8) == 0:
         var data: seq[uint8]
         var length = item.length div 8
-        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        data = newSeq[uint8](length)
         var msg = fromHex(item.message)
-        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-                len(msg))
-        kec256.update(addr data[0], uint(length))
-        var check1 = $kec256.finish()
-        var check2 = $keccak256.digest(addr data[0], uint(length))
-        var check3 = $keccak256.digest(data, 0, length)
-        check(item.digest == check1 and item.digest == check2 and
-              item.digest == check3)
+        # Nim do not allow `addr data[0]` if `data` is empty array,
+        # so we need to handle it in different way
+        if len(data) > 0:
+          copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                  len(msg))
+          kec256.update(addr data[0], uint(length))
+          var check1 = $kec256.finish()
+          var check2 = $keccak256.digest(addr data[0], uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+        else:
+          kec256.update(nil, uint(length))
+          var check1 = $kec256.finish()
+          var check2 = $keccak256.digest(nil, uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+        var check3 = $keccak256.digest(data, 0, length - 1)
+        check item.digest == check3
 
   test "KECCAK-384 test vectors":
     ## KECCAK-384
@@ -86,16 +111,28 @@ suite "KECCAK/SHA3 Tests":
       if (item.length mod 8) == 0:
         var data: seq[uint8]
         var length = item.length div 8
-        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        data = newSeq[uint8](length)
         var msg = fromHex(item.message)
-        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-                len(msg))
-        kec384.update(addr data[0], uint(length))
-        var check1 = $kec384.finish()
-        var check2 = $keccak384.digest(addr data[0], uint(length))
-        var check3 = $keccak384.digest(data, 0, length)
-        check(item.digest == check1 and item.digest == check2 and
-              item.digest == check3)
+        # Nim do not allow `addr data[0]` if `data` is empty array,
+        # so we need to handle it in different way
+        if len(data) > 0:
+          copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                  len(msg))
+          kec384.update(addr data[0], uint(length))
+          var check1 = $kec384.finish()
+          var check2 = $keccak384.digest(addr data[0], uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+        else:
+          kec384.update(nil, uint(length))
+          var check1 = $kec384.finish()
+          var check2 = $keccak384.digest(nil, uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+        var check3 = $keccak384.digest(data, 0, length - 1)
+        check item.digest == check3
 
   test "KECCAK-512 test vectors":
     ## KECCAK-512
@@ -104,16 +141,28 @@ suite "KECCAK/SHA3 Tests":
       if (item.length mod 8) == 0:
         var data: seq[uint8]
         var length = item.length div 8
-        data = if length == 0: newSeq[uint8](1) else: newSeq[uint8](length)
+        data = newSeq[uint8](length)
         var msg = fromHex(item.message)
-        copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
-                len(msg))
-        kec512.update(addr data[0], uint(length))
-        var check1 = $kec512.finish()
-        var check2 = $keccak512.digest(addr data[0], uint(length))
-        var check3 = $keccak512.digest(data, 0, length)
-        check(item.digest == check1 and item.digest == check2 and
-              item.digest == check3)
+        # Nim do not allow `addr data[0]` if `data` is empty array,
+        # so we need to handle it in different way
+        if len(data) > 0:
+          copyMem(cast[pointer](addr data[0]), cast[pointer](addr msg[0]),
+                  len(msg))
+          kec512.update(addr data[0], uint(length))
+          var check1 = $kec512.finish()
+          var check2 = $keccak512.digest(addr data[0], uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+        else:
+          kec384.update(nil, uint(length))
+          var check1 = $kec512.finish()
+          var check2 = $keccak512.digest(nil, uint(length))
+          check:
+            item.digest == check1
+            item.digest == check2
+        var check3 = $keccak512.digest(data, 0, length - 1)
+        check item.digest == check3
 
   ## SHA3 TESTS
 
@@ -205,15 +254,17 @@ suite "KECCAK/SHA3 Tests":
                                        uint(len(msg)))
       var dcheck512 = $sha3_512.digest(cast[ptr uint8](addr msg[0]),
                                        uint(len(msg)))
-      check(dcheck224 == stripSpaces(digest224[i]))
-      check(dcheck256 == stripSpaces(digest256[i]))
-      check(dcheck384 == stripSpaces(digest384[i]))
-      check(dcheck512 == stripSpaces(digest512[i]))
+      check:
+        dcheck224 == stripSpaces(digest224[i])
+        dcheck256 == stripSpaces(digest256[i])
+        dcheck384 == stripSpaces(digest384[i])
+        dcheck512 == stripSpaces(digest512[i])
       # openarray[T] test
-      check($sha3_224.digest(msg) == stripSpaces(digest224[i]))
-      check($sha3_256.digest(msg) == stripSpaces(digest256[i]))
-      check($sha3_384.digest(msg) == stripSpaces(digest384[i]))
-      check($sha3_512.digest(msg) == stripSpaces(digest512[i]))
+      check:
+        $sha3_224.digest(msg) == stripSpaces(digest224[i])
+        $sha3_256.digest(msg) == stripSpaces(digest256[i])
+        $sha3_384.digest(msg) == stripSpaces(digest384[i])
+        $sha3_512.digest(msg) == stripSpaces(digest512[i])
 
   test "SHA3 224/256/384/512 million test":
     # Million 'a' test
@@ -227,10 +278,11 @@ suite "KECCAK/SHA3 Tests":
       sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-    check($sha224.finish() == stripSpaces(digest224[4]))
-    check($sha256.finish() == stripSpaces(digest256[4]))
-    check($sha384.finish() == stripSpaces(digest384[4]))
-    check($sha512.finish() == stripSpaces(digest512[4]))
+    check:
+      $sha224.finish() == stripSpaces(digest224[4])
+      $sha256.finish() == stripSpaces(digest256[4])
+      $sha384.finish() == stripSpaces(digest384[4])
+      $sha512.finish() == stripSpaces(digest512[4])
 
   const shake128inputs = [
     "A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3",
@@ -319,7 +371,6 @@ suite "KECCAK/SHA3 Tests":
       AB0BAE3163398943 04E35877B0C28A9B 1FD166C796B9CC25 8A064A8F57E27F2A
     """
   ]
-
 
   # SHAKE-128 TESTS
   test "SHAKE-128 test vectors":

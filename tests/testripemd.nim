@@ -92,10 +92,11 @@ suite "RipeMD Tests":
       var digest256 = ctx256.finish()
       var digest320 = ctx320.finish()
 
-      check($digest128 == stripSpaces(RipeMD128C[i]))
-      check($digest160 == stripSpaces(RipeMD160C[i]))
-      check($digest256 == stripSpaces(RipeMD256C[i]))
-      check($digest320 == stripSpaces(RipeMD320C[i]))
+      check:
+        $digest128 == stripSpaces(RipeMD128C[i])
+        $digest160 == stripSpaces(RipeMD160C[i])
+        $digest256 == stripSpaces(RipeMD256C[i])
+        $digest320 == stripSpaces(RipeMD320C[i])
 
       var dcheck128 = $ripemd128.digest(cast [ptr uint8](addr a[0]),
                                         uint(len(a)))
@@ -106,15 +107,16 @@ suite "RipeMD Tests":
       var dcheck320 = $ripemd320.digest(cast [ptr uint8](addr a[0]),
                                         uint(len(a)))
 
-      check($dcheck128 == stripSpaces(RipeMD128C[i]))
-      check($dcheck160 == stripSpaces(RipeMD160C[i]))
-      check($dcheck256 == stripSpaces(RipeMD256C[i]))
-      check($dcheck320 == stripSpaces(RipeMD320C[i]))
-
-      check($ripemd128.digest(a) == stripSpaces(RipeMD128C[i]))
-      check($ripemd160.digest(a) == stripSpaces(RipeMD160C[i]))
-      check($ripemd256.digest(a) == stripSpaces(RipeMD256C[i]))
-      check($ripemd320.digest(a) == stripSpaces(RipeMD320C[i]))
+      check:
+        $dcheck128 == stripSpaces(RipeMD128C[i])
+        $dcheck160 == stripSpaces(RipeMD160C[i])
+        $dcheck256 == stripSpaces(RipeMD256C[i])
+        $dcheck320 == stripSpaces(RipeMD320C[i])
+      check:
+        $ripemd128.digest(a) == stripSpaces(RipeMD128C[i])
+        $ripemd160.digest(a) == stripSpaces(RipeMD160C[i])
+        $ripemd256.digest(a) == stripSpaces(RipeMD256C[i])
+        $ripemd320.digest(a) == stripSpaces(RipeMD320C[i])
 
       inc(i)
 
@@ -135,7 +137,8 @@ suite "RipeMD Tests":
     var digest256 = ctx256.finish()
     var digest320 = ctx320.finish()
 
-    check($digest128 == stripSpaces(Ripemd128C[8]))
-    check($digest160 == stripSpaces(Ripemd160C[8]))
-    check($digest256 == stripSpaces(Ripemd256C[8]))
-    check($digest320 == stripSpaces(Ripemd320C[8]))
+    check:
+      $digest128 == stripSpaces(Ripemd128C[8])
+      $digest160 == stripSpaces(Ripemd160C[8])
+      $digest256 == stripSpaces(Ripemd256C[8])
+      $digest320 == stripSpaces(Ripemd320C[8])

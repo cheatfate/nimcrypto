@@ -79,7 +79,10 @@ suite "SHA2 Tests":
       var check2 = $sha224.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha224.digest(plaintext)
-      check(check1 == digest and check2 == digest and check3 == digest)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
       inc(i)
   
   test "SHA2-256 test vectors":
@@ -93,7 +96,10 @@ suite "SHA2 Tests":
       var check2 = $sha256.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha256.digest(plaintext)
-      check(check1 == digest and check2 == digest and check3 == digest)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
       inc(i)
 
   test "SHA2-384 test vectors":
@@ -107,7 +113,10 @@ suite "SHA2 Tests":
       var check2 = $sha384.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha384.digest(plaintext)
-      check(check1 == digest and check2 == digest and check3 == digest)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
       inc(i)
 
   test "SHA2-512 test vectors":
@@ -121,7 +130,10 @@ suite "SHA2 Tests":
       var check2 = $sha512.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha512.digest(plaintext)
-      check(check1 == digest and check2 == digest and check3 == digest)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
       inc(i)
 
   test "SHA2-512/224 test vectors":
@@ -135,7 +147,10 @@ suite "SHA2 Tests":
       var check2 = $sha512_224.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_224.digest(plaintext)
-      check(check1 == digest and check2 == digest and check3 == digest)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
       inc(i)
 
   test "SHA2-512/256 test vectors":
@@ -149,5 +164,8 @@ suite "SHA2 Tests":
       var check2 = $sha512_256.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_256.digest(plaintext)
-      check(check1 == digest and check2 == digest and check3 == digest)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
       inc(i)

@@ -267,11 +267,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var digest3 = $ripemd128.hmac(key, data)
-      var digest4 = $ripemd128.hmac(key, data, 0, len(data))
-      check(digest1 == ripemd128digests[i] and
-            digest2 == ripemd128digests[i] and
-            digest3 == ripemd128digests[i] and
-            digest4 == ripemd128digests[i])
+      var digest4 = $ripemd128.hmac(key, data, 0, len(data) - 1)
+      check:
+        digest1 == ripemd128digests[i]
+        digest2 == ripemd128digests[i]
+        digest3 == ripemd128digests[i]
+        digest4 == ripemd128digests[i]
 
   test "HMAC-RIPEMD-160 test vectors":
     for i in 0..(len(ripemd160digests) - 1):
@@ -286,12 +287,13 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var digest3 = $ripemd160.hmac(key, data)
-      var digest4 = $ripemd160.hmac(key, data, 0, len(data))
+      var digest4 = $ripemd160.hmac(key, data, 0, len(data) - 1)
 
-      check(digest1 == ripemd160digests[i] and
-            digest2 == ripemd160digests[i] and
-            digest3 == ripemd160digests[i] and
-            digest4 == ripemd160digests[i])
+      check:
+        digest1 == ripemd160digests[i]
+        digest2 == ripemd160digests[i]
+        digest3 == ripemd160digests[i]
+        digest4 == ripemd160digests[i]
 
   test "HMAC-SHA2-224 test vectors":
     var ctx224: HMAC[sha224]
@@ -307,9 +309,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha224.hmac(key, data)
-      var check4 = $sha224.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha224.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest
 
   test "HMAC-SHA2-256 test vectors":
     var ctx256: HMAC[sha256]
@@ -325,9 +330,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha256.hmac(key, data)
-      var check4 = $sha256.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha256.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest
 
   test "HMAC-SHA2-384 test vectors":
     var ctx384: HMAC[sha384]
@@ -343,9 +351,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha384.hmac(key, data)
-      var check4 = $sha384.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha384.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest
 
   test "HMAC-SHA2-512 test vectors":
     var ctx512: HMAC[sha512]
@@ -361,9 +372,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha512.hmac(key, data)
-      var check4 = $sha512.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha512.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest
 
   test "HMAC-SHA3-224 test vectors":
     var ctx: HMAC[sha3_224]
@@ -379,9 +393,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_224.hmac(key, data)
-      var check4 = $sha3_224.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha3_224.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest
 
   test "HMAC-SHA3-256 test vectors":
     var ctx: HMAC[sha3_256]
@@ -397,9 +414,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_256.hmac(key, data)
-      var check4 = $sha3_256.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha3_256.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest
 
   test "HMAC-SHA3-384 test vectors":
     var ctx: HMAC[sha3_384]
@@ -415,9 +435,12 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_384.hmac(key, data)
-      var check4 = $sha3_384.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha3_384.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest
 
   test "HMAC-SHA3-512 test vectors":
     var ctx: HMAC[sha3_512]
@@ -433,6 +456,9 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_512.hmac(key, data)
-      var check4 = $sha3_512.hmac(key, data, 0, len(data))
-      check(check1 == digest and check2 == digest and
-            check3 == digest and check4 == digest)
+      var check4 = $sha3_512.hmac(key, data, 0, len(data) - 1)
+      check:
+        check1 == digest
+        check2 == digest
+        check3 == digest
+        check4 == digest

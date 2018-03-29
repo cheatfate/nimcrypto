@@ -15,6 +15,8 @@ from sha2 import Sha2Context
 from ripemd import RipemdContext
 from keccak import KeccakContext
 
+{.deadCodeElim:on.}
+
 const
   MaxHmacBlockSize = 256
 
@@ -77,12 +79,22 @@ proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
   update(hmctx.mdctx, addr ipad[0], sizeBlock)
   update(hmctx.opadctx, addr opad[0], sizeBlock)
 
+proc init*[T](hmctx: var HMAC[T], key: openarray[byte]) {.inline.} =
+  assert(len(key) > 0)
+  init(hmctx, unsafeAddr key[0], uint(len(key)))
+
 proc clear*[T](hmctx: var HMAC[T]) =
   burnMem(hmctx)
 
 proc update*(hmctx: var HMAC, data: ptr uint8, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
+
+proc update*(hmctx: var HMAC, data: openarray[byte]) {.inline.} =
+  if len(data) == 0:
+    update(hmctx, nil, 0'u)
+  else:
+    update(hmctx, unsafeAddr data[0], uint(len(data)))
 
 proc finish*(hmctx: var HMAC, data: ptr uint8, ulen: uint): uint =
   mixin update, finish
@@ -91,6 +103,10 @@ proc finish*(hmctx: var HMAC, data: ptr uint8, ulen: uint): uint =
                     uint(hmctx.HashType.bits div 8))
   hmctx.opadctx.update(addr buffer[0], size)
   result = hmctx.opadctx.finish(data, ulen)
+
+proc finish*(hmctx: var HMAC, data: var openarray[byte]) {.inline.} =
+  assert(len(data) >= hmctx.sizeDigest)
+  finish(hmctx, addr data[0], uint(len(data)))
 
 proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   discard finish(hmctx, cast[ptr uint8](addr result.data[0]),

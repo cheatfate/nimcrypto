@@ -685,6 +685,12 @@ proc update*(ctx: var RipemdContext, data: ptr uint8, ulen: uint) =
       elif ctx.bits == 320:
         ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
 
+proc update*(ctx: var RipemdContext, data: openarray[byte]) =
+  if len(data) == 0:
+    ctx.update(nil, 0)
+  else:
+    ctx.update(unsafeAddr data[0], uint(len(data)))
+
 proc finalize(ctx: var RipemdContext) =
   let size = (ctx.count[0] and 0x3F)
   var buffer = addr(ctx.buffer[0])

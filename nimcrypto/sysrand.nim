@@ -24,6 +24,8 @@
 ##
 ## ``NetBSD``, ``FreeBSD``, ``MacOS``, ``Solaris`` using `/dev/urandom`.
 
+{.deadCodeElim:on.}
+
 when defined(posix):
   import os, posix
 

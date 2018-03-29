@@ -19,6 +19,8 @@
 
 import utils
 
+{.deadCodeElim:on.}
+
 const
   MaxNr = 14
 
@@ -1010,6 +1012,10 @@ template sizeBlock*(r: typedesc[rijndael]): int =
 proc init*(ctx: var RijndaelContext, key: ptr uint8, nkey: int = 0) {.inline.} =
   ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)
 
+proc init*(ctx: var RijndaelContext, key: openarray[byte]) {.inline.} =
+  assert(len(key) >= ctx.sizeKey)
+  ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, unsafeAddr key[0])
+
 proc clear*(ctx: var RijndaelContext) {.inline.} =
   burnMem(ctx)
 
@@ -1020,3 +1026,15 @@ proc encrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
 proc decrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =
   rijndaelDecrypt(ctx, inbytes, outbytes)
+
+proc encrypt*(ctx: var RijndaelContext, input: openarray[byte],
+              output: var openarray[byte]) {.inline.} =
+  assert(len(input) == ctx.sizeBlock)
+  assert(len(input) <= len(output))
+  rijndaelEncrypt(ctx, unsafeAddr input[0], addr output[0])
+
+proc decrypt*(ctx: var RijndaelContext, input: openarray[byte],
+              output: var openarray[byte]) {.inline.} =
+  assert(len(input) == ctx.sizeBlock)
+  assert(len(input) <= len(output))
+  rijndaelDecrypt(ctx, unsafeAddr input[0], addr output[0])

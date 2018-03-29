@@ -18,7 +18,10 @@
 ## Test for SHAKE-128/256 made according to
 ## [https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values#aHashing]
 ## 0bit and 1600bit test vectors used.
+
 import hash, utils
+
+{.deadCodeElim:on.}
 
 const RNDC = [
   0x0000000000000001'u64, 0x0000000000008082'u64, 0x800000000000808A'u64,
@@ -261,6 +264,12 @@ proc update*(ctx: var KeccakContext, data: ptr uint8, ulen: uint) =
         j = 0
     ctx.pt = j
 
+proc update*(ctx: var KeccakContext, data: openarray[byte]) =
+  if len(data) == 0:
+    update(ctx, nil, 0'u)
+  else:
+    update(ctx, unsafeAddr data[0], uint(len(data)))
+
 proc finalizeKeccak(ctx: var KeccakContext) =
   var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
   when ctx.kind == Sha3:
@@ -309,3 +318,7 @@ proc finish*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
 proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr uint8](addr result.data[0]),
                  uint(len(result.data)))
+
+proc finish*(ctx: var KeccakContext, data: var openarray[byte]) =
+  assert(len(data) >= ctx.sizeDigest)
+  ctx.finish(addr data[0], uint(len(data)))

@@ -1,4 +1,15 @@
+#
+#
+#                    NimCrypto
+#        (c) Copyright 2016 Eugene Kabanov
+#
+#      See the file "LICENSE", included in this
+#    distribution, for details about the copyright.
+#
+
 import utils
+
+{.deadCodeElim:on.}
 
 const
   MaxMDigestLength* = 64

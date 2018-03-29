@@ -17,6 +17,8 @@
 
 import utils
 
+{.deadCodeElim:on.}
+
 const
   RS_MOD = 0x14D
   RHO = 0x01010101
@@ -419,6 +421,10 @@ template sizeBlock*(r: typedesc[twofish]): int =
 proc init*(ctx: var TwofishContext, key: ptr uint8, nkey: int = 0) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)
 
+proc init*(ctx: var TwofishContext, key: openarray[byte]) {.inline.} =
+  assert(len(key) >= ctx.sizeKey())
+  initTwofishContext(ctx, ctx.bits, unsafeAddr key[0])
+
 proc clear*(ctx: var TwofishContext) {.inline.} =
   burnMem(ctx)
 
@@ -429,3 +435,15 @@ proc encrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
 proc decrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =
   twofishDecrypt(ctx, inbytes, outbytes)
+
+proc encrypt*(ctx: var TwofishContext, input: openarray[byte],
+              output: var openarray[byte]) {.inline.} =
+  assert(len(input) == ctx.sizeBlock)
+  assert(len(input) <= len(output))
+  twofishEncrypt(ctx, unsafeAddr input[0], addr output[0])
+
+proc decrypt*(ctx: var TwofishContext, input: openarray[byte],
+              output: var openarray[byte]) {.inline.} =
+  assert(len(input) == ctx.sizeBlock)
+  assert(len(input) <= len(output))
+  twofishDecrypt(ctx, unsafeAddr input[0], addr output[0])

@@ -37,6 +37,8 @@
 
 import utils
 
+{.deadCodeElim:on.}
+
 const
   N = 16
 
@@ -450,6 +452,11 @@ proc init*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) {.inline.} =
   ctx.sizeKey = nkey shl 3
   initBlowfishContext(ctx, key, ctx.sizeKey)
 
+proc init*(ctx: var BlowfishContext, key: openarray[byte]) {.inline.} =
+  assert(len(key) > 0)
+  ctx.sizeKey = len(key) shl 3
+  initBlowfishContext(ctx, unsafeAddr key[0], ctx.sizeKey)
+
 proc clear*(ctx: var BlowfishContext) {.inline.} =
   burnMem(ctx)
 
@@ -460,3 +467,17 @@ proc encrypt*(ctx: var BlowfishContext, inbytes: ptr uint8,
 proc decrypt*(ctx: var BlowfishContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =
   blowfishDecrypt(ctx, inbytes, outbytes)
+
+proc encrypt*(ctx: var BlowfishContext, input: openarray[byte],
+              output: var openarray[byte]) {.inline.} =
+  assert(len(input) == ctx.sizeBlock)
+  assert(len(input) <= len(output))
+  blowfishEncrypt(ctx, unsafeAddr input[0], addr output[0])
+
+proc decrypt*(ctx: var BlowfishContext, input: openarray[byte],
+              output: var openarray[byte]) {.inline.} =
+  assert(len(input) == ctx.sizeBlock)
+  assert(len(input) <= len(output))
+  blowfishDecrypt(ctx, unsafeAddr input[0], addr output[0])
+
+

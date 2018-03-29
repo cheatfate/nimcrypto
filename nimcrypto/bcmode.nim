@@ -21,6 +21,8 @@
 
 import utils
 
+{.deadCodeElim:on.}
+
 const
   MaxBlockSize = 256
   MaxBlockBytesSize = MaxBlockSize shr 3
@@ -63,7 +65,12 @@ proc init*[T](ctx: var ECB[T], keyBytes: ptr uint8) =
   mixin init
   assert(not isNil(keyBytes))
   init(ctx.cipher, keyBytes)
-  doAssert(ctx.sizeBlock <= MaxBlockSize)
+  assert(ctx.sizeBlock <= MaxBlockSize)
+
+proc init*[T](ctx: var ECB[T], key: openarray[byte]) =
+  mixin init
+  init(ctx.cipher, key)
+  assert(ctx.sizeBlock <= MaxBlockSize)
 
 proc clear*[T](ctx: var ECB[T]) {.inline.} =
   burnMem(ctx)
@@ -89,6 +96,7 @@ proc encrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
     i = i - blen
     ip = cast[ptr UncheckedArray[uint8]](cast[uint](ip) + blen)
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
+  result = length
 
 proc decrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
@@ -106,6 +114,19 @@ proc decrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
     i = i - blen
     ip = cast[ptr UncheckedArray[uint8]](cast[uint](ip) + blen)
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
+  result = length
+
+proc encrypt*[T](ctx: var ECB[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  encrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
+
+proc decrypt*[T](ctx: var ECB[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  decrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
 
 ## CBC (Cipher Block Chaining) Mode
 
@@ -121,8 +142,15 @@ proc init*[T](ctx: var CBC[T], keyBytes: ptr uint8, iv: ptr uint8) =
   mixin init
   assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
-  doAssert(ctx.sizeBlock <= MaxBlockSize)
+  assert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
+
+proc init*[T](ctx: var CBC[T], key: openarray[byte], iv: openarray[byte]) =
+  mixin init
+  init(ctx.cipher, key)
+  assert(len(iv) >= ctx.sizeBlock)
+  assert(ctx.sizeBlock <= MaxBlockSize)
+  ctx.iv = iv
 
 proc clear*[T](ctx: var CBC[T]) {.inline.} =
   burnMem(ctx)
@@ -155,6 +183,7 @@ proc encrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
     ip = cast[ptr UncheckedArray[uint8]](cast[uint](ip) + blen)
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
   copyMem(addr ctx.iv[0], cp, blen)
+  result = length
 
 proc decrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
@@ -184,6 +213,19 @@ proc decrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
     i = i - blen
     ip = cast[ptr UncheckedArray[uint8]](cast[uint](ip) + blen)
     op = cast[ptr UncheckedArray[uint8]](cast[uint](op) + blen)
+  result = length
+
+proc encrypt*[T](ctx: var CBC[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  encrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
+
+proc decrypt*[T](ctx: var CBC[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  decrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
 
 ## CTR (Counter) Mode
 
@@ -221,8 +263,15 @@ proc init*[T](ctx: var CTR[T], keyBytes: ptr uint8, iv: ptr uint8) =
   mixin init
   assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
-  doAssert(ctx.sizeBlock <= MaxBlockSize)
+  assert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
+
+proc init*[T](ctx: var CTR[T], key: openarray[byte], iv: openarray[byte]) =
+  mixin init
+  init(ctx.cipher, key)
+  assert(len(iv) >= ctx.sizeBlock)
+  assert(ctx.sizeBlock <= MaxBlockSize)
+  ctx.iv = iv
 
 proc clear*[T](ctx: var CTR[T]) {.inline.} =
   burnMem(ctx)
@@ -259,6 +308,18 @@ proc decrypt*[T](ctx: var CTR[T], inp: ptr uint8, oup: ptr uint8,
   mixin encrypt
   result = encrypt(ctx, inp, oup, length)
 
+proc encrypt*[T](ctx: var CTR[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  encrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
+
+proc decrypt*[T](ctx: var CTR[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  decrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
+
 ## OFB (Output Feedback) Mode
 
 template sizeBlock*[T](ctx: OFB[T]): int =
@@ -273,8 +334,15 @@ proc init*[T](ctx: var OFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   mixin init
   assert(not isNil(keyBytes) and not isNil(iv))
   init(ctx.cipher, keyBytes)
-  doAssert(ctx.sizeBlock <= MaxBlockSize)
+  assert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
+
+proc init*[T](ctx: var OFB[T], key: openarray[byte], iv: openarray[byte]) =
+  mixin init
+  init(ctx.cipher, key)
+  assert(len(iv) == ctx.sizeBlock)
+  assert(ctx.sizeBlock <= MaxBlockSize)
+  ctx.iv = iv
 
 proc clear*[T](ctx: var OFB[T]) {.inline.} =
   burnMem(ctx)
@@ -298,11 +366,24 @@ proc encrypt*[T](ctx: var OFB[T], inp: ptr uint8, oup: ptr uint8,
     op[i] = ip[i] xor cp[n]
     inc(i)
     n = (n + 1) mod mask
+  result = uint(n)
 
 proc decrypt*[T](ctx: var OFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable, inline.} =
   mixin encrypt
   result = encrypt(ctx, inp, oup, length)
+
+proc encrypt*[T](ctx: var OFB[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  encrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
+
+proc decrypt*[T](ctx: var OFB[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  decrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
 
 ## CFB (Cipher Feedback) Mode
 
@@ -320,6 +401,13 @@ proc init*[T](ctx: var CFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
+
+proc init*[T](ctx: var CFB[T], key: openarray[byte], iv: openarray[byte]) =
+  mixin init
+  init(ctx.cipher, key)
+  assert(len(iv) == ctx.sizeBlock)
+  assert(ctx.sizeBlock <= MaxBlockSize)
+  ctx.iv = iv
 
 proc clear*[T](ctx: var CFB[T]) {.inline.} =
   burnMem(ctx)
@@ -343,7 +431,7 @@ proc encrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
     op[i] = cp[n]
     inc(i)
     n = (n + 1) mod mask
-  result = (uint)n
+  result = uint(n)
 
 proc decrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable, inline.} =
@@ -365,4 +453,16 @@ proc decrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
     cp[n] = c
     inc(i)
     n = (n + 1) mod mask
-  result = (uint)n
+  result = uint(n)
+
+proc encrypt*[T](ctx: var CFB[T], input: openarray[byte],
+                 output: var openarray[byte]) =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  encrypt(ctx, unsafeAddr input[0], addr output[0], len(input))
+
+proc decrypt*[T](ctx: var CFB[T], input: openarray[byte],
+                 output: var openarray[byte]) =
+  assert(len(input) <= len(output))
+  assert(len(input) > 0)
+  decrypt(ctx, unsafeAddr input[0], addr output[0], len(input))

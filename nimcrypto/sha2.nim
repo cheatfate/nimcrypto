@@ -16,6 +16,8 @@
 
 import hash, utils
 
+{.deadCodeElim:on.}
+
 const
   ## Compile with ``-d:smallcode`` to generate smaller code footprint
   smallCode = defined(smallcode)
@@ -480,6 +482,12 @@ proc update*(ctx: var Sha2Context, data: ptr uint8, inlen: uint) =
       if (ctx.count[0] and 0x7F) == 0:
         sha512Transform(ctx.state, addr(ctx.buffer[0]))
 
+proc update*(ctx: var Sha2Context, data: openarray[byte]) =
+  if len(data) == 0:
+    ctx.update(nil, 0)
+  else:
+    ctx.update(unsafeAddr data[0], uint(len(data)))
+
 proc finalize256(ctx: var Sha2Context) =
   var buffer = addr(ctx.buffer[0])
   var j = int(ctx.count[0] and 0x3F)
@@ -558,3 +566,7 @@ proc finish*(ctx: var Sha2Context, pBytes: ptr uint8, nBytes: uint): uint =
 proc finish*(ctx: var Sha2Context): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr uint8](addr result.data[0]),
                  uint(len(result.data)))
+
+proc finish*(ctx: var Sha2Context, data: var openarray[byte]) =
+  assert(len(data) >= ctx.sizeDigest)
+  ctx.finish(addr data[0], uint(len(data)))

@@ -33,7 +33,6 @@ iterator testVectors(filename: string): TestVector =
       vector = TestVector()
   close(file)
 
-
 suite "KECCAK/SHA3 Tests":
   ## KECCAK TESTS
   ## This tests performed only for full byte message value

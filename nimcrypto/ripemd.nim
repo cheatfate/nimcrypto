@@ -26,7 +26,7 @@ type
   RipemdContext*[bits: static[int]] = object
     count: array[2, uint32]
     state: array[bits div 32, uint32]
-    buffer: array[64, uint8]
+    buffer: array[64, byte]
 
   ripemd128* = RipemdContext[128]
   ripemd160* = RipemdContext[160]
@@ -463,7 +463,7 @@ template RROUND160N5(a, b, c, d, e, x): void =
   FFF160(c, d, e, a, b, x[ 9] , 11)
   FFF160(b, c, d, e, a, x[11] , 11)
 
-proc ripemd128Transform(state: var array[4, uint32], data: ptr uint8) =
+proc ripemd128Transform(state: var array[4, uint32], data: ptr byte) =
   var
     aa = state[0]
     bb = state[1]
@@ -491,7 +491,7 @@ proc ripemd128Transform(state: var array[4, uint32], data: ptr uint8) =
   state[3] = state[0] + bb + ccc
   state[0] = ddd
 
-proc ripemd256Transform(state: var array[8, uint32], data: ptr uint8) =
+proc ripemd256Transform(state: var array[8, uint32], data: ptr byte) =
   var
     aa = state[0]
     bb = state[1]
@@ -526,7 +526,7 @@ proc ripemd256Transform(state: var array[8, uint32], data: ptr uint8) =
   state[6] = state[6] + ccc
   state[7] = state[7] + ddd
 
-proc ripemd160Transform(state: var array[5, uint32], data: ptr uint8) =
+proc ripemd160Transform(state: var array[5, uint32], data: ptr byte) =
   var
     aa = state[0]
     bb = state[1]
@@ -559,7 +559,7 @@ proc ripemd160Transform(state: var array[5, uint32], data: ptr uint8) =
   state[4] = state[0] + bb + ccc
   state[0] = ddd
 
-proc ripemd320Transform(state: var array[10, uint32], data: ptr uint8) =
+proc ripemd320Transform(state: var array[10, uint32], data: ptr byte) =
   var
     aa = state[0]
     bb = state[1]
@@ -624,7 +624,7 @@ proc init*(ctx: var RipemdContext) =
   ctx.count[0] = 0
   ctx.count[1] = 0
 
-  zeroMem(addr ctx.buffer[0], sizeof(uint8) * 64)
+  zeroMem(addr ctx.buffer[0], sizeof(byte) * 64)
 
   when ctx.bits == 128:
     ctx.state[0] = 0x67452301'u32
@@ -661,7 +661,7 @@ proc init*(ctx: var RipemdContext) =
 proc clear*(ctx: var RipemdContext) {.inline.} =
   burnMem(ctx)
 
-proc update*(ctx: var RipemdContext, data: ptr uint8, ulen: uint) =
+proc update*(ctx: var RipemdContext, data: ptr byte, ulen: uint) =
   var pos = 0'u
   var length = ulen
 
@@ -685,11 +685,11 @@ proc update*(ctx: var RipemdContext, data: ptr uint8, ulen: uint) =
       elif ctx.bits == 320:
         ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
 
-proc update*(ctx: var RipemdContext, data: openarray[byte]) =
+proc update*[T: bchar](ctx: var RipemdContext, data: openarray[T]) =
   if len(data) == 0:
     ctx.update(nil, 0)
   else:
-    ctx.update(unsafeAddr data[0], uint(len(data)))
+    ctx.update(cast[ptr byte](unsafeAddr data[0]), uint(len(data)))
 
 proc finalize(ctx: var RipemdContext) =
   let size = (ctx.count[0] and 0x3F)
@@ -717,7 +717,7 @@ proc finalize(ctx: var RipemdContext) =
   elif ctx.bits == 320:
     ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
 
-proc finish*(ctx: var RipemdContext, data: ptr uint8, ulen: uint): uint =
+proc finish*(ctx: var RipemdContext, data: ptr byte, ulen: uint): uint =
   result = 0
   finalize(ctx)
   when ctx.bits == 128:
@@ -742,5 +742,9 @@ proc finish*(ctx: var RipemdContext, data: ptr uint8, ulen: uint): uint =
         SET_DWORD(data, i, BSWAP(ctx.state[i]))
 
 proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
-  discard finish(ctx, cast[ptr uint8](addr result.data[0]),
+  discard finish(ctx, cast[ptr byte](addr result.data[0]),
                  uint(len(result.data)))
+
+proc finish*[T: bchar](ctx: var RipemdContext, data: var openarray[T]) =
+  assert(len(data) >= ctx.sizeDigest)
+  ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))

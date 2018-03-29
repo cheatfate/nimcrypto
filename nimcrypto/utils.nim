@@ -24,36 +24,36 @@ proc ROR*[T: uint32|uint64](x: T, n: int): T {.inline.} =
     result = (x shr T(n and 0x3F)) or (x shl T(8 * sizeof(T) - (n and 0x3F)))
 
 template GETU32*(p, o): uint32 =
-  (uint32(cast[ptr uint8](cast[uint](p) + o)[]) shl 24) xor
-    (uint32(cast[ptr uint8](cast[uint](p) + (o + 1))[]) shl 16) xor
-    (uint32(cast[ptr uint8](cast[uint](p) + (o + 2))[]) shl 8) xor
-    (uint32(cast[ptr uint8](cast[uint](p) + (o + 3))[]))
+  (uint32(cast[ptr byte](cast[uint](p) + o)[]) shl 24) xor
+    (uint32(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 16) xor
+    (uint32(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 8) xor
+    (uint32(cast[ptr byte](cast[uint](p) + (o + 3))[]))
 
 template GETU64*(p, o): uint64 =
-  (uint64(cast[ptr uint8](cast[uint](p) + o)[]) shl 56) xor
-    (uint64(cast[ptr uint8](cast[uint](p) + (o + 1))[]) shl 48) xor
-    (uint64(cast[ptr uint8](cast[uint](p) + (o + 2))[]) shl 40) xor
-    (uint64(cast[ptr uint8](cast[uint](p) + (o + 3))[]) shl 32) xor
-    (uint64(cast[ptr uint8](cast[uint](p) + (o + 4))[]) shl 24) xor
-    (uint64(cast[ptr uint8](cast[uint](p) + (o + 5))[]) shl 16) xor
-    (uint64(cast[ptr uint8](cast[uint](p) + (o + 6))[]) shl 8) xor
-    (uint64(cast[ptr uint8](cast[uint](p) + (o + 7))[]))
+  (uint64(cast[ptr byte](cast[uint](p) + o)[]) shl 56) xor
+    (uint64(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 48) xor
+    (uint64(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 40) xor
+    (uint64(cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 32) xor
+    (uint64(cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 24) xor
+    (uint64(cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 16) xor
+    (uint64(cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 8) xor
+    (uint64(cast[ptr byte](cast[uint](p) + (o + 7))[]))
 
 template PUTU32*(p, o, v) =
-  cast[ptr uint8](cast[uint](p) + o)[] = cast[uint8](v shr 24)
-  cast[ptr uint8](cast[uint](p) + o + 1)[] = cast[uint8](v shr 16)
-  cast[ptr uint8](cast[uint](p) + o + 2)[] = cast[uint8](v shr 8)
-  cast[ptr uint8](cast[uint](p) + o + 3)[] = cast[uint8](v)
+  cast[ptr byte](cast[uint](p) + o)[] = cast[byte](v shr 24)
+  cast[ptr byte](cast[uint](p) + o + 1)[] = cast[byte](v shr 16)
+  cast[ptr byte](cast[uint](p) + o + 2)[] = cast[byte](v shr 8)
+  cast[ptr byte](cast[uint](p) + o + 3)[] = cast[byte](v)
 
 template PUTU64*(p, o, v) =
-  cast[ptr uint8](cast[uint](p) + o)[] = cast[uint8](v shr 56)
-  cast[ptr uint8](cast[uint](p) + o + 1)[] = cast[uint8](v shr 48)
-  cast[ptr uint8](cast[uint](p) + o + 2)[] = cast[uint8](v shr 40)
-  cast[ptr uint8](cast[uint](p) + o + 3)[] = cast[uint8](v shr 32)
-  cast[ptr uint8](cast[uint](p) + o + 4)[] = cast[uint8](v shr 24)
-  cast[ptr uint8](cast[uint](p) + o + 5)[] = cast[uint8](v shr 16)
-  cast[ptr uint8](cast[uint](p) + o + 6)[] = cast[uint8](v shr 8)
-  cast[ptr uint8](cast[uint](p) + o + 7)[] = cast[uint8](v)
+  cast[ptr byte](cast[uint](p) + o)[] = cast[byte](v shr 56)
+  cast[ptr byte](cast[uint](p) + o + 1)[] = cast[byte](v shr 48)
+  cast[ptr byte](cast[uint](p) + o + 2)[] = cast[byte](v shr 40)
+  cast[ptr byte](cast[uint](p) + o + 3)[] = cast[byte](v shr 32)
+  cast[ptr byte](cast[uint](p) + o + 4)[] = cast[byte](v shr 24)
+  cast[ptr byte](cast[uint](p) + o + 5)[] = cast[byte](v shr 16)
+  cast[ptr byte](cast[uint](p) + o + 6)[] = cast[byte](v shr 8)
+  cast[ptr byte](cast[uint](p) + o + 7)[] = cast[byte](v)
 
 when cpuEndian == bigEndian:
   template BSWAP*[T: uint32|uint64](x: T): T =
@@ -96,30 +96,30 @@ else:
     var tmp = LSWAP(v)
     PUTU32(p, o, tmp)
 
-template GET_DWORD*(p: ptr uint8, i: int): uint32 =
+template GET_DWORD*(p: ptr byte, i: int): uint32 =
   cast[ptr uint32](cast[uint](p) + (sizeof(uint32) * i).uint)[]
 
-template SET_DWORD*(p: ptr uint8, i: int, v: uint32) =
+template SET_DWORD*(p: ptr byte, i: int, v: uint32) =
   cast[ptr uint32](cast[uint](p) + (sizeof(uint32) * i).uint)[] = v
 
-template GET_QWORD*(p: ptr uint8, i: int): uint64 =
+template GET_QWORD*(p: ptr byte, i: int): uint64 =
   cast[ptr uint64](cast[uint](p) + (sizeof(uint64) * i).uint)[]
 
-template SET_QWORD*(p: ptr uint8, i: int, v: uint64) =
+template SET_QWORD*(p: ptr byte, i: int, v: uint64) =
   cast[ptr uint64](cast[uint](p) + (sizeof(uint64) * i).uint)[] = v
 
-template GETU8*(p, o): uint8 =
-  cast[ptr uint8](cast[uint](p) + uint(o))[]
+template GETU8*(p, o): byte =
+  cast[ptr byte](cast[uint](p) + uint(o))[]
 
 template PUTU8*(p, o, v) =
-  cast[ptr uint8](cast[uint](p) + uint(o))[] = v
+  cast[ptr byte](cast[uint](p) + uint(o))[] = v
 
-proc fromHex*(a: string): seq[uint8] =
+proc fromHex*(a: string): seq[byte] =
   doAssert(len(a) %% 2 == 0)
   if len(a) == 0:
-    result = newSeq[uint8]()
+    result = newSeq[byte]()
   else:
-    result = newSeq[uint8](len(a) div 2)
+    result = newSeq[byte](len(a) div 2)
   var i = 0
   var k = 0
   var r = 0
@@ -127,7 +127,7 @@ proc fromHex*(a: string): seq[uint8] =
     while i < len(a):
       let c = a[i]
       if i != 0 and i %% 2 == 0:
-        result[k] = r.uint8
+        result[k] = r.byte
         r = 0
         inc(k)
       else:
@@ -142,9 +142,9 @@ proc fromHex*(a: string): seq[uint8] =
       else:
         doAssert(false)
       inc(i)
-    result[k] = r.uint8
+    result[k] = r.byte
 
-proc hexChar*(c: uint8): string =
+proc hexChar*(c: byte): string =
   result = newString(2)
   let t1 = ord(c) shr 4
   let t0 = ord(c) and 0x0F
@@ -155,7 +155,7 @@ proc hexChar*(c: uint8): string =
   of 0..9: result[1] = chr(t0 + ord('0'))
   else: result[1] = chr(t0 - 10 + ord('A'))
 
-proc toHex*(a: var openarray[uint8]): string =
+proc toHex*(a: var openarray[byte]): string =
   result = ""
   for i in a:
     result = result & hexChar(i)
@@ -168,18 +168,24 @@ proc stripSpaces*(s: string): string =
       result &= i
 
 proc burnMem*(p: pointer, size: Natural) =
-  var sp {.volatile.} = cast[ptr uint8](p)
+  var sp {.volatile.} = cast[ptr byte](p)
   var c = size
   if not isNil(sp):
     zeroMem(p, size)
     while c > 0:
       sp[] = 0
-      sp = cast[ptr uint8](cast[uint](sp) + 1)
+      sp = cast[ptr byte](cast[uint](sp) + 1)
       dec(c)
 
-proc burnMem*[T](a: var openarray[T]) {.inline.} =
+proc burnArray*[T](a: var openarray[T]) {.inline.} =
   if len(a) > 0:
     burnMem(addr a[0], len(a) * sizeof(T))
+
+template burnMem*[T](a: var seq[T]) =
+  burnArray(a)
+
+template burnMem*[A, B](a: var array[A, B]) =
+  burnArray(a)
 
 proc burnMem*[T](a: var T) {.inline.} =
   burnMem(addr a, sizeof(T))
@@ -187,12 +193,12 @@ proc burnMem*[T](a: var T) {.inline.} =
 proc isFullZero*(p: pointer, size: Natural): bool =
   result = true
   var counter = 0
-  var sp {.volatile.} = cast[ptr uint8](p)
+  var sp {.volatile.} = cast[ptr byte](p)
   var c = size
   if not isNil(sp):
     while c > 0:
       counter += int(sp[])
-      sp = cast[ptr uint8](cast[uint](sp) + 1)
+      sp = cast[ptr byte](cast[uint](sp) + 1)
       dec(c)
   result = (counter == 0)
 

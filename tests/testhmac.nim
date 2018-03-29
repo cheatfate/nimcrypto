@@ -262,6 +262,9 @@ suite "HMAC Tests":
       ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var digest1 = $ctx.finish()
+      ctx.init(key)
+      ctx.update(data)
+      var digest5 = $ctx.finish()
       var digest2 = $ripemd128.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -274,6 +277,7 @@ suite "HMAC Tests":
         digest2 == ripemd128digests[i]
         digest3 == ripemd128digests[i]
         digest4 == ripemd128digests[i]
+        digest5 == ripemd128digests[i]
         ctx.isFullZero() == true
 
   test "HMAC-RIPEMD-160 test vectors":
@@ -284,6 +288,9 @@ suite "HMAC Tests":
       ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var digest1 = $ctx.finish()
+      ctx.init(key)
+      ctx.update(data)
+      var digest5 = $ctx.finish()
       var digest2 = $ripemd160.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -296,6 +303,7 @@ suite "HMAC Tests":
         digest2 == ripemd160digests[i]
         digest3 == ripemd160digests[i]
         digest4 == ripemd160digests[i]
+        digest5 == ripemd160digests[i]
         ctx.isFullZero() == true
 
   test "HMAC-SHA2-224 test vectors":
@@ -307,6 +315,9 @@ suite "HMAC Tests":
       ctx224.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx224.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx224.finish()
+      ctx224.init(key)
+      ctx224.update(data)
+      var check5 = $ctx224.finish()
       var check2 = $sha224.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -319,6 +330,7 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx224.isFullZero() == true
 
   test "HMAC-SHA2-256 test vectors":
@@ -330,6 +342,9 @@ suite "HMAC Tests":
       ctx256.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx256.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx256.finish()
+      ctx256.init(key)
+      ctx256.update(data)
+      var check5 = $ctx256.finish()
       var check2 = $sha256.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -342,6 +357,7 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx256.isFullZero() == true
 
   test "HMAC-SHA2-384 test vectors":
@@ -353,6 +369,9 @@ suite "HMAC Tests":
       ctx384.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx384.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx384.finish()
+      ctx384.init(key)
+      ctx384.update(data)
+      var check5 = $ctx384.finish()
       var check2 = $sha384.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -365,6 +384,7 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx384.isFullZero() == true
 
   test "HMAC-SHA2-512 test vectors":
@@ -376,6 +396,9 @@ suite "HMAC Tests":
       ctx512.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx512.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx512.finish()
+      ctx512.init(key)
+      ctx512.update(data)
+      var check5 = $ctx512.finish()
       var check2 = $sha512.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -388,6 +411,7 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx512.isFullZero() == true
 
   test "HMAC-SHA3-224 test vectors":
@@ -399,6 +423,9 @@ suite "HMAC Tests":
       ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx.finish()
+      ctx.init(key)
+      ctx.update(data)
+      var check5 = $ctx.finish()
       var check2 = $sha3_224.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -411,6 +438,7 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx.isFullZero() == true
 
   test "HMAC-SHA3-256 test vectors":
@@ -422,6 +450,9 @@ suite "HMAC Tests":
       ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx.finish()
+      ctx.init(key)
+      ctx.update(data)
+      var check5 = $ctx.finish()
       var check2 = $sha3_256.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -434,6 +465,7 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx.isFullZero() == true
 
   test "HMAC-SHA3-384 test vectors":
@@ -445,6 +477,9 @@ suite "HMAC Tests":
       ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx.finish()
+      ctx.init(key)
+      ctx.update(data)
+      var check5 = $ctx.finish()
       var check2 = $sha3_384.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -457,6 +492,7 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx.isFullZero() == true
 
   test "HMAC-SHA3-512 test vectors":
@@ -468,6 +504,9 @@ suite "HMAC Tests":
       ctx.init(cast[ptr uint8](addr key[0]), uint(len(key)))
       ctx.update(cast[ptr uint8](addr data[0]), uint(len(data)))
       var check1 = $ctx.finish()
+      ctx.init(key)
+      ctx.update(data)
+      var check5 = $ctx.finish()
       var check2 = $sha3_512.hmac(
         cast[ptr uint8](addr key[0]), uint(len(key)),
         cast[ptr uint8](addr data[0]), uint(len(data))
@@ -480,4 +519,5 @@ suite "HMAC Tests":
         check2 == digest
         check3 == digest
         check4 == digest
+        check5 == digest
         ctx.isFullZero() == true

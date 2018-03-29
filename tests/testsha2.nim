@@ -73,17 +73,21 @@ suite "SHA2 Tests":
     while i < len(code224):
       var plaintext = stripSpaces(code224[i])
       var digest = stripSpaces(digest224[i])
-      init(ctx224)
+      ctx224.init()
       ctx224.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
       var check1 = $ctx224.finish()
       var check2 = $sha224.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha224.digest(plaintext)
+      ctx224.init()
+      ctx224.update(plaintext)
+      var check4 = $ctx224.finish()
       ctx224.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        check4 == digest
         ctx224.isFullZero() == true
       inc(i)
 
@@ -92,17 +96,21 @@ suite "SHA2 Tests":
     while i < len(code256):
       var plaintext = stripSpaces(code256[i])
       var digest = stripSpaces(digest256[i])
-      init(ctx256)
+      ctx256.init()
       ctx256.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
       var check1 = $ctx256.finish()
       var check2 = $sha256.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha256.digest(plaintext)
+      ctx256.init()
+      ctx256.update(plaintext)
+      var check4 = $ctx256.finish()
       ctx256.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        check4 == digest
         ctx256.isFullZero() == true
       inc(i)
 
@@ -111,17 +119,21 @@ suite "SHA2 Tests":
     while i < len(code384):
       var plaintext = stripSpaces(code384[i])
       var digest = stripSpaces(digest384[i])
-      init(ctx384)
+      ctx384.init()
       ctx384.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
       var check1 = $ctx384.finish()
       var check2 = $sha384.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha384.digest(plaintext)
+      ctx384.init()
+      ctx384.update(plaintext)
+      var check4 = $ctx384.finish()
       ctx384.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        check4 == digest
         ctx384.isFullZero() == true
       inc(i)
 
@@ -130,17 +142,21 @@ suite "SHA2 Tests":
     while i < len(code512):
       var plaintext = stripSpaces(code512[i])
       var digest = stripSpaces(digest512[i])
-      init(ctx512)
+      ctx512.init()
       ctx512.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
       var check1 = $ctx512.finish()
       var check2 = $sha512.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha512.digest(plaintext)
+      ctx512.init()
+      ctx512.update(plaintext)
+      var check4 = $ctx512.finish()
       ctx512.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        check4 == digest
         ctx512.isFullZero() == true
       inc(i)
 
@@ -149,17 +165,21 @@ suite "SHA2 Tests":
     while i < len(code512_224):
       var plaintext = stripSpaces(code512_224[i])
       var digest = stripSpaces(digest512_224[i])
-      init(ctx512_224)
+      ctx512_224.init()
       ctx512_224.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
       var check1 = $ctx512_224.finish()
       var check2 = $sha512_224.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_224.digest(plaintext)
+      ctx512_224.init()
+      ctx512_224.update(plaintext)
+      var check4 = $ctx512_224.finish()
       ctx512_224.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        check4 == digest
         ctx512_224.isFullZero() == true
       inc(i)
 
@@ -168,16 +188,20 @@ suite "SHA2 Tests":
     while i < len(code512_256):
       var plaintext = stripSpaces(code512_256[i])
       var digest = stripSpaces(digest512_256[i])
-      init(ctx512_256)
+      ctx512_256.init()
       ctx512_256.update(cast[ptr uint8](addr plaintext[0]), uint(len(plaintext)))
       var check1 = $ctx512_256.finish()
       var check2 = $sha512_256.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_256.digest(plaintext)
+      ctx512_256.init()
+      ctx512_256.update(plaintext)
+      var check4 = $ctx512_256.finish()
       ctx512_256.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        check4 == digest
         ctx512_256.isFullZero() == true
       inc(i)

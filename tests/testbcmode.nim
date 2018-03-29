@@ -83,327 +83,522 @@ const
 suite "Block cipher modes Tests":
   test "AES-128-ECB test vectors":
     var key = fromHex(all128K)
-    var ctx1: ECB[aes128]
-    var ctx2: ECB[aes128]
+    var ctx1, ctx2, ctx3, ctx4: ECB[aes128]
     ctx1.init(addr key[0])
     ctx2.init(addr key[0])
+    ctx3.init(key)
+    ctx4.init(key)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ecb128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ecb128E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ecb128E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-192-ECB test vectors":
     var key = fromHex(all192K)
-    var ctx1: ECB[aes192]
-    var ctx2: ECB[aes192]
+    var ctx1, ctx2, ctx3, ctx4: ECB[aes192]
     ctx1.init(addr key[0])
     ctx2.init(addr key[0])
+    ctx3.init(key)
+    ctx4.init(key)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ecb192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ecb192E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ecb192E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-256-ECB test vectors":
     var key = fromHex(all256K)
-    var ctx1: ECB[aes256]
-    var ctx2: ECB[aes256]
+    var ctx1, ctx2, ctx3, ctx4: ECB[aes256]
     ctx1.init(addr key[0])
     ctx2.init(addr key[0])
+    ctx3.init(key)
+    ctx4.init(key)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ecb256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ecb256E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ecb256E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-128-CBC test vectors":
     var key = fromHex(all128K)
     var iv = fromHex(cbcIV)
-    var ctx1: CBC[aes128]
-    var ctx2: CBC[aes128]
+    var ctx1, ctx2, ctx3, ctx4: CBC[aes128]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == cbc128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == cbc128E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == cbc128E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-192-CBC test vectors":
     var key = fromHex(all192K)
     var iv = fromHex(cbcIV)
-    var ctx1: CBC[aes192]
-    var ctx2: CBC[aes192]
+    var ctx1, ctx2, ctx3, ctx4: CBC[aes192]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == cbc192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == cbc192E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == cbc192E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-256-CBC test vectors":
     var key = fromHex(all256K)
     var iv = fromHex(cbcIV)
-    var ctx1: CBC[aes256]
-    var ctx2: CBC[aes256]
+    var ctx1, ctx2, ctx3, ctx4: CBC[aes256]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == cbc256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == cbc256E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == cbc256E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-128-OFB test vectors":
     var key = fromHex(all128K)
     var iv = fromHex(ofbIV)
-    var ctx1: OFB[aes128]
-    var ctx2: OFB[aes128]
+    var ctx1, ctx2, ctx3, ctx4: OFB[aes128]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ofb128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ofb128E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ofb128E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-192-OFB test vectors":
     var key = fromHex(all192K)
     var iv = fromHex(ofbIV)
-    var ctx1: OFB[aes192]
-    var ctx2: OFB[aes192]
+    var ctx1, ctx2, ctx3, ctx4: OFB[aes192]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ofb192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ofb192E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ofb192E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-256-OFB test vectors":
     var key = fromHex(all256K)
     var iv = fromHex(ofbIV)
-    var ctx1: OFB[aes256]
-    var ctx2: OFB[aes256]
+    var ctx1, ctx2, ctx3, ctx4: OFB[aes256]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ofb256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ofb256E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ofb256E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-128-CFB test vectors":
     var key = fromHex(all128K)
     var iv = fromHex(cfbIV)
-    var ctx1: CFB[aes128]
-    var ctx2: CFB[aes128]
+    var ctx1, ctx2, ctx3, ctx4: CFB[aes128]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == cfb128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == cfb128E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == cfb128E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-192-CFB test vectors":
     var key = fromHex(all192K)
     var iv = fromHex(cfbIV)
-    var ctx1: CFB[aes192]
-    var ctx2: CFB[aes192]
+    var ctx1, ctx2, ctx3, ctx4: CFB[aes192]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == cfb192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == cfb192E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == cfb192E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-256-CFB test vectors":
     var key = fromHex(all256K)
     var iv = fromHex(cfbIV)
-    var ctx1: CFB[aes256]
-    var ctx2: CFB[aes256]
+    var ctx1, ctx2, ctx3, ctx4: CFB[aes256]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == cfb256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == cfb256E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == cfb256E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-128-CTR test vectors":
     var key = fromHex(all128K)
     var iv = fromHex(ctrIV)
-    var ctx1: CTR[aes128]
-    var ctx2: CTR[aes128]
+    var ctx1, ctx2, ctx3, ctx4: CTR[aes128]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ctr128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ctr128E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.encrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ctr128E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-192-CTR test vectors":
     var key = fromHex(all192K)
     var iv = fromHex(ctrIV)
-    var ctx1: CTR[aes192]
-    var ctx2: CTR[aes192]
+    var ctx1, ctx2, ctx3, ctx4: CTR[aes192]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ctr192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ctr192E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ctr192E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true
 
   test "AES-256-CTR test vectors":
     var key = fromHex(all256K)
     var iv = fromHex(ctrIV)
-    var ctx1: CTR[aes256]
-    var ctx2: CTR[aes256]
+    var ctx1, ctx2, ctx3, ctx4: CTR[aes256]
     ctx1.init(addr key[0], addr iv[0])
     ctx2.init(addr key[0], addr iv[0])
+    ctx3.init(key, iv)
+    ctx4.init(key, iv)
     for i in 0..3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
       var dcrypt = newSeq[uint8](length)
       ctx1.encrypt(addr plain[0], addr ecrypt[0], uint(length))
-      check(toHex(ecrypt) == ctr256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
-      check(toHex(dcrypt) == allP[i])
+      check:
+        toHex(ecrypt) == ctr256E[i]
+        toHex(dcrypt) == allP[i]
+      burnMem(ecrypt)
+      burnMem(dcrypt)
+      ctx3.encrypt(plain, ecrypt)
+      ctx4.decrypt(ecrypt, dcrypt)
+      check:
+        toHex(ecrypt) == ctr256E[i]
+        toHex(dcrypt) == allP[i]
     ctx1.clear()
     ctx2.clear()
+    ctx3.clear()
+    ctx4.clear()
     check:
       ctx1.isFullZero() == true
       ctx2.isFullZero() == true
+      ctx3.isFullZero() == true
+      ctx4.isFullZero() == true

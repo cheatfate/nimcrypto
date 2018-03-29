@@ -180,16 +180,16 @@ type
   twofish256* = TwofishContext[256]
   twofish* = twofish128 | twofish192 | twofish256
 
-template bn(x, n: uint32): uint8 =
-  cast[uint8]((x shr (n * 8)) and 0xFF'u32)
-template b0(x: uint32): uint8 =
-  cast[uint8](x)
-template b1(x: uint32): uint8 =
-  cast[uint8](x shr 8)
-template b2(x: uint32): uint8 =
-  cast[uint8](x shr 16)
-template b3(x: uint32): uint8 =
-  cast[uint8](x shr 24)
+template bn(x, n: uint32): byte =
+  cast[byte]((x shr (n * 8)) and 0xFF'u32)
+template b0(x: uint32): byte =
+  cast[byte](x)
+template b1(x: uint32): byte =
+  cast[byte](x shr 8)
+template b2(x: uint32): byte =
+  cast[byte](x shr 16)
+template b3(x: uint32): byte =
+  cast[byte](x shr 24)
 
 template BYTEARRAY_TO_U32(arr): uint32 =
   ((cast[uint32](arr[0]) shl 24) xor (cast[uint32](arr[1]) shl 16) xor
@@ -218,7 +218,7 @@ proc gfMod(t, modulus: uint32): uint32 =
 template gfMult(a, b, modulus: uint32): uint32 =
   gfMod(polyMult(a, b), modulus)
 
-proc rsMatrixMultiply(sd: array[8, uint8]): uint32 =
+proc rsMatrixMultiply(sd: array[8, byte]): uint32 =
   var res = [0'u32, 0'u32, 0'u32, 0'u32]
   for j in 0..<4:
     var t = 0'u32
@@ -259,10 +259,10 @@ proc h(ax: uint32, al: array[4, uint32], k: uint32): uint32 =
 proc fullKey(al: array[4, uint32], k: int32,
              QF: var array[4, array[256, uint32]]) =
   for i in 0..<256:
-    var y0 = uint8(i)
-    var y1 = uint8(i)
-    var y2 = uint8(i)
-    var y3 = uint8(i)
+    var y0 = byte(i)
+    var y1 = byte(i)
+    var y2 = byte(i)
+    var y3 = byte(i)
 
     if k == 4:
       y0 = Q1[y0] xor b0(al[3])
@@ -313,7 +313,7 @@ template DEC_ROUND(CTX, R0, R1, R2, R3, round) =
   R2 = ROL(R2, 1) xor (T0 + T1 + CTX.K[2 * round + 8])
   R3 = ROR(R3 xor (T0 + 2'u32 * T1 + CTX.K[2 * round + 9]), 1)
 
-proc twofishEncrypt(ctx: var TwofishContext, inp: ptr uint8, oup: ptr uint8) =
+proc twofishEncrypt(ctx: var TwofishContext, inp: ptr byte, oup: ptr byte) =
   var T0, T1: uint32
 
   var r3 = ctx.K[3] xor BSWAP(GET_DWORD(inp, 3))
@@ -343,7 +343,7 @@ proc twofishEncrypt(ctx: var TwofishContext, inp: ptr uint8, oup: ptr uint8) =
   SET_DWORD(oup, 1, BSWAP(r3 xor ctx.K[5]))
   SET_DWORD(oup, 0, BSWAP(r2 xor ctx.K[4]))
 
-proc twofishDecrypt(ctx: var TwofishContext, inp: ptr uint8, oup: ptr uint8) =
+proc twofishDecrypt(ctx: var TwofishContext, inp: ptr byte, oup: ptr byte) =
   var T0, T1: uint32
 
   var r3 = ctx.K[7] xor BSWAP(GET_DWORD(inp, 3))
@@ -373,7 +373,7 @@ proc twofishDecrypt(ctx: var TwofishContext, inp: ptr uint8, oup: ptr uint8) =
   SET_DWORD(oup, 1, BSWAP(r3 xor ctx.K[1]))
   SET_DWORD(oup, 0, BSWAP(r2 xor ctx.K[0]))
 
-proc initTwofishContext(ctx: var TwofishContext, N: int, key: ptr uint8) =
+proc initTwofishContext(ctx: var TwofishContext, N: int, key: ptr byte) =
   var
     A, B: uint32
 
@@ -418,7 +418,7 @@ template sizeKey*(r: typedesc[twofish]): int =
 template sizeBlock*(r: typedesc[twofish]): int =
   (16)
 
-proc init*(ctx: var TwofishContext, key: ptr uint8, nkey: int = 0) {.inline.} =
+proc init*(ctx: var TwofishContext, key: ptr byte, nkey: int = 0) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)
 
 proc init*(ctx: var TwofishContext, key: openarray[byte]) {.inline.} =
@@ -428,12 +428,12 @@ proc init*(ctx: var TwofishContext, key: openarray[byte]) {.inline.} =
 proc clear*(ctx: var TwofishContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
-              outbytes: ptr uint8) {.inline.} =
+proc encrypt*(ctx: var TwofishContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
   twofishEncrypt(ctx, inbytes, outbytes)
 
-proc decrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
-              outbytes: ptr uint8) {.inline.} =
+proc decrypt*(ctx: var TwofishContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
   twofishDecrypt(ctx, inbytes, outbytes)
 
 proc encrypt*(ctx: var TwofishContext, input: openarray[byte],

@@ -720,7 +720,7 @@ type
   rijndael* = rijndael128 | rijndael192 | rijndael256 | aes128 | aes192 | aes256
 
 proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
-                         N: int, key: ptr uint8): int =
+                         N: int, key: ptr byte): int =
   ctx.RKe[0] = GETU32(key, 0)
   ctx.RKe[1] = GETU32(key, 4)
   ctx.RKe[2] = GETU32(key, 8)
@@ -800,7 +800,7 @@ proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
           inc(offset, 8)
 
 proc rijndaelKeySetupDec(ctx: var RijndaelContext, N: int,
-                         key: ptr uint8): int =
+                         key: ptr byte): int =
   result = rijndaelKeySetupEnc(ctx, N, key)
   ctx.RKd = ctx.RKe
   var temp = 0'u32
@@ -883,8 +883,8 @@ template DEC_ROUND(D0, D1, D2, D3, S0, S1, S2, S3, RK, ROUND) =
        Td3[S0 and 0xFF] xor
        RK[ROUND * 4 + 3]
 
-proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr uint8,
-                      oup: ptr uint8) =
+proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr byte,
+                      oup: ptr byte) =
   var t0, t1, t2, t3: uint32
 
   var s0 = GETU32(inp, 0) xor ctx.RKe[0]
@@ -936,8 +936,8 @@ proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr uint8,
   PUTU32(oup, 8, s2)
   PUTU32(oup, 12, s3)
 
-proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr uint8,
-                      oup: ptr uint8) =
+proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr byte,
+                      oup: ptr byte) =
   var t0, t1, t2, t3: uint32
 
   var s0 = GETU32(inp, 0) xor ctx.RKd[0]
@@ -989,7 +989,7 @@ proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr uint8,
   PUTU32(oup, 8, s2)
   PUTU32(oup, 12, s3)
 
-proc initRijndaelContext*(ctx: var RijndaelContext, N: int, key: ptr uint8) =
+proc initRijndaelContext*(ctx: var RijndaelContext, N: int, key: ptr byte) =
   ctx.Nr = rijndaelKeySetupDec(ctx, N, key)
 
 template sizeKey*(ctx: RijndaelContext): int =
@@ -1009,7 +1009,7 @@ template sizeKey*(r: typedesc[rijndael]): int =
 template sizeBlock*(r: typedesc[rijndael]): int =
   (16)
 
-proc init*(ctx: var RijndaelContext, key: ptr uint8, nkey: int = 0) {.inline.} =
+proc init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =
   ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)
 
 proc init*(ctx: var RijndaelContext, key: openarray[byte]) {.inline.} =
@@ -1019,12 +1019,12 @@ proc init*(ctx: var RijndaelContext, key: openarray[byte]) {.inline.} =
 proc clear*(ctx: var RijndaelContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
-              outbytes: ptr uint8) {.inline.} =
+proc encrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
   rijndaelEncrypt(ctx, inbytes, outbytes)
 
-proc decrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
-              outbytes: ptr uint8) {.inline.} =
+proc decrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
   rijndaelDecrypt(ctx, inbytes, outbytes)
 
 proc encrypt*(ctx: var RijndaelContext, input: openarray[byte],

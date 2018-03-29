@@ -251,10 +251,10 @@ proc init*(ctx: var KeccakContext) =
 proc clear*(ctx: var KeccakContext) {.inline.} =
   ctx.init()
 
-proc update*(ctx: var KeccakContext, data: ptr uint8, ulen: uint) =
+proc update*(ctx: var KeccakContext, data: ptr byte, ulen: uint) =
   var j = ctx.pt
-  var s = cast[ptr UncheckedArray[uint8]](data)
-  var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
+  var s = cast[ptr UncheckedArray[byte]](data)
+  var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
   if ulen > 0'u:
     for i in 0..(ulen - 1):
       d[j] = d[j] xor s[i]
@@ -264,14 +264,14 @@ proc update*(ctx: var KeccakContext, data: ptr uint8, ulen: uint) =
         j = 0
     ctx.pt = j
 
-proc update*(ctx: var KeccakContext, data: openarray[byte]) =
+proc update*[T: bchar](ctx: var KeccakContext, data: openarray[T]) =
   if len(data) == 0:
     update(ctx, nil, 0'u)
   else:
-    update(ctx, unsafeAddr data[0], uint(len(data)))
+    update(ctx, cast[ptr byte](unsafeAddr data[0]), uint(len(data)))
 
 proc finalizeKeccak(ctx: var KeccakContext) =
-  var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
+  var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
   when ctx.kind == Sha3:
     d[ctx.pt] = d[ctx.pt] xor 0x06'u8
   else:
@@ -283,18 +283,18 @@ proc xof*(ctx: var KeccakContext) =
   when ctx.kind != Shake:
     {.error: "Only `Shake128` and `Shake256` types are supported".}
   assert(ctx.kind == Shake)
-  var d = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
+  var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
   d[ctx.pt] = d[ctx.pt] xor 0x1F'u8
   d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
   keccakTransform(ctx.q)
   ctx.pt = 0
 
-proc output*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
+proc output*(ctx: var KeccakContext, data: ptr byte, ulen: uint): uint =
   when ctx.kind != Shake:
     {.error: "Only `Shake128` and `Shake256` types are supported".}
   var j = ctx.pt
-  var s = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
-  var d = cast[ptr UncheckedArray[uint8]](data)
+  var s = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
+  var d = cast[ptr UncheckedArray[byte]](data)
 
   if ulen > 0'u:
     for i in 0..(ulen - 1):
@@ -306,19 +306,19 @@ proc output*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
     ctx.pt = j
     result = ulen
 
-proc finish*(ctx: var KeccakContext, data: ptr uint8, ulen: uint): uint =
+proc finish*(ctx: var KeccakContext, data: ptr byte, ulen: uint): uint =
   finalizeKeccak(ctx)
-  var d = cast[ptr UncheckedArray[uint8]](data)
-  var s = cast[ptr UncheckedArray[uint8]](addr ctx.q[0])
+  var d = cast[ptr UncheckedArray[byte]](data)
+  var s = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
   if ulen >= ctx.sizeDigest:
     for i in 0..(ctx.sizeDigest - 1):
       d[i] = s[i]
     result = ctx.sizeDigest
 
 proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] =
-  discard finish(ctx, cast[ptr uint8](addr result.data[0]),
+  discard finish(ctx, cast[ptr byte](addr result.data[0]),
                  uint(len(result.data)))
 
-proc finish*(ctx: var KeccakContext, data: var openarray[byte]) =
+proc finish*[T: bchar](ctx: var KeccakContext, data: var openarray[T]) =
   assert(len(data) >= ctx.sizeDigest)
-  ctx.finish(addr data[0], uint(len(data)))
+  ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))

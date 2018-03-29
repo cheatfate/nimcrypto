@@ -176,8 +176,8 @@ elif defined(windows):
       wServicePackMajor: uint16
       wServicePackMinor: uint16
       wSuiteMask: uint16
-      wProductType: uint8
-      wReserved: uint8
+      wProductType: byte
+      wReserved: byte
 
     HCRYPTPROV = uint
 
@@ -203,7 +203,7 @@ elif defined(windows):
                          dwlConditionMask: uint64): WINBOOL
        {.importc: "VerifyVersionInfoW", stdcall, dynlib: "kernel32.dll".}
   proc verSetConditionMask(conditionMask: uint64, dwTypeMask: DWORD,
-                           condition: uint8): uint64
+                           condition: byte): uint64
        {.importc: "VerSetConditionMask", stdcall, dynlib: "kernel32.dll".}
   proc cryptAcquireContext(phProv: ptr HCRYPTPROV, pszContainer: WideCString,
                            pszProvider: WideCString, dwProvType: DWORD,

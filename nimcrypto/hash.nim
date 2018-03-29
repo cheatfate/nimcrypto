@@ -16,16 +16,18 @@ const
 
 type
   MDigest*[bits: static[int]] = object
-    data*: array[bits div 8, uint8]
+    data*: array[bits div 8, byte]
+
+  bchar* = byte | char
 
 proc `$`*(digest: MDigest): string =
   result = ""
   var i = 0'u
   while i < uint(len(digest.data)):
-    result &= hexChar(cast[uint8](digest.data[i]))
+    result &= hexChar(cast[byte](digest.data[i]))
     inc(i)
 
-proc digest*(HashType: typedesc, data: ptr uint8,
+proc digest*(HashType: typedesc, data: ptr byte,
              ulen: uint): MDigest[HashType.bits] =
   mixin init, update, finish, clear
   var ctx: HashType
@@ -45,6 +47,6 @@ proc digest*[T](HashType: typedesc, data: openarray[T],
   if length <= 0:
     result = ctx.finish()
   else:
-    ctx.update(cast[ptr uint8](unsafeAddr data[so]), uint(length))
+    ctx.update(cast[ptr byte](unsafeAddr data[so]), uint(length))
     result = ctx.finish()
   ctx.clear()

@@ -240,10 +240,10 @@ suite "KECCAK/SHA3 Tests":
        D18D5C339550DD5958A500D4B95363DA1B5FA18AFFC1BAB2292DC63B7D85097C"""
   ]
 
-  var sha224 = sha3_224()
-  var sha256 = sha3_256()
-  var sha384 = sha3_384()
-  var sha512 = sha3_512()
+  var sha224, osha224: sha3_224
+  var sha256, osha256: sha3_256
+  var sha384, osha384: sha3_384
+  var sha512, osha512: sha3_512
 
   test "SHA3 224/256/384/512 test vectors":
     for i in 0..(len(codes) - 1):
@@ -252,24 +252,44 @@ suite "KECCAK/SHA3 Tests":
       sha256.init()
       sha384.init()
       sha512.init()
+      osha224.init()
+      osha256.init()
+      osha384.init()
+      osha512.init()
       sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      osha224.update(msg)
+      osha256.update(msg)
+      osha384.update(msg)
+      osha512.update(msg)
       check:
         $sha224.finish() == stripSpaces(digest224[i])
         $sha256.finish() == stripSpaces(digest256[i])
         $sha384.finish() == stripSpaces(digest384[i])
         $sha512.finish() == stripSpaces(digest512[i])
+        $osha224.finish() == stripSpaces(digest224[i])
+        $osha256.finish() == stripSpaces(digest256[i])
+        $osha384.finish() == stripSpaces(digest384[i])
+        $osha512.finish() == stripSpaces(digest512[i])
       sha224.clear()
       sha256.clear()
       sha384.clear()
       sha512.clear()
+      osha224.clear()
+      osha256.clear()
+      osha384.clear()
+      osha512.clear()
       check:
         sha224.isFullZero() == true
         sha256.isFullZero() == true
         sha384.isFullZero() == true
         sha512.isFullZero() == true
+        osha224.isFullZero() == true
+        osha256.isFullZero() == true
+        osha384.isFullZero() == true
+        osha512.isFullZero() == true
       # One liner test
       var dcheck224 = $sha3_224.digest(cast[ptr uint8](addr msg[0]),
                                        uint(len(msg)))
@@ -297,26 +317,46 @@ suite "KECCAK/SHA3 Tests":
     sha256.init()
     sha384.init()
     sha512.init()
+    osha224.init()
+    osha256.init()
+    osha384.init()
+    osha512.init()
     var msg = "a"
     for i in 1..1_000_000:
       sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      osha224.update(msg)
+      osha256.update(msg)
+      osha384.update(msg)
+      osha512.update(msg)
     check:
       $sha224.finish() == stripSpaces(digest224[4])
       $sha256.finish() == stripSpaces(digest256[4])
       $sha384.finish() == stripSpaces(digest384[4])
       $sha512.finish() == stripSpaces(digest512[4])
+      $osha224.finish() == stripSpaces(digest224[4])
+      $osha256.finish() == stripSpaces(digest256[4])
+      $osha384.finish() == stripSpaces(digest384[4])
+      $osha512.finish() == stripSpaces(digest512[4])
     sha224.clear()
     sha256.clear()
     sha384.clear()
     sha512.clear()
+    osha224.clear()
+    osha256.clear()
+    osha384.clear()
+    osha512.clear()
     check:
       sha224.isFullZero() == true
       sha256.isFullZero() == true
       sha384.isFullZero() == true
       sha512.isFullZero() == true
+      osha224.isFullZero() == true
+      osha256.isFullZero() == true
+      osha384.isFullZero() == true
+      osha512.isFullZero() == true
 
   const shake128inputs = [
     "A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3",

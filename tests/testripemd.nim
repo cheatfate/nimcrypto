@@ -66,10 +66,10 @@ const RipeMD320C = [
      965E8C8509E63D1DBDDECC503E2B63EB9245BB66"""
 ]
 
-var ctx128: ripemd128
-var ctx160: ripemd160
-var ctx256: ripemd256
-var ctx320: ripemd320
+var ctx128, octx128: ripemd128
+var ctx160, octx160: ripemd160
+var ctx256, octx256: ripemd256
+var ctx320, octx320: ripemd320
 
 suite "RipeMD Tests":
   test "RIPEMD 128/160/256/320 test vectors":
@@ -82,33 +82,44 @@ suite "RipeMD Tests":
       ctx160.init()
       ctx256.init()
       ctx320.init()
+      octx128.init()
+      octx160.init()
+      octx256.init()
+      octx320.init()
       ctx128.update(cast[ptr uint8](addr a[0]), uint(len(a)))
       ctx160.update(cast[ptr uint8](addr a[0]), uint(len(a)))
       ctx256.update(cast[ptr uint8](addr a[0]), uint(len(a)))
       ctx320.update(cast[ptr uint8](addr a[0]), uint(len(a)))
-
-      var digest128 = ctx128.finish()
-      var digest160 = ctx160.finish()
-      var digest256 = ctx256.finish()
-      var digest320 = ctx320.finish()
-
+      octx128.update(a)
+      octx160.update(a)
+      octx256.update(a)
+      octx320.update(a)
       check:
-        $digest128 == stripSpaces(RipeMD128C[i])
-        $digest160 == stripSpaces(RipeMD160C[i])
-        $digest256 == stripSpaces(RipeMD256C[i])
-        $digest320 == stripSpaces(RipeMD320C[i])
-
+        $ctx128.finish() == stripSpaces(RipeMD128C[i])
+        $ctx160.finish() == stripSpaces(RipeMD160C[i])
+        $ctx256.finish() == stripSpaces(RipeMD256C[i])
+        $ctx320.finish() == stripSpaces(RipeMD320C[i])
+        $octx128.finish() == stripSpaces(RipeMD128C[i])
+        $octx160.finish() == stripSpaces(RipeMD160C[i])
+        $octx256.finish() == stripSpaces(RipeMD256C[i])
+        $octx320.finish() == stripSpaces(RipeMD320C[i])
       ctx128.clear()
       ctx160.clear()
       ctx256.clear()
       ctx320.clear()
-
+      octx128.clear()
+      octx160.clear()
+      octx256.clear()
+      octx320.clear()
       check:
         ctx128.isFullZero() == true
         ctx160.isFullZero() == true
         ctx256.isFullZero() == true
         ctx320.isFullZero() == true
-
+        octx128.isFullZero() == true
+        octx160.isFullZero() == true
+        octx256.isFullZero() == true
+        octx320.isFullZero() == true
       var dcheck128 = $ripemd128.digest(cast [ptr uint8](addr a[0]),
                                         uint(len(a)))
       var dcheck160 = $ripemd160.digest(cast [ptr uint8](addr a[0]),
@@ -117,13 +128,11 @@ suite "RipeMD Tests":
                                         uint(len(a)))
       var dcheck320 = $ripemd320.digest(cast [ptr uint8](addr a[0]),
                                         uint(len(a)))
-
       check:
         $dcheck128 == stripSpaces(RipeMD128C[i])
         $dcheck160 == stripSpaces(RipeMD160C[i])
         $dcheck256 == stripSpaces(RipeMD256C[i])
         $dcheck320 == stripSpaces(RipeMD320C[i])
-      check:
         $ripemd128.digest(a) == stripSpaces(RipeMD128C[i])
         $ripemd160.digest(a) == stripSpaces(RipeMD160C[i])
         $ripemd256.digest(a) == stripSpaces(RipeMD256C[i])
@@ -136,31 +145,43 @@ suite "RipeMD Tests":
     ctx160.init()
     ctx256.init()
     ctx320.init()
-
+    octx128.init()
+    octx160.init()
+    octx256.init()
+    octx320.init()
     var am = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     for i in 0..(15625 - 1):
       ctx128.update(cast[ptr uint8](addr am[0]), uint(len(am)))
       ctx160.update(cast[ptr uint8](addr am[0]), uint(len(am)))
       ctx256.update(cast[ptr uint8](addr am[0]), uint(len(am)))
       ctx320.update(cast[ptr uint8](addr am[0]), uint(len(am)))
-    var digest128 = ctx128.finish()
-    var digest160 = ctx160.finish()
-    var digest256 = ctx256.finish()
-    var digest320 = ctx320.finish()
-
+      octx128.update(am)
+      octx160.update(am)
+      octx256.update(am)
+      octx320.update(am)
     check:
-      $digest128 == stripSpaces(Ripemd128C[8])
-      $digest160 == stripSpaces(Ripemd160C[8])
-      $digest256 == stripSpaces(Ripemd256C[8])
-      $digest320 == stripSpaces(Ripemd320C[8])
-
+      $ctx128.finish() == stripSpaces(Ripemd128C[8])
+      $ctx160.finish() == stripSpaces(Ripemd160C[8])
+      $ctx256.finish() == stripSpaces(Ripemd256C[8])
+      $ctx320.finish() == stripSpaces(Ripemd320C[8])
+      $octx128.finish() == stripSpaces(Ripemd128C[8])
+      $octx160.finish() == stripSpaces(Ripemd160C[8])
+      $octx256.finish() == stripSpaces(Ripemd256C[8])
+      $octx320.finish() == stripSpaces(Ripemd320C[8])
     ctx128.clear()
     ctx160.clear()
     ctx256.clear()
     ctx320.clear()
-
+    octx128.clear()
+    octx160.clear()
+    octx256.clear()
+    octx320.clear()
     check:
       ctx128.isFullZero() == true
       ctx160.isFullZero() == true
       ctx256.isFullZero() == true
       ctx320.isFullZero() == true
+      octx128.isFullZero() == true
+      octx160.isFullZero() == true
+      octx256.isFullZero() == true
+      octx320.isFullZero() == true

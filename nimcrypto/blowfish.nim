@@ -336,8 +336,8 @@ template f(ctx: var BlowfishContext, x: uint32): uint32 =
   vy = vy + ctx.S[3][d]
   vy
 
-proc blowfishEncrypt*(ctx: var BlowfishContext, inp: ptr uint8,
-                      oup: ptr uint8) =
+proc blowfishEncrypt*(ctx: var BlowfishContext, inp: ptr byte,
+                      oup: ptr byte) =
   var nxl = BSWAP(GET_DWORD(inp, 0))
   var nxr = BSWAP(GET_DWORD(inp, 1))
 
@@ -362,8 +362,8 @@ proc blowfishEncrypt*(ctx: var BlowfishContext, inp: ptr uint8,
   SET_DWORD(oup, 0, BSWAP(nxl))
   SET_DWORD(oup, 1, BSWAP(nxr))
 
-proc blowfishDecrypt*(ctx: var BlowfishContext, inp: ptr uint8,
-                      oup: ptr uint8) =
+proc blowfishDecrypt*(ctx: var BlowfishContext, inp: ptr byte,
+                      oup: ptr byte) =
   var nxl = BSWAP(GET_DWORD(inp, 0))
   var nxr = BSWAP(GET_DWORD(inp, 1))
   var temp = 0'u32
@@ -387,7 +387,7 @@ proc blowfishDecrypt*(ctx: var BlowfishContext, inp: ptr uint8,
   SET_DWORD(oup, 0, BSWAP(nxl))
   SET_DWORD(oup, 1, BSWAP(nxr))
 
-proc initBlowfishContext*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) =
+proc initBlowfishContext*(ctx: var BlowfishContext, key: ptr byte, nkey: int) =
   var i = 0
   var j = 0
   var k = 0
@@ -419,8 +419,8 @@ proc initBlowfishContext*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) =
   i = 0
   var datarl = [0'u32, 0'u32]
   while i < N + 2:
-    blowfishEncrypt(ctx, cast[ptr uint8](addr datarl[0]),
-                    cast[ptr uint8](addr datarl[0]))
+    blowfishEncrypt(ctx, cast[ptr byte](addr datarl[0]),
+                    cast[ptr byte](addr datarl[0]))
     ctx.P[i] = datarl[0]
     ctx.P[i + 1] = datarl[1]
     i = i + 2
@@ -429,8 +429,8 @@ proc initBlowfishContext*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) =
   while i < 4:
     j = 0
     while j < 256:
-      blowfishEncrypt(ctx, cast[ptr uint8](addr datarl[0]),
-                      cast[ptr uint8](addr datarl[0]))
+      blowfishEncrypt(ctx, cast[ptr byte](addr datarl[0]),
+                      cast[ptr byte](addr datarl[0]))
       ctx.S[i][j] = datarl[0]
       ctx.S[i][j + 1] = datarl[1]
       j = j + 2
@@ -448,7 +448,7 @@ template sizeKey*(r: typedesc[blowfish]): int =
 template sizeBlock*(r: typedesc[blowfish]): int =
   (8)
 
-proc init*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) {.inline.} =
+proc init*(ctx: var BlowfishContext, key: ptr byte, nkey: int) {.inline.} =
   ctx.sizeKey = nkey shl 3
   initBlowfishContext(ctx, key, ctx.sizeKey)
 
@@ -460,12 +460,12 @@ proc init*(ctx: var BlowfishContext, key: openarray[byte]) {.inline.} =
 proc clear*(ctx: var BlowfishContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var BlowfishContext, inbytes: ptr uint8,
-              outbytes: ptr uint8) {.inline.} =
+proc encrypt*(ctx: var BlowfishContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
   blowfishEncrypt(ctx, inbytes, outbytes)
 
-proc decrypt*(ctx: var BlowfishContext, inbytes: ptr uint8,
-              outbytes: ptr uint8) {.inline.} =
+proc decrypt*(ctx: var BlowfishContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
   blowfishDecrypt(ctx, inbytes, outbytes)
 
 proc encrypt*(ctx: var BlowfishContext, input: openarray[byte],
@@ -479,5 +479,3 @@ proc decrypt*(ctx: var BlowfishContext, input: openarray[byte],
   assert(len(input) == ctx.sizeBlock)
   assert(len(input) <= len(output))
   blowfishDecrypt(ctx, unsafeAddr input[0], addr output[0])
-
-

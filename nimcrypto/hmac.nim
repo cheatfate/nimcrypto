@@ -50,11 +50,11 @@ template sizeDigest*(h: HMAC[Sha2Context]): uint = Sha2Context.bits
 template sizeDigest*(h: HMAC[RipemdContext]): uint = RipemdContext.bits
 template sizeDigest*(h: HMAC[KeccakContext]): uint = KeccakContext.bits
 
-proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
+proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
   mixin init, update, finish
-  var k: array[MaxHmacBlockSize, uint8]
-  var ipad: array[MaxHmacBlockSize, uint8]
-  var opad: array[MaxHmacBlockSize, uint8]
+  var k: array[MaxHmacBlockSize, byte]
+  var ipad: array[MaxHmacBlockSize, byte]
+  var opad: array[MaxHmacBlockSize, byte]
   const sizeBlock = hmctx.sizeBlock
 
   hmctx.mdctx = T()
@@ -86,34 +86,34 @@ proc init*[T](hmctx: var HMAC[T], key: openarray[byte]) {.inline.} =
 proc clear*[T](hmctx: var HMAC[T]) =
   burnMem(hmctx)
 
-proc update*(hmctx: var HMAC, data: ptr uint8, ulen: uint) =
+proc update*(hmctx: var HMAC, data: ptr byte, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
 
-proc update*(hmctx: var HMAC, data: openarray[byte]) {.inline.} =
+proc update*[T: bchar](hmctx: var HMAC, data: openarray[T]) {.inline.} =
   if len(data) == 0:
     update(hmctx, nil, 0'u)
   else:
-    update(hmctx, unsafeAddr data[0], uint(len(data)))
+    update(hmctx, cast[ptr byte](unsafeAddr data[0]), uint(len(data)))
 
-proc finish*(hmctx: var HMAC, data: ptr uint8, ulen: uint): uint =
+proc finish*(hmctx: var HMAC, data: ptr byte, ulen: uint): uint =
   mixin update, finish
-  var buffer: array[hmctx.HashType.bits div 8, uint8]
+  var buffer: array[hmctx.HashType.bits div 8, byte]
   let size = finish(hmctx.mdctx, addr buffer[0],
                     uint(hmctx.HashType.bits div 8))
   hmctx.opadctx.update(addr buffer[0], size)
   result = hmctx.opadctx.finish(data, ulen)
 
-proc finish*(hmctx: var HMAC, data: var openarray[byte]) {.inline.} =
+proc finish*[T: bchar](hmctx: var HMAC, data: var openarray[T]) {.inline.} =
   assert(len(data) >= hmctx.sizeDigest)
-  finish(hmctx, addr data[0], uint(len(data)))
+  finish(hmctx, cast[ptr byte](addr data[0]), uint(len(data)))
 
 proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
-  discard finish(hmctx, cast[ptr uint8](addr result.data[0]),
+  discard finish(hmctx, cast[ptr byte](addr result.data[0]),
                  uint(len(result.data)))
 
-proc hmac*(HashType: typedesc, key: ptr uint8, klen: uint,
-           data: ptr uint8, ulen: uint): MDigest[HashType.bits] =
+proc hmac*(HashType: typedesc, key: ptr byte, klen: uint,
+           data: ptr byte, ulen: uint): MDigest[HashType.bits] =
   var ctx: HMAC[HashType]
   ctx.init(key, klen)
   ctx.update(data, ulen)
@@ -130,10 +130,10 @@ proc hmac*[A, B](HashType: typedesc, key: openarray[A],
   if len(key) == 0:
     ctx.init(nil, 0)
   else:
-    ctx.init(cast[ptr uint8](unsafeAddr key[0]), uint(sizeof(A) * len(key)))
+    ctx.init(cast[ptr byte](unsafeAddr key[0]), uint(sizeof(A) * len(key)))
   if length <= 0:
     result = ctx.finish()
   else:
-    ctx.update(cast[ptr uint8](unsafeAddr data[so]), uint(length))
+    ctx.update(cast[ptr byte](unsafeAddr data[so]), uint(length))
     result = ctx.finish()
   ctx.clear()

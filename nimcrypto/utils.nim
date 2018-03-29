@@ -176,3 +176,30 @@ proc burnMem*(p: pointer, size: Natural) =
       sp[] = 0
       sp = cast[ptr uint8](cast[uint](sp) + 1)
       dec(c)
+
+proc burnMem*[T](a: var openarray[T]) {.inline.} =
+  if len(a) > 0:
+    burnMem(addr a[0], len(a) * sizeof(T))
+
+proc burnMem*[T](a: var T) {.inline.} =
+  burnMem(addr a, sizeof(T))
+
+proc isFullZero*(p: pointer, size: Natural): bool =
+  result = true
+  var counter = 0
+  var sp {.volatile.} = cast[ptr uint8](p)
+  var c = size
+  if not isNil(sp):
+    while c > 0:
+      counter += int(sp[])
+      sp = cast[ptr uint8](cast[uint](sp) + 1)
+      dec(c)
+  result = (counter == 0)
+
+proc isFullZero*[T](a: var openarray[T]): bool {.inline.} =
+  result = true
+  if len(a) > 0:
+    result = isFullZero(addr a[0], len(a) * sizeof(T))
+
+proc isFullZero*[T](a: var T): bool {.inline.} =
+  result = isFullZero(addr a, sizeof(T))

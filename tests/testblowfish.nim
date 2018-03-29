@@ -1,4 +1,4 @@
-import nimcrypto/blowfish
+import nimcrypto/blowfish, nimcrypto/utils
 import unittest
 
 ## Tests made according to official test vectors by Eric Young
@@ -139,9 +139,11 @@ suite "Blowfish Tests":
       ctx.init(addr key[0], len(key))
       var data = [plaintext_l[i], plaintext_r[i]]
       ctx.encrypt(cast[ptr uint8](addr data[0]), cast[ptr uint8](addr data[0]))
+      ctx.clear()
       check:
         ciphertext_l[i] == data[0]
         ciphertext_r[i] == data[1]
+        ctx.isFullZero() == true
 
   test "Decryption test #1":
     for i in 0..<NUM_VARIABLE_KEY_TESTS:
@@ -149,9 +151,11 @@ suite "Blowfish Tests":
       ctx.init(addr key[0], len(key))
       var data = [ciphertext_l[i], ciphertext_r[i]]
       ctx.decrypt(cast[ptr uint8](addr data[0]), cast[ptr uint8](addr data[0]))
+      ctx.clear()
       check:
         plaintext_l[i] == data[0]
         plaintext_r[i] == data[1]
+        ctx.isFullZero() == true
 
   test "Encryption test #2":
     for i in 0..<NUM_SET_KEY_TESTS:
@@ -160,9 +164,11 @@ suite "Blowfish Tests":
       var data = [plaintext_l[NUM_VARIABLE_KEY_TESTS + i],
                   plaintext_r[NUM_VARIABLE_KEY_TESTS + i]]
       ctx.encrypt(cast[ptr uint8](addr data[0]), cast[ptr uint8](addr data[0]))
+      ctx.clear()
       check:
         ciphertext_l[NUM_VARIABLE_KEY_TESTS + i] == data[0]
         ciphertext_r[NUM_VARIABLE_KEY_TESTS + i] == data[1]
+        ctx.isFullZero() == true
 
   test "Decryption test #2":
     for i in 0..<NUM_SET_KEY_TESTS:
@@ -171,6 +177,8 @@ suite "Blowfish Tests":
       var data = [ciphertext_l[NUM_VARIABLE_KEY_TESTS + i],
                   ciphertext_r[NUM_VARIABLE_KEY_TESTS + i]]
       ctx.decrypt(cast[ptr uint8](addr data[0]), cast[ptr uint8](addr data[0]))
+      ctx.clear()
       check:
         plaintext_l[NUM_VARIABLE_KEY_TESTS + i] == data[0]
         plaintext_r[NUM_VARIABLE_KEY_TESTS + i] == data[1]
+        ctx.isFullZero() == true

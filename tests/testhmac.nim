@@ -268,11 +268,13 @@ suite "HMAC Tests":
       )
       var digest3 = $ripemd128.hmac(key, data)
       var digest4 = $ripemd128.hmac(key, data, 0, len(data) - 1)
+      ctx.clear()
       check:
         digest1 == ripemd128digests[i]
         digest2 == ripemd128digests[i]
         digest3 == ripemd128digests[i]
         digest4 == ripemd128digests[i]
+        ctx.isFullZero() == true
 
   test "HMAC-RIPEMD-160 test vectors":
     for i in 0..(len(ripemd160digests) - 1):
@@ -288,12 +290,13 @@ suite "HMAC Tests":
       )
       var digest3 = $ripemd160.hmac(key, data)
       var digest4 = $ripemd160.hmac(key, data, 0, len(data) - 1)
-
+      ctx.clear()
       check:
         digest1 == ripemd160digests[i]
         digest2 == ripemd160digests[i]
         digest3 == ripemd160digests[i]
         digest4 == ripemd160digests[i]
+        ctx.isFullZero() == true
 
   test "HMAC-SHA2-224 test vectors":
     var ctx224: HMAC[sha224]
@@ -310,11 +313,13 @@ suite "HMAC Tests":
       )
       var check3 = $sha224.hmac(key, data)
       var check4 = $sha224.hmac(key, data, 0, len(data) - 1)
+      ctx224.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx224.isFullZero() == true
 
   test "HMAC-SHA2-256 test vectors":
     var ctx256: HMAC[sha256]
@@ -331,11 +336,13 @@ suite "HMAC Tests":
       )
       var check3 = $sha256.hmac(key, data)
       var check4 = $sha256.hmac(key, data, 0, len(data) - 1)
+      ctx256.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx256.isFullZero() == true
 
   test "HMAC-SHA2-384 test vectors":
     var ctx384: HMAC[sha384]
@@ -352,11 +359,13 @@ suite "HMAC Tests":
       )
       var check3 = $sha384.hmac(key, data)
       var check4 = $sha384.hmac(key, data, 0, len(data) - 1)
+      ctx384.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx384.isFullZero() == true
 
   test "HMAC-SHA2-512 test vectors":
     var ctx512: HMAC[sha512]
@@ -373,11 +382,13 @@ suite "HMAC Tests":
       )
       var check3 = $sha512.hmac(key, data)
       var check4 = $sha512.hmac(key, data, 0, len(data) - 1)
+      ctx512.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx512.isFullZero() == true
 
   test "HMAC-SHA3-224 test vectors":
     var ctx: HMAC[sha3_224]
@@ -394,11 +405,13 @@ suite "HMAC Tests":
       )
       var check3 = $sha3_224.hmac(key, data)
       var check4 = $sha3_224.hmac(key, data, 0, len(data) - 1)
+      ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx.isFullZero() == true
 
   test "HMAC-SHA3-256 test vectors":
     var ctx: HMAC[sha3_256]
@@ -415,11 +428,13 @@ suite "HMAC Tests":
       )
       var check3 = $sha3_256.hmac(key, data)
       var check4 = $sha3_256.hmac(key, data, 0, len(data) - 1)
+      ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx.isFullZero() == true
 
   test "HMAC-SHA3-384 test vectors":
     var ctx: HMAC[sha3_384]
@@ -436,11 +451,13 @@ suite "HMAC Tests":
       )
       var check3 = $sha3_384.hmac(key, data)
       var check4 = $sha3_384.hmac(key, data, 0, len(data) - 1)
+      ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx.isFullZero() == true
 
   test "HMAC-SHA3-512 test vectors":
     var ctx: HMAC[sha3_512]
@@ -457,8 +474,10 @@ suite "HMAC Tests":
       )
       var check3 = $sha3_512.hmac(key, data)
       var check4 = $sha3_512.hmac(key, data, 0, len(data) - 1)
+      ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
+        ctx.isFullZero() == true

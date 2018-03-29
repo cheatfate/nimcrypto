@@ -96,6 +96,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ecb128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-192-ECB test vectors":
     var key = fromHex(all192K)
@@ -112,6 +117,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ecb192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-256-ECB test vectors":
     var key = fromHex(all256K)
@@ -128,6 +138,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ecb256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-128-CBC test vectors":
     var key = fromHex(all128K)
@@ -145,6 +160,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == cbc128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-192-CBC test vectors":
     var key = fromHex(all192K)
@@ -162,6 +182,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == cbc192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-256-CBC test vectors":
     var key = fromHex(all256K)
@@ -179,6 +204,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == cbc256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-128-OFB test vectors":
     var key = fromHex(all128K)
@@ -196,6 +226,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ofb128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-192-OFB test vectors":
     var key = fromHex(all192K)
@@ -213,6 +248,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ofb192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-256-OFB test vectors":
     var key = fromHex(all256K)
@@ -230,6 +270,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ofb256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-128-CFB test vectors":
     var key = fromHex(all128K)
@@ -247,6 +292,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == cfb128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-192-CFB test vectors":
     var key = fromHex(all192K)
@@ -264,6 +314,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == cfb192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-256-CFB test vectors":
     var key = fromHex(all256K)
@@ -281,6 +336,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == cfb256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-128-CTR test vectors":
     var key = fromHex(all128K)
@@ -298,6 +358,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ctr128E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-192-CTR test vectors":
     var key = fromHex(all192K)
@@ -315,6 +380,11 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ctr192E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "AES-256-CTR test vectors":
     var key = fromHex(all256K)
@@ -332,3 +402,8 @@ suite "Block cipher modes Tests":
       check(toHex(ecrypt) == ctr256E[i])
       ctx2.decrypt(addr ecrypt[0], addr dcrypt[0], uint(length))
       check(toHex(dcrypt) == allP[i])
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true

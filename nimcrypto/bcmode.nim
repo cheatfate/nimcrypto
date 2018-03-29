@@ -65,6 +65,9 @@ proc init*[T](ctx: var ECB[T], keyBytes: ptr uint8) =
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
 
+proc clear*[T](ctx: var ECB[T]) {.inline.} =
+  burnMem(ctx)
+
 proc encrypt*[T](ctx: var ECB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
@@ -120,6 +123,9 @@ proc init*[T](ctx: var CBC[T], keyBytes: ptr uint8, iv: ptr uint8) =
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
+
+proc clear*[T](ctx: var CBC[T]) {.inline.} =
+  burnMem(ctx)
 
 proc encrypt*[T](ctx: var CBC[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
@@ -218,6 +224,9 @@ proc init*[T](ctx: var CTR[T], keyBytes: ptr uint8, iv: ptr uint8) =
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
+proc clear*[T](ctx: var CTR[T]) {.inline.} =
+  burnMem(ctx)
+
 proc encrypt*[T](ctx: var CTR[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
@@ -267,6 +276,9 @@ proc init*[T](ctx: var OFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
+proc clear*[T](ctx: var OFB[T]) {.inline.} =
+  burnMem(ctx)
+
 proc encrypt*[T](ctx: var OFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =
   mixin encrypt
@@ -308,6 +320,9 @@ proc init*[T](ctx: var CFB[T], keyBytes: ptr uint8, iv: ptr uint8) =
   init(ctx.cipher, keyBytes)
   doAssert(ctx.sizeBlock <= MaxBlockSize)
   copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
+
+proc clear*[T](ctx: var CFB[T]) {.inline.} =
+  burnMem(ctx)
 
 proc encrypt*[T](ctx: var CFB[T], inp: ptr uint8, oup: ptr uint8,
                  length: uint): uint {.discardable.} =

@@ -658,6 +658,9 @@ proc init*(ctx: var RipemdContext) =
     ctx.state[8] = 0x01234567'u32
     ctx.state[9] = 0x3C2D1E0F'u32
 
+proc clear*(ctx: var RipemdContext) {.inline.} =
+  burnMem(ctx)
+
 proc update*(ctx: var RipemdContext, data: ptr uint8, ulen: uint) =
   var pos = 0'u
   var length = ulen

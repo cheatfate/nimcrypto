@@ -243,8 +243,10 @@ template sizeBlock*(r: typedesc[keccak | shake128 | shake256]): int =
   (200)
 
 proc init*(ctx: var KeccakContext) =
-  zeroMem(addr ctx.q[0], sizeof(uint64) * 25)
-  ctx.pt = 0
+  burnMem(ctx)
+
+proc clear*(ctx: var KeccakContext) {.inline.} =
+  ctx.init()
 
 proc update*(ctx: var KeccakContext, data: ptr uint8, ulen: uint) =
   var j = ctx.pt

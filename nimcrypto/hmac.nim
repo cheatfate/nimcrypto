@@ -10,7 +10,7 @@
 ## This module implements HMAC (Keyed-Hashing for Message Authentication)
 ## [http://www.ietf.org/rfc/rfc2104.txt].
 
-import hash
+import hash, utils
 from sha2 import Sha2Context
 from ripemd import RipemdContext
 from keccak import KeccakContext
@@ -20,8 +20,6 @@ const
 
 type
   HMAC*[HashType] = object
-    # sizeBlock*: uint
-    # sizeDigest*: uint
     mdctx: HashType
     opadctx: HashType
 
@@ -79,6 +77,9 @@ proc init*[T](hmctx: var HMAC[T], key: ptr uint8, ulen: uint) =
   update(hmctx.mdctx, addr ipad[0], sizeBlock)
   update(hmctx.opadctx, addr opad[0], sizeBlock)
 
+proc clear*[T](hmctx: var HMAC[T]) =
+  burnMem(hmctx)
+
 proc update*(hmctx: var HMAC, data: ptr uint8, ulen: uint) =
   mixin update
   update(hmctx.mdctx, data, ulen)
@@ -101,6 +102,7 @@ proc hmac*(HashType: typedesc, key: ptr uint8, klen: uint,
   ctx.init(key, klen)
   ctx.update(data, ulen)
   result = ctx.finish()
+  ctx.clear()
 
 proc hmac*[A, B](HashType: typedesc, key: openarray[A],
                  data: openarray[B],
@@ -118,3 +120,4 @@ proc hmac*[A, B](HashType: typedesc, key: openarray[A],
   else:
     ctx.update(cast[ptr uint8](unsafeAddr data[so]), uint(length))
     result = ctx.finish()
+  ctx.clear()

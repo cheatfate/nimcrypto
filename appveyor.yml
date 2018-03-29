@@ -37,6 +37,7 @@ install:
   - koch nimble
 build_script:
   - cd C:\projects\nimcrypto
+  - nimble install -y
 test_script:
   - nimble tests
 

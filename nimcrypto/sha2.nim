@@ -190,6 +190,9 @@ proc init*(ctx: var Sha2Context) =
     ctx.state[6] = 0x2B0199FC2C85B8AA'u64
     ctx.state[7] = 0x0EB72DDC81C52CA2'u64
 
+proc clear*(ctx: var Sha2Context) {.inline.} =
+  burnMem(ctx)
+
 when not smallCode:
   template ROUND256(a, b, c, d, e, f, g, h, z) =
     t0 = h + TAU1(e) + CH0(e, f, g) + K0[z] + W[z]

@@ -79,12 +79,14 @@ suite "SHA2 Tests":
       var check2 = $sha224.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha224.digest(plaintext)
+      ctx224.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        ctx224.isFullZero() == true
       inc(i)
-  
+
   test "SHA2-256 test vectors":
     i = 0
     while i < len(code256):
@@ -96,10 +98,12 @@ suite "SHA2 Tests":
       var check2 = $sha256.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha256.digest(plaintext)
+      ctx256.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        ctx256.isFullZero() == true
       inc(i)
 
   test "SHA2-384 test vectors":
@@ -113,10 +117,12 @@ suite "SHA2 Tests":
       var check2 = $sha384.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha384.digest(plaintext)
+      ctx384.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        ctx384.isFullZero() == true
       inc(i)
 
   test "SHA2-512 test vectors":
@@ -130,10 +136,12 @@ suite "SHA2 Tests":
       var check2 = $sha512.digest(cast[ptr uint8](addr plaintext[0]),
                                   uint(len(plaintext)))
       var check3 = $sha512.digest(plaintext)
+      ctx512.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        ctx512.isFullZero() == true
       inc(i)
 
   test "SHA2-512/224 test vectors":
@@ -147,10 +155,12 @@ suite "SHA2 Tests":
       var check2 = $sha512_224.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_224.digest(plaintext)
+      ctx512_224.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        ctx512_224.isFullZero() == true
       inc(i)
 
   test "SHA2-512/256 test vectors":
@@ -164,8 +174,10 @@ suite "SHA2 Tests":
       var check2 = $sha512_256.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_256.digest(plaintext)
+      ctx512_256.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
+        ctx512_256.isFullZero() == true
       inc(i)

@@ -98,6 +98,17 @@ suite "RipeMD Tests":
         $digest256 == stripSpaces(RipeMD256C[i])
         $digest320 == stripSpaces(RipeMD320C[i])
 
+      ctx128.clear()
+      ctx160.clear()
+      ctx256.clear()
+      ctx320.clear()
+
+      check:
+        ctx128.isFullZero() == true
+        ctx160.isFullZero() == true
+        ctx256.isFullZero() == true
+        ctx320.isFullZero() == true
+
       var dcheck128 = $ripemd128.digest(cast [ptr uint8](addr a[0]),
                                         uint(len(a)))
       var dcheck160 = $ripemd160.digest(cast [ptr uint8](addr a[0]),
@@ -142,3 +153,14 @@ suite "RipeMD Tests":
       $digest160 == stripSpaces(Ripemd160C[8])
       $digest256 == stripSpaces(Ripemd256C[8])
       $digest320 == stripSpaces(Ripemd320C[8])
+
+    ctx128.clear()
+    ctx160.clear()
+    ctx256.clear()
+    ctx320.clear()
+
+    check:
+      ctx128.isFullZero() == true
+      ctx160.isFullZero() == true
+      ctx256.isFullZero() == true
+      ctx320.isFullZero() == true

@@ -146,6 +146,8 @@ suite "Rijndael/AES Tests":
       check(fromHex(testsE128[i]) == data)
       ctx.decrypt(addr data[0], addr data[0])
       check(data == fromHex(testsP128[i]))
+      ctx.clear()
+      check(ctx.isFullZero() == true)
       inc(i)
 
   test "AES-192 GFSbox test vectors":
@@ -159,6 +161,8 @@ suite "Rijndael/AES Tests":
       check(fromHex(testsE192[i]) == data)
       ctx.decrypt(addr data[0], addr data[0])
       check(data == fromHex(testsP192[i]))
+      ctx.clear()
+      check(ctx.isFullZero() == true)
       inc(i)
 
   test "AES-256 GFSbox test vectors":
@@ -172,6 +176,8 @@ suite "Rijndael/AES Tests":
       check(fromHex(testsE256[i]) == data)
       ctx.decrypt(addr data[0], addr data[0])
       check(data == fromHex(testsP256[i]))
+      ctx.clear()
+      check(ctx.isFullZero() == true)
       inc(i)
 
   test "AES-128 KeySbox test vectors":
@@ -185,6 +191,8 @@ suite "Rijndael/AES Tests":
       check(fromHex(testsC128[i]) == data)
       ctx.decrypt(addr data[0], addr data[0])
       check(toHex(data) == KCdata)
+      ctx.clear()
+      check(ctx.isFullZero() == true)
       inc(i)
 
   test "AES-192 KeySbox test vectors":
@@ -198,6 +206,8 @@ suite "Rijndael/AES Tests":
       check(fromHex(testsC192[i]) == data)
       ctx.decrypt(addr data[0], addr data[0])
       check(toHex(data) == KCdata)
+      ctx.clear()
+      check(ctx.isFullZero() == true)
       inc(i)
 
   test "AES-256 KeySbox test vectors":
@@ -211,4 +221,6 @@ suite "Rijndael/AES Tests":
       check(fromHex(testsC256[i]) == data)
       ctx.decrypt(addr data[0], addr data[0])
       check(toHex(data) == KCdata)
+      ctx.clear()
+      check(ctx.isFullZero() == true)
       inc(i)

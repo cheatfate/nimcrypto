@@ -60,16 +60,20 @@ suite "KECCAK/SHA3 Tests":
           kec224.update(addr data[0], uint(length))
           var check1 = $kec224.finish()
           var check2 = $keccak224.digest(addr data[0], uint(length))
+          kec224.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec224.isFullZero() == true
         else:
           kec224.update(nil, uint(length))
           var check1 = $kec224.finish()
           var check2 = $keccak224.digest(nil, uint(length))
+          kec224.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec224.isFullZero() == true
 
         var check3 = $keccak224.digest(data, 0, length - 1)
         check item.digest == check3
@@ -91,16 +95,20 @@ suite "KECCAK/SHA3 Tests":
           kec256.update(addr data[0], uint(length))
           var check1 = $kec256.finish()
           var check2 = $keccak256.digest(addr data[0], uint(length))
+          kec256.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec256.isFullZero() == true
         else:
           kec256.update(nil, uint(length))
           var check1 = $kec256.finish()
           var check2 = $keccak256.digest(nil, uint(length))
+          kec256.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec256.isFullZero() == true
         var check3 = $keccak256.digest(data, 0, length - 1)
         check item.digest == check3
 
@@ -121,16 +129,20 @@ suite "KECCAK/SHA3 Tests":
           kec384.update(addr data[0], uint(length))
           var check1 = $kec384.finish()
           var check2 = $keccak384.digest(addr data[0], uint(length))
+          kec384.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec384.isFullZero() == true
         else:
           kec384.update(nil, uint(length))
           var check1 = $kec384.finish()
           var check2 = $keccak384.digest(nil, uint(length))
+          kec384.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec384.isFullZero() == true
         var check3 = $keccak384.digest(data, 0, length - 1)
         check item.digest == check3
 
@@ -151,16 +163,20 @@ suite "KECCAK/SHA3 Tests":
           kec512.update(addr data[0], uint(length))
           var check1 = $kec512.finish()
           var check2 = $keccak512.digest(addr data[0], uint(length))
+          kec512.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec512.isFullZero() == true
         else:
-          kec384.update(nil, uint(length))
+          kec512.update(nil, uint(length))
           var check1 = $kec512.finish()
           var check2 = $keccak512.digest(nil, uint(length))
+          kec512.clear()
           check:
             item.digest == check1
             item.digest == check2
+            kec512.isFullZero() == true
         var check3 = $keccak512.digest(data, 0, length - 1)
         check item.digest == check3
 
@@ -241,10 +257,20 @@ suite "KECCAK/SHA3 Tests":
       sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-      check($sha224.finish() == stripSpaces(digest224[i]))
-      check($sha256.finish() == stripSpaces(digest256[i]))
-      check($sha384.finish() == stripSpaces(digest384[i]))
-      check($sha512.finish() == stripSpaces(digest512[i]))
+      check:
+        $sha224.finish() == stripSpaces(digest224[i])
+        $sha256.finish() == stripSpaces(digest256[i])
+        $sha384.finish() == stripSpaces(digest384[i])
+        $sha512.finish() == stripSpaces(digest512[i])
+      sha224.clear()
+      sha256.clear()
+      sha384.clear()
+      sha512.clear()
+      check:
+        sha224.isFullZero() == true
+        sha256.isFullZero() == true
+        sha384.isFullZero() == true
+        sha512.isFullZero() == true
       # One liner test
       var dcheck224 = $sha3_224.digest(cast[ptr uint8](addr msg[0]),
                                        uint(len(msg)))
@@ -283,6 +309,15 @@ suite "KECCAK/SHA3 Tests":
       $sha256.finish() == stripSpaces(digest256[4])
       $sha384.finish() == stripSpaces(digest384[4])
       $sha512.finish() == stripSpaces(digest512[4])
+    sha224.clear()
+    sha256.clear()
+    sha384.clear()
+    sha512.clear()
+    check:
+      sha224.isFullZero() == true
+      sha256.isFullZero() == true
+      sha384.isFullZero() == true
+      sha512.isFullZero() == true
 
   const shake128inputs = [
     "A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3",
@@ -389,6 +424,8 @@ suite "KECCAK/SHA3 Tests":
         for j in 0..31:
           chk[i * 32 + j] = buf[j]
       check(toHex(chk) == stripSpaces(shake128digests[t]))
+      sctx.clear()
+      check sctx.isFullZero() == true
 
   # SHAKE-256 TEST
   test "SHAKE-256 test vectors":
@@ -407,3 +444,5 @@ suite "KECCAK/SHA3 Tests":
         for j in 0..31:
           chk[i * 32 + j] = buf[j]
       check(toHex(chk) == stripSpaces(shake256digests[t]))
+      sctx.clear()
+      check sctx.isFullZero() == true

@@ -22,6 +22,8 @@ proc test[T](n: int): seq[uint8] =
     var enc = data
     ctx.decrypt(addr enc[0], addr enc[0])
     doAssert(enc == check)
+    ctx.clear()
+    doAssert(ctx.isFullZero() == true)
     if blocksize != keysize:
       list[k + 2] = data & list[k + 1][0..<(keysize - blocksize)]
     else:

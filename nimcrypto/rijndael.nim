@@ -1010,6 +1010,9 @@ template sizeBlock*(r: typedesc[rijndael]): int =
 proc init*(ctx: var RijndaelContext, key: ptr uint8, nkey: int = 0) {.inline.} =
   ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)
 
+proc clear*(ctx: var RijndaelContext) {.inline.} =
+  burnMem(ctx)
+
 proc encrypt*(ctx: var RijndaelContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =
   rijndaelEncrypt(ctx, inbytes, outbytes)

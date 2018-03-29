@@ -419,6 +419,9 @@ template sizeBlock*(r: typedesc[twofish]): int =
 proc init*(ctx: var TwofishContext, key: ptr uint8, nkey: int = 0) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)
 
+proc clear*(ctx: var TwofishContext) {.inline.} =
+  burnMem(ctx)
+
 proc encrypt*(ctx: var TwofishContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =
   twofishEncrypt(ctx, inbytes, outbytes)

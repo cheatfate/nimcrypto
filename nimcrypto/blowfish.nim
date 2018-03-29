@@ -450,6 +450,9 @@ proc init*(ctx: var BlowfishContext, key: ptr uint8, nkey: int) {.inline.} =
   ctx.sizeKey = nkey shl 3
   initBlowfishContext(ctx, key, ctx.sizeKey)
 
+proc clear*(ctx: var BlowfishContext) {.inline.} =
+  burnMem(ctx)
+
 proc encrypt*(ctx: var BlowfishContext, inbytes: ptr uint8,
               outbytes: ptr uint8) {.inline.} =
   blowfishEncrypt(ctx, inbytes, outbytes)

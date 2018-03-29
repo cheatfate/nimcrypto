@@ -16,15 +16,16 @@ proc `$`*(digest: MDigest): string =
 
 proc digest*(HashType: typedesc, data: ptr uint8,
              ulen: uint): MDigest[HashType.bits] =
-  mixin init, update, finish
+  mixin init, update, finish, clear
   var ctx: HashType
   ctx.init()
   ctx.update(data, ulen)
   result = ctx.finish()
+  ctx.clear()
 
 proc digest*[T](HashType: typedesc, data: openarray[T],
                 ostart: int = 0, ofinish: int = -1): MDigest[HashType.bits] =
-  mixin init, update, finish
+  mixin init, update, finish, clear
   var ctx: HashType
   let so = if ostart < 0: (len(data) + ostart) else: ostart
   let eo = if ofinish < 0: (len(data) + ofinish) else: ofinish
@@ -35,3 +36,4 @@ proc digest*[T](HashType: typedesc, data: openarray[T],
   else:
     ctx.update(cast[ptr uint8](unsafeAddr data[so]), uint(length))
     result = ctx.finish()
+  ctx.clear()

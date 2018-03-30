@@ -46,9 +46,9 @@ template sizeBlock*(h: HMAC[KeccakContext]): uint =
   else:
     {.fatal: "Choosen hash primitive is not yet supported!".}
 
-template sizeDigest*(h: HMAC[Sha2Context]): uint = uint(h.bits)
-template sizeDigest*(h: HMAC[RipemdContext]): uint = uint(h.bits)
-template sizeDigest*(h: HMAC[KeccakContext]): uint = uint(h.bits)
+template sizeDigest*(h: HMAC[Sha2Context]): uint = uint(h.mdctx.bits)
+template sizeDigest*(h: HMAC[RipemdContext]): uint = uint(h.mdctx.bits)
+template sizeDigest*(h: HMAC[KeccakContext]): uint = uint(h.mdctx.bits)
 
 proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
   mixin init, update, finish

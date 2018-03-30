@@ -254,6 +254,52 @@ const sha3_512digests = [
 ]
 
 suite "HMAC Tests":
+  test "HMAC block sizes":
+    var ctx1: HMAC[sha224]
+    var ctx2: HMAC[sha256]
+    var ctx3: HMAC[sha384]
+    var ctx4: HMAC[sha512]
+    var ctx5: HMAC[ripemd128]
+    var ctx6: HMAC[ripemd160]
+    var ctx7: HMAC[sha3_224]
+    var ctx8: HMAC[sha3_256]
+    var ctx9: HMAC[sha3_384]
+    var ctx0: HMAC[sha3_512]
+    check:
+      ctx1.sizeBlock == 64'u
+      ctx2.sizeBlock == 64'u
+      ctx3.sizeBlock == 128'u
+      ctx4.sizeBlock == 128'u
+      ctx5.sizeBlock == 64'u
+      ctx6.sizeBlock == 64'u
+      ctx7.sizeBlock == 144'u
+      ctx8.sizeBlock == 136'u
+      ctx9.sizeBlock == 104'u
+      ctx0.sizeBlock == 72'u
+
+  test "HMAC digest sizes":
+    var ctx1: HMAC[sha224]
+    var ctx2: HMAC[sha256]
+    var ctx3: HMAC[sha384]
+    var ctx4: HMAC[sha512]
+    var ctx5: HMAC[ripemd128]
+    var ctx6: HMAC[ripemd160]
+    var ctx7: HMAC[sha3_224]
+    var ctx8: HMAC[sha3_256]
+    var ctx9: HMAC[sha3_384]
+    var ctx0: HMAC[sha3_512]
+    check:
+      ctx1.sizeDigest == uint(sha224.sizeDigest)
+      ctx2.sizeDigest == uint(sha256.sizeDigest)
+      ctx3.sizeDigest == uint(sha384.sizeDigest)
+      ctx4.sizeDigest == uint(sha512.sizeDigest)
+      ctx5.sizeDigest == uint(ripemd128.sizeDigest)
+      ctx6.sizeDigest == uint(ripemd160.sizeDigest)
+      ctx7.sizeDigest == uint(sha3_224.sizeDigest)
+      ctx8.sizeDigest == uint(sha3_256.sizeDigest)
+      ctx9.sizeDigest == uint(sha3_384.sizeDigest)
+      ctx0.sizeDigest == uint(sha3_512.sizeDigest)
+
   test "HMAC-RIPEMD-128 test vectors":
     for i in 0..(len(ripemd128digests) - 1):
       var key = fromHex(stripSpaces(ripemd128keys[i]))

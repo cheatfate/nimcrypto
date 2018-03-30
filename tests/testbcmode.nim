@@ -81,6 +81,72 @@ const
   ]
 
 suite "Block cipher modes Tests":
+  test "AES-128/192/256-ECB/CBC/OFB/CFB/CTR block sizes":
+    var ecb128: ECB[aes128]
+    var ecb192: ECB[aes192]
+    var ecb256: ECB[aes256]
+    var cbc128: CBC[aes128]
+    var cbc192: CBC[aes192]
+    var cbc256: CBC[aes256]
+    var ofb128: OFB[aes128]
+    var ofb192: OFB[aes192]
+    var ofb256: OFB[aes256]
+    var cfb128: CFB[aes128]
+    var cfb192: CFB[aes192]
+    var cfb256: CFB[aes256]
+    var ctr128: CTR[aes128]
+    var ctr192: CTR[aes192]
+    var ctr256: CTR[aes256]
+    check:
+      ecb128.sizeBlock == aes128.sizeBlock
+      ecb192.sizeBlock == aes192.sizeBlock
+      ecb256.sizeBlock == aes256.sizeBlock
+      cbc128.sizeBlock == aes128.sizeBlock
+      cbc192.sizeBlock == aes192.sizeBlock
+      cbc256.sizeBlock == aes256.sizeBlock
+      ofb128.sizeBlock == aes128.sizeBlock
+      ofb192.sizeBlock == aes192.sizeBlock
+      ofb256.sizeBlock == aes256.sizeBlock
+      cfb128.sizeBlock == aes128.sizeBlock
+      cfb192.sizeBlock == aes192.sizeBlock
+      cfb256.sizeBlock == aes256.sizeBlock
+      ctr128.sizeBlock == aes128.sizeBlock
+      ctr192.sizeBlock == aes192.sizeBlock
+      ctr256.sizeBlock == aes256.sizeBlock
+
+  test "AES-128/192/256-ECB/CBC/OFB/CFB/CTR key sizes":
+    var ecb128: ECB[aes128]
+    var ecb192: ECB[aes192]
+    var ecb256: ECB[aes256]
+    var cbc128: CBC[aes128]
+    var cbc192: CBC[aes192]
+    var cbc256: CBC[aes256]
+    var ofb128: OFB[aes128]
+    var ofb192: OFB[aes192]
+    var ofb256: OFB[aes256]
+    var cfb128: CFB[aes128]
+    var cfb192: CFB[aes192]
+    var cfb256: CFB[aes256]
+    var ctr128: CTR[aes128]
+    var ctr192: CTR[aes192]
+    var ctr256: CTR[aes256]
+    check:
+      ecb128.sizeKey == aes128.sizeKey
+      ecb192.sizeKey == aes192.sizeKey
+      ecb256.sizeKey == aes256.sizeKey
+      cbc128.sizeKey == aes128.sizeKey
+      cbc192.sizeKey == aes192.sizeKey
+      cbc256.sizeKey == aes256.sizeKey
+      ofb128.sizeKey == aes128.sizeKey
+      ofb192.sizeKey == aes192.sizeKey
+      ofb256.sizeKey == aes256.sizeKey
+      cfb128.sizeKey == aes128.sizeKey
+      cfb192.sizeKey == aes192.sizeKey
+      cfb256.sizeKey == aes256.sizeKey
+      ctr128.sizeKey == aes128.sizeKey
+      ctr192.sizeKey == aes192.sizeKey
+      ctr256.sizeKey == aes256.sizeKey
+
   test "AES-128-ECB test vectors":
     var key = fromHex(all128K)
     var ctx1, ctx2, ctx3, ctx4: ECB[aes128]

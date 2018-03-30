@@ -135,6 +135,46 @@ const
   EPkey = "0000000000000000000000000000000000000000000000000000000000000000"
 
 suite "Rijndael/AES Tests":
+  test "RIJNDAEL/AES-128/192/256 block sizes":
+    var a128: aes128
+    var a192: aes192
+    var a256: aes256
+    var r128: rijndael128
+    var r192: rijndael192
+    var r256: rijndael256
+    check:
+      a128.sizeBlock == 16
+      a192.sizeBlock == 16
+      a256.sizeBlock == 16
+      r128.sizeBlock == 16
+      r192.sizeBlock == 16
+      r256.sizeBlock == 16
+      aes128.sizeBlock == 16
+      aes192.sizeBlock == 16
+      aes256.sizeBlock == 16
+      rijndael128.sizeBlock == 16
+      rijndael192.sizeBlock == 16
+      rijndael256.sizeBlock == 16
+  test "RIJNDAEL/AES-128/192/256 key sizes":
+    var a128: aes128
+    var a192: aes192
+    var a256: aes256
+    var r128: rijndael128
+    var r192: rijndael192
+    var r256: rijndael256
+    check:
+      a128.sizeKey == 16
+      a192.sizeKey == 24
+      a256.sizeKey == 32
+      r128.sizeKey == 16
+      r192.sizeKey == 24
+      r256.sizeKey == 32
+      aes128.sizeKey == 16
+      aes192.sizeKey == 24
+      aes256.sizeKey == 32
+      rijndael128.sizeKey == 16
+      rijndael192.sizeKey == 24
+      rijndael256.sizeKey == 32
   test "AES-128 GFSbox test vectors":
     var i = 0
     while i < len(testsP128):

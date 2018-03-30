@@ -116,7 +116,7 @@ template sizeDigest*(ctx: Sha2Context): uint =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: Sha2Context): uint =
-  (ctx.bsize div 8)
+  (ctx.bsize)
 
 template sizeDigest*(r: typedesc[sha2]): int =
   when r is sha224 or r is sha512_224:
@@ -130,9 +130,9 @@ template sizeDigest*(r: typedesc[sha2]): int =
 
 template sizeBlock*(r: typedesc[sha2]): int =
   when r is sha224 or r is sha256:
-    (8)
+    (64)
   else:
-    (16)
+    (128)
 
 proc init*(ctx: var Sha2Context) =
   ctx.count[0] = 0

@@ -32,6 +32,28 @@ proc test[T](n: int): seq[uint8] =
     result = data
 
 suite "Twofish Tests":
+  test "TWOFISH-128/192/256 block sizes":
+    var ctx128: twofish128
+    var ctx192: twofish192
+    var ctx256: twofish256
+    check:
+      ctx128.sizeBlock == 16
+      ctx192.sizeBlock == 16
+      ctx256.sizeBlock == 16
+      twofish128.sizeBlock == 16
+      twofish192.sizeBlock == 16
+      twofish256.sizeBlock == 16
+  test "TWOFISH-128/192/256 key sizes":
+    var ctx128: twofish128
+    var ctx192: twofish192
+    var ctx256: twofish256
+    check:
+      ctx128.sizeKey == 16
+      ctx192.sizeKey == 24
+      ctx256.sizeKey == 32
+      twofish128.sizeKey == 16
+      twofish192.sizeKey == 24
+      twofish256.sizeKey == 32
   test "TWOFISH-128":
     var res = test[twofish128](128)
     check(toHex(res) == "5D9D4EEFFA9151575524F115815A12E0")

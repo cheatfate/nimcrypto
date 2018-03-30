@@ -59,15 +59,45 @@ const
     "3928E184FB8690F840DA3988121D31BE65CB9D3EF83EE6146FEAC861E19B563A"
   ]
 
-var ctx224 = sha224()
-var ctx256 = sha256()
-var ctx384 = sha384()
-var ctx512 = sha512()
-var ctx512224 = sha512_224()
-var ctx512256 = sha512_256()
+var ctx224: sha224
+var ctx256: sha256
+var ctx384: sha384
+var ctx512: sha512
+var ctx512224: sha512_224
+var ctx512256: sha512_256
 var i = 0
 
 suite "SHA2 Tests":
+  test "SHA2 224/256/384/512/512_224/512-256 block sizes":
+    check:
+      sha224.sizeBlock == 64
+      sha256.sizeBlock == 64
+      sha384.sizeBlock == 128
+      sha512.sizeBlock == 128
+      sha512_224.sizeBlock == 128
+      sha512_256.sizeBlock == 128
+      ctx224.sizeBlock == 64
+      ctx256.sizeBlock == 64
+      ctx384.sizeBlock == 128
+      ctx512.sizeBlock == 128
+      ctx512224.sizeBlock == 128
+      ctx512256.sizeBlock == 128
+
+  test "SHA2 224/256/384/512/224_512/256_512 digest sizes":
+    check:
+      sha224.sizeDigest == 28
+      sha256.sizeDigest == 32
+      sha384.sizeDigest == 48
+      sha512.sizeDigest == 64
+      sha512_224.sizeDigest == 28
+      sha512_256.sizeDigest == 32
+      ctx224.sizeDigest == 28
+      ctx256.sizeDigest == 32
+      ctx384.sizeDigest == 48
+      ctx512.sizeDigest == 64
+      ctx512224.sizeDigest == 28
+      ctx512256.sizeDigest == 32
+
   test "SHA2-224 test vectors":
     i = 0
     while i < len(code224):

@@ -72,6 +72,28 @@ var ctx256, octx256: ripemd256
 var ctx320, octx320: ripemd320
 
 suite "RipeMD Tests":
+  test "RIPEMD 128/160/256/320 block sizes":
+    check:
+      ripemd128.sizeBlock == 64
+      ripemd160.sizeBlock == 64
+      ripemd256.sizeBlock == 64
+      ripemd320.sizeBlock == 64
+      ctx128.sizeBlock == 64
+      ctx160.sizeBlock == 64
+      ctx256.sizeBlock == 64
+      ctx320.sizeBlock == 64
+
+  test "RIPEMD 128/160/256/320 digest sizes":
+    check:
+      ripemd128.sizeDigest == 16
+      ripemd160.sizeDigest == 20
+      ripemd256.sizeDigest == 32
+      ripemd320.sizeDigest == 40
+      ctx128.sizeDigest == 16
+      ctx160.sizeDigest == 20
+      ctx256.sizeDigest == 32
+      ctx320.sizeDigest == 40
+
   test "RIPEMD 128/160/256/320 test vectors":
     var i = 0
     for item in vectors:

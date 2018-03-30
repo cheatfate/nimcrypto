@@ -26,10 +26,11 @@ type
     opadctx: HashType
 
 template sizeBlock*(h: HMAC[Sha2Context]): uint =
-  uint(h.HashType.bsize)
+  uint(h.HashType.sizeBlock)
+  # uint(h.HashType.bsize div 8)
 
 template sizeBlock*(h: HMAC[RipemdContext]): uint =
-  64'u
+  uint(h.HashType.sizeBlock)
 
 template sizeBlock*(h: HMAC[KeccakContext]): uint =
   when h.HashType.kind == Keccak or h.HashType.kind == Sha3:
@@ -46,9 +47,12 @@ template sizeBlock*(h: HMAC[KeccakContext]): uint =
   else:
     {.fatal: "Choosen hash primitive is not yet supported!".}
 
-template sizeDigest*(h: HMAC[Sha2Context]): uint = uint(h.mdctx.bits)
-template sizeDigest*(h: HMAC[RipemdContext]): uint = uint(h.mdctx.bits)
-template sizeDigest*(h: HMAC[KeccakContext]): uint = uint(h.mdctx.bits)
+template sizeDigest*(h: HMAC[Sha2Context]): uint =
+  uint(h.mdctx.sizeDigest)
+template sizeDigest*(h: HMAC[RipemdContext]): uint =
+  uint(h.mdctx.sizeDigest)
+template sizeDigest*(h: HMAC[KeccakContext]): uint =
+  uint(h.mdctx.sizeDigest)
 
 proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
   mixin init, update, finish
@@ -69,11 +73,9 @@ proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
     else:
       if ulen > 0'u: copyMem(addr k[0], key, ulen)
 
-  var i = 0'u
-  while i < sizeBlock:
+  for i in 0..<int(sizeBlock):
     opad[i] = 0x5C'u8 xor k[i]
     ipad[i] = 0x36'u8 xor k[i]
-    inc(i)
 
   init(hmctx.mdctx)
   update(hmctx.mdctx, addr ipad[0], sizeBlock)
@@ -98,9 +100,8 @@ proc update*[T: bchar](hmctx: var HMAC, data: openarray[T]) {.inline.} =
 
 proc finish*(hmctx: var HMAC, data: ptr byte, ulen: uint): uint =
   mixin update, finish
-  var buffer: array[hmctx.HashType.bits div 8, byte]
-  let size = finish(hmctx.mdctx, addr buffer[0],
-                    uint(hmctx.HashType.bits div 8))
+  var buffer: array[hmctx.sizeDigest, byte]
+  let size = finish(hmctx.mdctx, addr buffer[0], uint(hmctx.sizeDigest))
   hmctx.opadctx.update(addr buffer[0], size)
   result = hmctx.opadctx.finish(data, ulen)
 

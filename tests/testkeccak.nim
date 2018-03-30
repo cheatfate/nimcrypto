@@ -42,6 +42,78 @@ suite "KECCAK/SHA3 Tests":
   var kec384: keccak384
   var kec512: keccak512
 
+  test "SHA3/KECCAK 224/256/384/512 block sizes":
+    var k224: keccak224
+    var k256: keccak256
+    var k384: keccak384
+    var k512: keccak512
+    var s224: sha3_224
+    var s256: sha3_256
+    var s384: sha3_384
+    var s512: sha3_512
+    check:
+      k224.sizeBlock == 200
+      k256.sizeBlock == 200
+      k384.sizeBlock == 200
+      k512.sizeBlock == 200
+      s224.sizeBlock == 200
+      s256.sizeBlock == 200
+      s384.sizeBlock == 200
+      s512.sizeBlock == 200
+      keccak224.sizeBlock == 200
+      keccak256.sizeBlock == 200
+      keccak384.sizeBlock == 200
+      keccak512.sizeBlock == 200
+      sha3_224.sizeBlock == 200
+      sha3_256.sizeBlock == 200
+      sha3_384.sizeBlock == 200
+      sha3_512.sizeBlock == 200
+
+  test "SHA3/KECCAK 224/256/384/512 digest sizes":
+    var k224: keccak224
+    var k256: keccak256
+    var k384: keccak384
+    var k512: keccak512
+    var s224: sha3_224
+    var s256: sha3_256
+    var s384: sha3_384
+    var s512: sha3_512
+    check:
+      k224.sizeDigest == 28
+      k256.sizeDigest == 32
+      k384.sizeDigest == 48
+      k512.sizeDigest == 64
+      s224.sizeDigest == 28
+      s256.sizeDigest == 32
+      s384.sizeDigest == 48
+      s512.sizeDigest == 64
+      keccak224.sizeDigest == 28
+      keccak256.sizeDigest == 32
+      keccak384.sizeDigest == 48
+      keccak512.sizeDigest == 64
+      sha3_224.sizeDigest == 28
+      sha3_256.sizeDigest == 32
+      sha3_384.sizeDigest == 48
+      sha3_512.sizeDigest == 64
+
+  test "SHAKE-128/256 block sizes":
+    var s128: shake128
+    var s256: shake256
+    check:
+      s128.sizeBlock == 200
+      s256.sizeBlock == 200
+      shake128.sizeBlock == 200
+      shake256.sizeBlock == 200
+
+  test "SHAKE-128/256 digest sizes":
+    var s128: shake128
+    var s256: shake256
+    check:
+      s128.sizeDigest == 16
+      s256.sizeDigest == 32
+      shake128.sizeDigest == 16
+      shake256.sizeDigest == 32
+
   test "KECCAK-224 test vectors":
     ## KECCAK-224
     for item in testVectors("tests/ShortMsgKAT_224.txt"):

@@ -605,7 +605,7 @@ template sizeDigest*(ctx: RipemdContext): uint =
   (ctx.bits div 8)
 
 template sizeBlock*(ctx: RipemdContext): uint =
-  (8)
+  (64)
 
 template sizeDigest*(r: typedesc[ripemd]): int =
   when r is ripemd128:
@@ -618,7 +618,7 @@ template sizeDigest*(r: typedesc[ripemd]): int =
     (40)
 
 template sizeBlock*(r: typedesc[ripemd]): int =
-  (8)
+  (64)
 
 proc init*(ctx: var RipemdContext) =
   ctx.count[0] = 0

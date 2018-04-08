@@ -144,21 +144,26 @@ proc fromHex*(a: string): seq[byte] =
       inc(i)
     result[k] = r.byte
 
-proc hexChar*(c: byte): string =
+proc hexChar*(c: byte, lowercase: bool = false): string =
+  var alpha: int
+  if lowercase:
+    alpha = ord('a')
+  else:
+    alpha = ord('A')
   result = newString(2)
   let t1 = ord(c) shr 4
   let t0 = ord(c) and 0x0F
   case t1
   of 0..9: result[0] = chr(t1 + ord('0'))
-  else: result[0] = chr(t1 - 10 + ord('A'))
+  else: result[0] = chr(t1 - 10 + alpha)
   case t0:
   of 0..9: result[1] = chr(t0 + ord('0'))
-  else: result[1] = chr(t0 - 10 + ord('A'))
+  else: result[1] = chr(t0 - 10 + alpha)
 
-proc toHex*(a: var openarray[byte]): string =
+proc toHex*(a: var openarray[byte], lowercase: bool = false): string =
   result = ""
   for i in a:
-    result = result & hexChar(i)
+    result = result & hexChar(i, lowercase)
 
 proc stripSpaces*(s: string): string =
   result = ""

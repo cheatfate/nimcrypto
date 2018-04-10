@@ -160,7 +160,7 @@ proc hexChar*(c: byte, lowercase: bool = false): string =
   of 0..9: result[1] = chr(t0 + ord('0'))
   else: result[1] = chr(t0 - 10 + alpha)
 
-proc toHex*(a: var openarray[byte], lowercase: bool = false): string =
+proc toHex*(a: openarray[byte], lowercase: bool = false): string =
   result = ""
   for i in a:
     result = result & hexChar(i, lowercase)

@@ -71,9 +71,13 @@ when cpuEndian == bigEndian:
   template LSWAP*[T: uint32|uint64](x: T): T =
     x
   template EGETU32*(p, o): uint32 =
-    GETU32(p, o)
+    cast[ptr uint32]((cast[uint](p) + uint(o)))[]
   template EPUTU32*(p, o, v) =
-    PUTU32(p, o, v)
+    cast[ptr uint32]((cast[uint](p) + uint(o)))[] = v
+  template EGETU64*(p, o): uint64 =
+    cast[ptr uint64]((cast[uint](p) + uint(o)))[]
+  template EPUTU64*(p, o, v) =
+    cast[ptr uint64]((cast[uint](p) + uint(o)))[] = v
 else:
   template BSWAP*[T: uint32|uint64](x: T): T =
     x
@@ -90,11 +94,13 @@ else:
         ((x shr 40) and 0xFF00'u64) or
         (x shr 56))
   template EGETU32*(p, o): uint32 =
-    var tmp = GETU32(p, o)
-    LSWAP[uint32](tmp)
+    GETU32(p, o)
   template EPUTU32*(p, o, v) =
-    var tmp = LSWAP(v)
-    PUTU32(p, o, tmp)
+    PUTU32(p, o, v)
+  template EGETU64*(p, o): uint64 =
+    GETU64(p, o)
+  template EPUTU64*(p, o, v) =
+    PUTU64(p, o, v)
 
 template GET_DWORD*(p: ptr byte, i: int): uint32 =
   cast[ptr uint32](cast[uint](p) + (sizeof(uint32) * i).uint)[]

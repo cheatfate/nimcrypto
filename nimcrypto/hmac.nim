@@ -105,9 +105,11 @@ proc finish*(hmctx: var HMAC, data: ptr byte, ulen: uint): uint =
   hmctx.opadctx.update(addr buffer[0], size)
   result = hmctx.opadctx.finish(data, ulen)
 
-proc finish*[T: bchar](hmctx: var HMAC, data: var openarray[T]) {.inline.} =
-  assert(len(data) >= hmctx.sizeDigest)
-  finish(hmctx, cast[ptr byte](addr data[0]), uint(len(data)))
+proc finish*[T: bchar](hmctx: var HMAC,
+                       data: var openarray[T]): uint {.inline.} =
+  let ulen = uint(len(data))
+  assert(ulen >= hmctx.sizeDigest)
+  result = finish(hmctx, cast[ptr byte](addr data[0]), ulen)
 
 proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   discard finish(hmctx, cast[ptr byte](addr result.data[0]),

@@ -208,7 +208,8 @@ proc isFullZero*(p: pointer, size: Natural): bool =
   var c = size
   if not isNil(sp):
     while c > 0:
-      counter += int(sp[])
+      if sp[] != 0'u8:
+        counter += 1
       sp = cast[ptr byte](cast[uint](sp) + 1)
       dec(c)
   result = (counter == 0)

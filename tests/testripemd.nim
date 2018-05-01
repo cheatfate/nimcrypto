@@ -108,10 +108,16 @@ suite "RipeMD Tests":
       octx160.init()
       octx256.init()
       octx320.init()
-      ctx128.update(cast[ptr uint8](addr a[0]), uint(len(a)))
-      ctx160.update(cast[ptr uint8](addr a[0]), uint(len(a)))
-      ctx256.update(cast[ptr uint8](addr a[0]), uint(len(a)))
-      ctx320.update(cast[ptr uint8](addr a[0]), uint(len(a)))
+      if len(a) == 0:
+        ctx128.update(nil, 0'u)
+        ctx160.update(nil, 0'u)
+        ctx256.update(nil, 0'u)
+        ctx320.update(nil, 0'u)
+      else:
+        ctx128.update(cast[ptr uint8](addr a[0]), uint(len(a)))
+        ctx160.update(cast[ptr uint8](addr a[0]), uint(len(a)))
+        ctx256.update(cast[ptr uint8](addr a[0]), uint(len(a)))
+        ctx320.update(cast[ptr uint8](addr a[0]), uint(len(a)))
       octx128.update(a)
       octx160.update(a)
       octx256.update(a)
@@ -142,23 +148,34 @@ suite "RipeMD Tests":
         octx160.isFullZero() == true
         octx256.isFullZero() == true
         octx320.isFullZero() == true
-      var dcheck128 = $ripemd128.digest(cast [ptr uint8](addr a[0]),
-                                        uint(len(a)))
-      var dcheck160 = $ripemd160.digest(cast [ptr uint8](addr a[0]),
-                                        uint(len(a)))
-      var dcheck256 = $ripemd256.digest(cast [ptr uint8](addr a[0]),
-                                        uint(len(a)))
-      var dcheck320 = $ripemd320.digest(cast [ptr uint8](addr a[0]),
-                                        uint(len(a)))
-      check:
-        $dcheck128 == stripSpaces(RipeMD128C[i])
-        $dcheck160 == stripSpaces(RipeMD160C[i])
-        $dcheck256 == stripSpaces(RipeMD256C[i])
-        $dcheck320 == stripSpaces(RipeMD320C[i])
-        $ripemd128.digest(a) == stripSpaces(RipeMD128C[i])
-        $ripemd160.digest(a) == stripSpaces(RipeMD160C[i])
-        $ripemd256.digest(a) == stripSpaces(RipeMD256C[i])
-        $ripemd320.digest(a) == stripSpaces(RipeMD320C[i])
+      if len(a) == 0:
+        var dcheck128 = $ripemd128.digest(nil, 0'u)
+        var dcheck160 = $ripemd160.digest(nil, 0'u)
+        var dcheck256 = $ripemd256.digest(nil, 0'u)
+        var dcheck320 = $ripemd320.digest(nil, 0'u)
+        check:
+          $dcheck128 == stripSpaces(RipeMD128C[i])
+          $dcheck160 == stripSpaces(RipeMD160C[i])
+          $dcheck256 == stripSpaces(RipeMD256C[i])
+          $dcheck320 == stripSpaces(RipeMD320C[i])
+      else:
+        var dcheck128 = $ripemd128.digest(cast [ptr uint8](addr a[0]),
+                                          uint(len(a)))
+        var dcheck160 = $ripemd160.digest(cast [ptr uint8](addr a[0]),
+                                          uint(len(a)))
+        var dcheck256 = $ripemd256.digest(cast [ptr uint8](addr a[0]),
+                                          uint(len(a)))
+        var dcheck320 = $ripemd320.digest(cast [ptr uint8](addr a[0]),
+                                          uint(len(a)))
+        check:
+          $dcheck128 == stripSpaces(RipeMD128C[i])
+          $dcheck160 == stripSpaces(RipeMD160C[i])
+          $dcheck256 == stripSpaces(RipeMD256C[i])
+          $dcheck320 == stripSpaces(RipeMD320C[i])
+          $ripemd128.digest(a) == stripSpaces(RipeMD128C[i])
+          $ripemd160.digest(a) == stripSpaces(RipeMD160C[i])
+          $ripemd256.digest(a) == stripSpaces(RipeMD256C[i])
+          $ripemd320.digest(a) == stripSpaces(RipeMD320C[i])
 
       inc(i)
 

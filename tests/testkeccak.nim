@@ -328,10 +328,16 @@ suite "KECCAK/SHA3 Tests":
       osha256.init()
       osha384.init()
       osha512.init()
-      sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-      sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-      sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
-      sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+      if len(msg) == 0:
+        sha224.update(nil, 0'u)
+        sha256.update(nil, 0'u)
+        sha384.update(nil, 0'u)
+        sha512.update(nil, 0'u)
+      else:
+        sha224.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+        sha256.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+        sha384.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
+        sha512.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
       osha224.update(msg)
       osha256.update(msg)
       osha384.update(msg)
@@ -363,19 +369,30 @@ suite "KECCAK/SHA3 Tests":
         osha384.isFullZero() == true
         osha512.isFullZero() == true
       # One liner test
-      var dcheck224 = $sha3_224.digest(cast[ptr uint8](addr msg[0]),
-                                       uint(len(msg)))
-      var dcheck256 = $sha3_256.digest(cast[ptr uint8](addr msg[0]),
-                                       uint(len(msg)))
-      var dcheck384 = $sha3_384.digest(cast[ptr uint8](addr msg[0]),
-                                       uint(len(msg)))
-      var dcheck512 = $sha3_512.digest(cast[ptr uint8](addr msg[0]),
-                                       uint(len(msg)))
-      check:
-        dcheck224 == stripSpaces(digest224[i])
-        dcheck256 == stripSpaces(digest256[i])
-        dcheck384 == stripSpaces(digest384[i])
-        dcheck512 == stripSpaces(digest512[i])
+      if len(msg) > 0:
+        var dcheck224 = $sha3_224.digest(cast[ptr uint8](addr msg[0]),
+                                         uint(len(msg)))
+        var dcheck256 = $sha3_256.digest(cast[ptr uint8](addr msg[0]),
+                                         uint(len(msg)))
+        var dcheck384 = $sha3_384.digest(cast[ptr uint8](addr msg[0]),
+                                         uint(len(msg)))
+        var dcheck512 = $sha3_512.digest(cast[ptr uint8](addr msg[0]),
+                                         uint(len(msg)))
+        check:
+          dcheck224 == stripSpaces(digest224[i])
+          dcheck256 == stripSpaces(digest256[i])
+          dcheck384 == stripSpaces(digest384[i])
+          dcheck512 == stripSpaces(digest512[i])
+      else:
+        var dcheck224 = $sha3_224.digest(nil, 0'u)
+        var dcheck256 = $sha3_256.digest(nil, 0'u)
+        var dcheck384 = $sha3_384.digest(nil, 0'u)
+        var dcheck512 = $sha3_512.digest(nil, 0'u)
+        check:
+          dcheck224 == stripSpaces(digest224[i])
+          dcheck256 == stripSpaces(digest256[i])
+          dcheck384 == stripSpaces(digest384[i])
+          dcheck512 == stripSpaces(digest512[i])
       # openarray[T] test
       check:
         $sha3_224.digest(msg) == stripSpaces(digest224[i])

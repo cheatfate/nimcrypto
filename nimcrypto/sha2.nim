@@ -568,5 +568,5 @@ proc finish*(ctx: var Sha2Context): MDigest[ctx.bits] =
                  uint(len(result.data)))
 
 proc finish*[T: bchar](ctx: var Sha2Context, data: var openarray[T]) =
-  assert(len(data) >= ctx.sizeDigest)
-  ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))
+  assert(uint(len(data)) >= ctx.sizeDigest)
+  discard ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))

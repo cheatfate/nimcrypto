@@ -20,6 +20,7 @@ task tests, "Runs the test suite":
   exec "nim c -f -r tests/testbcmode"
   exec "nim c -f -r tests/testsysrand"
   exec "nim c -f -r tests/testkdf"
+  exec "nim c -f -r tests/testapi"
   exec "nim c -f -d:release -r tests/testkeccak"
   exec "nim c -f -d:release -r tests/testsha2"
   exec "nim c -f -d:release -r tests/testripemd"
@@ -30,3 +31,4 @@ task tests, "Runs the test suite":
   exec "nim c -f -d:release -r tests/testbcmode"
   exec "nim c -f -d:release -r tests/testsysrand"
   exec "nim c -f -d:release -r tests/testkdf"
+  exec "nim c -f -d:release -r tests/testapi"

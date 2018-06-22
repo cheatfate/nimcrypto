@@ -746,5 +746,5 @@ proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
                  uint(len(result.data)))
 
 proc finish*[T: bchar](ctx: var RipemdContext, data: var openarray[T]) =
-  assert(len(data) >= ctx.sizeDigest)
-  ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))
+  assert(uint(len(data)) >= ctx.sizeDigest)
+  discard ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))

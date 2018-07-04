@@ -100,7 +100,7 @@ template GG160(a, b, c, d, e, x, s: untyped): void =
   (c) = ROL(uint32(c), 10)
 
 template HH160(a, b, c, d, e, x, s: untyped): void =
-  (a) = (a) +  H((b), (c), (d)) + (x) + 0x6ED9EBA1'u32
+  (a) = (a) + H((b), (c), (d)) + (x) + 0x6ED9EBA1'u32
   (a) = ROL(uint32(a), (s)) + (e)
   (c) = ROL(uint32(c), 10)
 

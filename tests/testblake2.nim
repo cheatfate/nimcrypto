@@ -100,3 +100,29 @@ suite "BLAKE2B/BLAKE2S Tests":
         check:
           expect == check1
           expect == check2
+
+  test "BLAKE2S-256 one liner json-vectors":
+    var tj = parseFile("tests/blake2-kat.json")
+    for item in tj.items():
+      if item["hash"].str == "blake2s" and item["key"].str == "":
+        var inpstr = item["in"].str
+        var expstr = item["out"].str
+        var inp = fromHex(stripSpaces(inpstr))
+        var expectarr = fromHex(stripSpaces(expstr))
+        var expect = toHex(expectarr)
+        var check0 = $blake2_256.digest(inp)
+        check:
+          check0 == expect
+
+  test "BLAKE2B-512 one liner json-vectors":
+    var tj = parseFile("tests/blake2-kat.json")
+    for item in tj.items():
+      if item["hash"].str == "blake2b" and item["key"].str == "":
+        var inpstr = item["in"].str
+        var expstr = item["out"].str
+        var inp = fromHex(stripSpaces(inpstr))
+        var expectarr = fromHex(stripSpaces(expstr))
+        var expect = toHex(expectarr)
+        var check0 = $blake2_512.digest(inp)
+        check:
+          check0 == expect

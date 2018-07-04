@@ -1,9 +1,9 @@
 import nimcrypto/hash, nimcrypto/blake2, nimcrypto/utils
 import unittest, json
 
-suite "Blake2b/Blake2s Tests":
+suite "BLAKE2B/BLAKE2S Tests":
 
-  test "Blake2b/Blake2s 224/256/384/512 block sizes":
+  test "BLAKE2B/BLAKE2S 224/256/384/512 block sizes":
     var b224: blake2_224
     var b256: blake2_256
     var b384: blake2_384
@@ -18,7 +18,7 @@ suite "Blake2b/Blake2s Tests":
       blake2_384.sizeBlock == 128
       blake2_512.sizeBlock == 128
 
-  test "Blake2b/Blake2s 224/256/384/512 digest sizes":
+  test "BLAKE2B/BLAKE2S 224/256/384/512 digest sizes":
     var b224: blake2_224
     var b256: blake2_256
     var b384: blake2_384
@@ -33,7 +33,7 @@ suite "Blake2b/Blake2s Tests":
       blake2_384.sizeDigest == 48
       blake2_512.sizeDigest == 64
 
-  test "Blake2s-256 test json-vectors":
+  test "BLAKE2S-256 test json-vectors":
     var tj = parseFile("tests/blake2-kat.json")
     for item in tj.items():
       if item["hash"].str == "blake2s":
@@ -69,7 +69,7 @@ suite "Blake2b/Blake2s Tests":
           b256t.isFullZero() == true
           b256p.isFullZero() == true
 
-  test "Blake2b-512 test json-vectors":
+  test "BLAKE2B-512 test json-vectors":
     var tj = parseFile("tests/blake2-kat.json")
     for item in tj.items():
       if item["hash"].str == "blake2b":

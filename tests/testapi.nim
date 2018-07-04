@@ -1,8 +1,7 @@
-import
-  nimcrypto/[hash, keccak, sha2, ripemd],
-  unittest
+import unittest
+import nimcrypto/[hash, keccak, sha2, ripemd, blake2]
 
-suite "test API":
+suite "Test API":
 
   proc hashProc(T: typedesc, input: string, output: var openArray[byte]) =
     var ctx: T
@@ -11,8 +10,9 @@ suite "test API":
     ctx.finish(output)
     ctx.clear()
 
-  test "finish API":
+  test "Finish API":
     var y: array[32, byte]
     hashProc(keccak256, "hello", y)
     hashProc(sha256, "hello", y)
     hashProc(ripemd256, "hello", y)
+    hashProc(blake2_256, "hello", y)

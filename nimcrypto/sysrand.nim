@@ -262,11 +262,11 @@ elif defined(windows):
                               BCRYPT_USE_SYSTEM_PREFERRED_RNG) == 0:
         result = nbytes
 
-    if srng.hIntel != 0 and result == 0:
+    if srng.hIntel != 0 and result == -1:
       if cryptGenRandom(srng.hIntel, nbytes.DWORD, pbytes) != 0:
         result = nbytes
 
-    if result == 0:
+    if result == -1:
       if rtlGenRandom(pBytes, nbytes.ULONG) != 0:
         result = nbytes
 

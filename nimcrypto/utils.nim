@@ -214,10 +214,10 @@ proc isFullZero*(p: pointer, size: Natural): bool =
       dec(c)
   result = (counter == 0)
 
-proc isFullZero*[T](a: var openarray[T]): bool {.inline.} =
+proc isFullZero*[T](a: openarray[T]): bool {.inline.} =
   result = true
   if len(a) > 0:
-    result = isFullZero(addr a[0], len(a) * sizeof(T))
+    result = isFullZero(unsafeAddr a[0], len(a) * sizeof(T))
 
-proc isFullZero*[T](a: var T): bool {.inline.} =
-  result = isFullZero(addr a, sizeof(T))
+proc isFullZero*[T](a: T): bool {.inline.} =
+  result = isFullZero(unsafeAddr a, sizeof(T))

@@ -120,12 +120,8 @@ template GETU8*(p, o): byte =
 template PUTU8*(p, o, v) =
   cast[ptr byte](cast[uint](p) + uint(o))[] = v
 
-proc fromHex*(a: string): seq[byte] =
-  doAssert(len(a) %% 2 == 0)
-  if len(a) == 0:
-    result = newSeq[byte]()
-  else:
-    result = newSeq[byte](len(a) div 2)
+proc hexToBytes*(a: string, result: var openarray[byte]) =
+  doAssert(len(a) == 2 * len(result))
   var i = 0
   var k = 0
   var r = 0
@@ -149,6 +145,14 @@ proc fromHex*(a: string): seq[byte] =
         doAssert(false)
       inc(i)
     result[k] = r.byte
+
+proc fromHex*(a: string): seq[byte] =
+  doAssert(len(a) %% 2 == 0)
+  if len(a) == 0:
+    result = newSeq[byte]()
+  else:
+    result = newSeq[byte](len(a) div 2)
+    hexToBytes(a, result)
 
 proc hexChar*(c: byte, lowercase: bool = false): string =
   var alpha: int

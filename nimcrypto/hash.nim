@@ -50,3 +50,10 @@ proc digest*[T](HashType: typedesc, data: openarray[T],
     ctx.update(cast[ptr byte](unsafeAddr data[so]), uint(length))
     result = ctx.finish()
   ctx.clear()
+
+proc fromHex*(T: type MDigest, s: string): T =
+  hexToBytes(s, result.data)
+
+proc toDigest*(s: static string): MDigest[s.len * 4] =
+  hexToBytes(s, result.data)
+

@@ -1,7 +1,7 @@
 mode = ScriptMode.Verbose
 
 packageName   = "nimcrypto"
-version       = "0.3.3"
+version       = "0.3.4"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"

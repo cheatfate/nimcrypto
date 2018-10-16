@@ -7,20 +7,31 @@
 #    distribution, for details about the copyright.
 #
 
+## This module provides helper procedures for calculating secure digests
+## supported by `nimcrypto` library.
 import utils
 
 {.deadCodeElim:on.}
 
 const
   MaxMDigestLength* = 64
+    ## Maximum size of generated digests by `nimcrypto` library is 64 octets.
 
 type
   MDigest*[bits: static[int]] = object
+    ## Message digest type
     data*: array[bits div 8, byte]
 
   bchar* = byte | char
 
 proc `$`*(digest: MDigest): string =
+  ## Return hexadecimal string representation of ``digest``.
+  ##
+  ##  .. code-block::nim
+  ##    import nimcrypto
+  ##
+  ##    var digestHexString = $sha256.digest("Hello World!")
+  ##    echo digestHexString
   result = ""
   var i = 0'u
   while i < uint(len(digest.data)):
@@ -29,6 +40,16 @@ proc `$`*(digest: MDigest): string =
 
 proc digest*(HashType: typedesc, data: ptr byte,
              ulen: uint): MDigest[HashType.bits] =
+  ## Calculate and return digest using algorithm ``HashType`` of data ``data``
+  ## with length ``ulen``.
+  ##
+  ##  .. code-block::nim
+  ##    import nimcrypto
+  ##
+  ##    var stringToHash = "Hello World!"
+  ##    let data = cast[ptr byte](addr stringToHash[0])
+  ##    let datalen = uint(len(stringToHash))
+  ##    echo sha256.digest(data, datalen)
   mixin init, update, finish, clear
   var ctx: HashType
   ctx.init()
@@ -38,6 +59,24 @@ proc digest*(HashType: typedesc, data: ptr byte,
 
 proc digest*[T](HashType: typedesc, data: openarray[T],
                 ostart: int = 0, ofinish: int = -1): MDigest[HashType.bits] =
+  ## Calculate and return digest using algorithm ``HashType`` of data ``data``
+  ## in slice ``[ostart, ofinish]``, both ``ostart`` and ``ofinish`` are
+  ## inclusive.
+  ##
+  ##  .. code-block::nim
+  ##    import nimcrypto
+  ##
+  ##    var stringToHash = "Hello World!"
+  ##    ## Calculate digest of whole string `Hello World!`.
+  ##    echo sha256.digest(stringToHash)
+  ##    ## Calcualte digest of `Hello`.
+  ##    echo sha256.digest(stringToHash, ofinish = 4)
+  ##    ## Calculate digest of `World!`.
+  ##    echo sha256.digest(stringToHash, ostart = 6)
+  ##    ## Calculate digest of constant `Hello`.
+  ##    echo sha256.digest("Hello")
+  ##    ## Calculate digest of constant `World!`.
+  ##    echo sha256.digest("World!")
   mixin init, update, finish, clear
   var ctx: HashType
   let so = if ostart < 0: (len(data) + ostart) else: ostart
@@ -51,7 +90,16 @@ proc digest*[T](HashType: typedesc, data: openarray[T],
     result = ctx.finish()
   ctx.clear()
 
-proc fromHex*(T: type MDigest, s: string): T =
+proc fromHex*(T: typedesc[MDigest], s: string): T =
+  ## Create ``MDigest`` object from hexadecimal string representation.
+  ##
+  ##  .. code-block::nim
+  ##    import nimcrypto
+  ##
+  ##    var a = MDigest[256].fromHex("7F83B1657FF1FC53B92DC18148A1D65DFC2D4B1FA3D677284ADDD200126D9069")
+  ##    echo $a
+  ##    ## Get number of bits used by ``a``.
+  ##    echo a.bits
   hexToBytes(s, result.data)
 
 when true:
@@ -62,6 +110,16 @@ when true:
     hexToBytes(s, result.data)
 
   template toDigest*(s: static string): auto =
+    ## Convert hexadecimal string representation to ``MDigest`` object.
+    ## This template can be used to create ``MDigest`` constants.
+    ##
+    ##  .. code-block::nim
+    ##    import nimcrypto
+    ##
+    ##    const SomeDigest = "7F83B1657FF1FC53B92DC18148A1D65DFC2D4B1FA3D677284ADDD200126D9069".toDigest
+    ##    echo $SomeDigest
+    ##    ## Get number of bits used by ``SomeDigest``.
+    ##    echo SomeDigest.bits
     const digest = toDigestAux(len(s) * 4, s)
     digest
 
@@ -76,4 +134,3 @@ else:
             "The provided hex string should have an even non-zero length"
     const digest = hexToBytes(s, result.data)
     return digest
-

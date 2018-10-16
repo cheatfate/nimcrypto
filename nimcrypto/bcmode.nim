@@ -63,7 +63,6 @@ type
     buf: array[16, byte]
     aadlen: uint64
     datalen: uint64
-    
 
 ## ECB (Electronic Code Book) Mode
 
@@ -635,7 +634,7 @@ proc init*[T](ctx: var GCM[T], key: openarray[byte], iv: openarray[byte],
   ctx.datalen = 0
   if len(aad) > 0:
     ghash(ctx.buf, ctx.h, unsafeAddr aad[0], slen)
-  
+
 proc encrypt*[T](ctx: var GCM[T], input: openarray[byte],
                  output: var openarray[byte]) =
   mixin encrypt
@@ -661,7 +660,7 @@ proc decrypt*[T](ctx: var GCM[T], input: openarray[byte],
   var ectr: array[16, byte]
   assert(len(input) <= len(output))
   assert(len(input) > 0)
-  
+
   var length = len(input)
   var offset = 0
   ctx.datalen += uint64(length)

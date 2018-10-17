@@ -567,3 +567,30 @@ suite "HMAC Tests":
         check4 == digest
         check5 == digest
         ctx.isFullZero() == true
+
+  test "HMAC API test":
+    var stringToHmac = "Hello World!"
+    var stringHmacKey = "AliceKey"
+    let ptrToHmac = cast[ptr byte](addr stringToHmac[0])
+    let ptrHmacKey = cast[ptr byte](addr stringHmacKey[0])
+    let toHmacLen = uint(len(stringToHmac))
+    let hmacKeyLen = uint(len(stringHmacKey))
+    var hctx1, hctx2: HMAC[sha256]
+    hctx1.init(stringHmacKey)
+    hctx2.init(ptrHmacKey, hmacKeyLen)
+    hctx1.update(stringToHmac)
+    hctx1.update(stringToHmac)
+    hctx2.update(ptrToHmac, toHmacLen)
+    hctx2.update(ptrToHmac, toHmacLen)
+    var md1 = hctx1.finish()
+    var md2 = hctx2.finish()
+    hctx1.clear()
+    hctx2.clear()
+    var md3 = sha256.hmac(stringHmacKey, stringToHmac & stringToHmac)
+    check:
+     $md1 == $md2
+     $md1 == $md3
+     md1 == md2
+     md1 == md3
+     hctx1.isFullZero() == true
+     hctx2.isFullZero() == true

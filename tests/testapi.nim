@@ -37,3 +37,12 @@ suite "Test API":
     rejectDigest "A#"
     rejectDigest "C5D2460186F7233C927E7DB2DCC703CKE500B653CA82273B7BFAD8045D85A470" # There is a hidden 'K' symbol in there
 
+  test "Digests comparison":
+    var h1: MDigest[256]
+    var h2: MDigest[512]
+    var h3: MDigest[256]
+    var h4 = keccak256.digest("")
+    check:
+      h1 != h2
+      h1 == h3
+      h1 != h4

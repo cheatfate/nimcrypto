@@ -102,6 +102,17 @@ proc fromHex*(T: typedesc[MDigest], s: string): T =
   ##    echo a.bits
   hexToBytes(s, result.data)
 
+proc `==`*[A, B](d1: MDigest[A], d2: MDigest[B]): bool =
+  ## Check for equality between two ``MDigest`` objects ``d1`` and ``d2``.
+  ## If size in bits of ``d1`` is not equal to size in bits of ``d2`` then
+  ## digests considered as not equal.
+  if d1.bits != d2.bits:
+    return false
+  var res = 0'u8
+  for i in 0..<len(d1.data):
+    res = res xor (d1.data[i] xor d2.data[i])
+  result = (res == 0'u8)
+
 when true:
   proc toDigestAux(n: static int, s: static string): MDigest[n] =
     static:

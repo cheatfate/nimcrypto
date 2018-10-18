@@ -108,10 +108,13 @@ proc `==`*[A, B](d1: MDigest[A], d2: MDigest[B]): bool =
   ## digests considered as not equal.
   if d1.bits != d2.bits:
     return false
-  var res = 0'u8
-  for i in 0..<len(d1.data):
-    res = res xor (d1.data[i] xor d2.data[i])
-  result = (res == 0'u8)
+  var n = len(d1.data)
+  var res, diff: int
+  while n > 0:
+    dec(n)
+    diff = int(d1.data[n]) - int(d2.data[n])
+    res = (res and -not(diff)) or diff
+  result = (res == 0)
 
 when true:
   proc toDigestAux(n: static int, s: static string): MDigest[n] =

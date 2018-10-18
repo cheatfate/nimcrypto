@@ -42,7 +42,19 @@ suite "Test API":
     var h2: MDigest[512]
     var h3: MDigest[256]
     var h4 = keccak256.digest("")
+    var h5: MDigest[2048]
+    var h6: MDigest[2048]
+
+    for i in 0..<len(h5.data):
+      h5.data[i] = byte(i and 0xFF)
+      h6.data[i] = byte(i and 0xFF)
+
     check:
       h1 != h2
       h1 == h3
       h1 != h4
+      h5 == h6
+
+    h5.data[0] = 0x01'u8
+    check:
+      h5 != h6

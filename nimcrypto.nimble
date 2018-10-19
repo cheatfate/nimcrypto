@@ -1,11 +1,11 @@
 mode = ScriptMode.Verbose
 
 packageName   = "nimcrypto"
-version       = "0.3.6"
+version       = "0.3.7"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"
-skipDirs      = @["tests", "Nim"]
+skipDirs      = @["tests", "examples", "Nim"]
 
 requires "nim > 0.18.0"
 
@@ -34,3 +34,9 @@ task tests, "Runs the test suite":
   exec "nim c -f -d:release -r tests/testsysrand"
   exec "nim c -f -d:release -r tests/testkdf"
   exec "nim c -f -d:release -r tests/testapi"
+  exec "nim c -f -r examples/ecb"
+  exec "nim c -f -r examples/cbc"
+  exec "nim c -f -r examples/ofb"
+  exec "nim c -f -r examples/cfb"
+  exec "nim c -f -r examples/ctr"
+  exec "nim c -f -r examples/gcm"

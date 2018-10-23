@@ -23,14 +23,11 @@ block:
   var ectx, dctx: OFB[aes256]
   var key: array[aes256.sizeKey, byte]
   var iv: array[aes256.sizeBlock, byte]
-  var plainText: array[aes256.sizeBlock * 2, byte]
-  var encText: array[aes256.sizeBlock * 2, byte]
-  var decText: array[aes256.sizeBlock * 2, byte]
+  var plainText = newSeq[byte](len(aliceData))
+  var encText = newSeq[byte](len(aliceData))
+  var decText = newSeq[byte](len(aliceData))
 
-  # AES256 block size is 128 bits or 16 bytes, so we need to pad plaintext with
-  # 0 bytes.
-  # WARNING! Do not use 0 byte padding in applications, this is done
-  # as example.
+  # We do not need to pad data, `OFB` mode works byte by byte.
   copyMem(addr plainText[0], addr aliceData[0], len(aliceData))
 
   # AES256 key size is 256 bits or 32 bytes, so we need to pad key with
@@ -70,9 +67,9 @@ block:
   var ectx, dctx: OFB[aes256]
   var key: array[aes256.sizeKey, byte]
   var iv: array[aes256.sizeBlock, byte]
-  var plainText: array[aes256.sizeBlock * 2, byte]
-  var encText: array[aes256.sizeBlock * 2, byte]
-  var decText: array[aes256.sizeBlock * 2, byte]
+  var plainText = newSeq[byte](len(aliceData))
+  var encText = newSeq[byte](len(aliceData))
+  var decText = newSeq[byte](len(aliceData))
 
   var ptrKey = cast[ptr byte](addr key[0])
   var ptrPlainText = cast[ptr byte](addr plainText[0])
@@ -81,10 +78,7 @@ block:
   var ptrIv = cast[ptr byte](addr iv[0])
   let dataLen = uint(len(plainText))
 
-  # AES256 block size is 128 bits or 16 bytes, so we need to pad plaintext with
-  # 0 bytes.
-  # WARNING! Do not use 0 byte padding in applications, this is done
-  # as example.
+  # We do not need to pad data, `OFB` mode works byte by byte.
   copyMem(addr plainText[0], addr aliceData[0], len(aliceData))
 
   # AES256 key size is 256 bits or 32 bytes, so we need to pad key with
@@ -123,14 +117,11 @@ block:
   var ectx, dctx: OFB[aes256]
   var key = newString(aes256.sizeKey)
   var iv = newString(aes256.sizeBlock)
-  var plainText = newString(aes256.sizeBlock * 2)
-  var encText = newString(aes256.sizeBlock * 2)
-  var decText = newString(aes256.sizeBlock * 2)
+  var plainText = aliceData
+  var encText = newString(len(aliceData))
+  var decText = newString(len(aliceData))
 
-  # AES256 block size is 128 bits or 16 bytes, so we need to pad plaintext with
-  # 0 bytes.
-  # WARNING! Do not use 0 byte padding in applications, this is done
-  # as example.
+  # We do not need to pad data, `OFB` mode works byte by byte.
   copyMem(addr plainText[0], addr aliceData[0], len(aliceData))
 
   # AES256 key size is 256 bits or 32 bytes, so we need to pad key with

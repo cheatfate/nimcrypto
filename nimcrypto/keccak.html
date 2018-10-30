@@ -1423,37 +1423,37 @@ function main() {
 </dd>
 <dt id="update"><a name="update,KeccakContext,ptr.byte,uint"></a><pre><span class="Keyword">proc</span> <span class="Identifier">update</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="keccak.html#KeccakContext"><span class="Identifier">KeccakContext</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">;</span> <span class="Identifier">ulen</span><span class="Other">:</span> <span class="Identifier">uint</span><span class="Other">)</span></pre></dt>
 <dd>
-&quot;is greater&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt; x</span></tt>.
+Updates context with new data chunk
 
 </dd>
 <dt id="update"><a name="update,KeccakContext,openArray[T]"></a><pre><span class="Keyword">proc</span> <span class="Identifier">update</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <a href="hash.html#bchar"><span class="Identifier">bchar</span></a><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="keccak.html#KeccakContext"><span class="Identifier">KeccakContext</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span></pre></dt>
 <dd>
-
+Updates context with new data chunk
 
 </dd>
 <dt id="xof"><a name="xof,KeccakContext"></a><pre><span class="Keyword">proc</span> <span class="Identifier">xof</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="keccak.html#KeccakContext"><span class="Identifier">KeccakContext</span></a><span class="Other">)</span></pre></dt>
 <dd>
-unequals operator. This is a shorthand for <tt class="docutils literal"><span class="pre">not (x == y)</span></tt>.
+FIPS 202 extendable output specification
 
 </dd>
 <dt id="output"><a name="output,KeccakContext,ptr.byte,uint"></a><pre><span class="Keyword">proc</span> <span class="Identifier">output</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="keccak.html#KeccakContext"><span class="Identifier">KeccakContext</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">;</span> <span class="Identifier">ulen</span><span class="Other">:</span> <span class="Identifier">uint</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">uint</span></pre></dt>
 <dd>
-unequals operator. This is a shorthand for <tt class="docutils literal"><span class="pre">not (x == y)</span></tt>.
+FIPS 202 extendable output specification
 
 </dd>
 <dt id="finish"><a name="finish,KeccakContext,ptr.byte,uint"></a><pre><span class="Keyword">proc</span> <span class="Identifier">finish</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="keccak.html#KeccakContext"><span class="Identifier">KeccakContext</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">;</span> <span class="Identifier">ulen</span><span class="Other">:</span> <span class="Identifier">uint</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">uint</span></pre></dt>
 <dd>
-&quot;is greater or equals&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt;= x</span></tt>.
+Finishes the digest
 
 </dd>
 <dt id="finish"><a name="finish,KeccakContext"></a><pre><span class="Keyword">proc</span> <span class="Identifier">finish</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="keccak.html#KeccakContext"><span class="Identifier">KeccakContext</span></a><span class="Other">)</span><span class="Other">:</span> <a href="hash.html#MDigest"><span class="Identifier">MDigest</span></a><span class="Other">[</span><span class="Identifier">ctx</span><span class="Other">.</span><span class="Identifier">bits</span><span class="Other">]</span></pre></dt>
 <dd>
-
+Finishes the digest
 
 </dd>
 <dt id="finish"><a name="finish,KeccakContext,openArray[T]"></a><pre><span class="Keyword">proc</span> <span class="Identifier">finish</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <a href="hash.html#bchar"><span class="Identifier">bchar</span></a><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="keccak.html#KeccakContext"><span class="Identifier">KeccakContext</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span></pre></dt>
 <dd>
-&quot;is greater or equals&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt;= x</span></tt>.
+Finishes the digest
 
 </dd>
 
@@ -1491,7 +1491,7 @@ unequals operator. This is a shorthand for <tt class="docutils literal"><span cl
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2018-10-25 08:21:48 UTC</small>
+        <small>Made with Nim. Generated: 2018-10-30 12:44:20 UTC</small>
       </div>
     </div>
   </div>

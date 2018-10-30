@@ -1334,56 +1334,95 @@ function main() {
 </dd>
 <dt id="hexToBytes"><a name="hexToBytes,string,openArray[byte]"></a><pre><span class="Keyword">proc</span> <span class="Identifier">hexToBytes</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">result</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-same as <tt class="docutils literal"><span class="pre">assert</span></tt> but is always turned on regardless of <tt class="docutils literal"><span class="pre">--assertions</span></tt>
+Internal function, not used outside of tests Converts hex string to byte array, but fills provided result array
 
 </dd>
 <dt id="fromHex"><a name="fromHex,string"></a><pre><span class="Keyword">proc</span> <span class="Identifier">fromHex</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-same as <tt class="docutils literal"><span class="pre">assert</span></tt> but is always turned on regardless of <tt class="docutils literal"><span class="pre">--assertions</span></tt>
+Converts hexadecimal value to array of bytes<blockquote><p><pre class="listing"><span class="Keyword">import</span> <span class="Identifier">nimcrypto</span>
+
+<span class="Identifier">fromHex</span><span class="Punctuation">(</span><span class="StringLit">&quot;583bb640e7dec07454ce818..53d6275f5a59d3695e&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># @[88, 59, 182, 64, 231, 222, 192, 116, 84, 206, 129, 128,</span>
+<span class="Comment"># 211, 163, 183, 203, 61, 161, 56, 19, 75, 21, 191, 83, 214,</span>
+<span class="Comment"># 39, 95, 90, 89, 211, 105, 94]</span></pre></p></blockquote>
+
 
 </dd>
 <dt id="hexChar"><a name="hexChar,byte,bool"></a><pre><span class="Keyword">proc</span> <span class="Identifier">hexChar</span><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <span class="Identifier">byte</span><span class="Other">;</span> <span class="Identifier">lowercase</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
+Converts a byte representation of a character into hexadecimal<blockquote><p><pre class="listing"><span class="Keyword">import</span> <span class="Identifier">nimcrypto</span>
+
+<span class="Identifier">echo</span> <span class="Identifier">hexChar</span><span class="Punctuation">(</span><span class="DecNumber">15</span><span class="Punctuation">,</span> <span class="Identifier">false</span><span class="Punctuation">)</span> <span class="Comment">## 0F</span>
+<span class="Identifier">echo</span> <span class="Identifier">hexChar</span><span class="Punctuation">(</span><span class="DecNumber">15</span><span class="Punctuation">,</span> <span class="Identifier">true</span><span class="Punctuation">)</span> <span class="Comment">## 0f</span>
+<span class="Identifier">echo</span> <span class="Identifier">hexChar</span><span class="Punctuation">(</span><span class="Punctuation">(</span><span class="Identifier">byte</span><span class="Punctuation">)</span><span class="CharLit">'A'</span><span class="Punctuation">)</span> <span class="Comment">## 41</span></pre></p></blockquote>
 
 
 </dd>
 <dt id="toHex"><a name="toHex,openArray[byte],bool"></a><pre><span class="Keyword">proc</span> <span class="Identifier">toHex</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">lowercase</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-iterates over each item of <cite>a</cite>.
+Converts an array of bytes into hexadecimal<blockquote><p><pre class="listing"><span class="Keyword">import</span> <span class="Identifier">nimcrypto</span>
+
+<span class="Keyword">var</span> <span class="Identifier">dig</span> <span class="Operator">=</span> <span class="Identifier">keccak256</span><span class="Operator">.</span><span class="Identifier">digest</span><span class="Punctuation">(</span><span class="StringLit">&quot;Foobar&quot;</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">toHex</span><span class="Punctuation">(</span><span class="Identifier">dig</span><span class="Operator">.</span><span class="Identifier">data</span><span class="Punctuation">,</span> <span class="Identifier">true</span><span class="Punctuation">)</span>
+<span class="Comment"># 583bb640e7dec07454ce8180d3a3b7cb3da138134b15bf53d6275f5a59d3695e</span></pre></p></blockquote>
+
 
 </dd>
 <dt id="stripSpaces"><a name="stripSpaces,string"></a><pre><span class="Keyword">proc</span> <span class="Identifier">stripSpaces</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-iterates over each item of <cite>a</cite>.
+Removes all non-alphanumeric characters from a string, returning the cleaned string<blockquote><p><pre class="listing"><span class="Keyword">import</span> <span class="Identifier">nimcrypto</span>
+
+<span class="Identifier">echo</span> <span class="Identifier">stripSpaces</span><span class="Punctuation">(</span><span class="StringLit">&quot;Alice makes a hash 1234 (- ? something --+//$&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># outputs: Alicemakesahash1234something</span></pre></p></blockquote>
+
 
 </dd>
 <dt id="burnMem"><a name="burnMem,pointer,Natural"></a><pre><span class="Keyword">proc</span> <span class="Identifier">burnMem</span><span class="Other">(</span><span class="Identifier">p</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">;</span> <span class="Identifier">size</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-&quot;is greater&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt; x</span></tt>.
+Clears memory at pointer location
 
 </dd>
 <dt id="burnArray"><a name="burnArray,openArray[T]"></a><pre><span class="Keyword">proc</span> <span class="Identifier">burnArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-&quot;is greater&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt; x</span></tt>.
+Clears array of any type from memory
 
 </dd>
 <dt id="burnMem"><a name="burnMem,T"></a><pre><span class="Keyword">proc</span> <span class="Identifier">burnMem</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">T</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-
+Clears any type from memory
 
 </dd>
 <dt id="isFullZero"><a name="isFullZero,pointer,Natural"></a><pre><span class="Keyword">proc</span> <span class="Identifier">isFullZero</span><span class="Other">(</span><span class="Identifier">p</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">;</span> <span class="Identifier">size</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-&quot;is greater&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt; x</span></tt>.
+Checks if data at the provided pointer for given size of type is zeroed out
 
 </dd>
 <dt id="isFullZero"><a name="isFullZero,openArray[T]"></a><pre><span class="Keyword">proc</span> <span class="Identifier">isFullZero</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-&quot;is greater&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt; x</span></tt>.
+Checks if the data of a non-empty array is zeroed out<blockquote><p><pre class="listing"><span class="Keyword">import</span> <span class="Identifier">nimcrypto</span>
+
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Punctuation">[</span><span class="DecNumber">0</span><span class="Punctuation">,</span><span class="DecNumber">0</span><span class="Punctuation">,</span><span class="DecNumber">0</span><span class="Punctuation">]</span><span class="Punctuation">)</span> <span class="Comment"># true</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Punctuation">[</span><span class="DecNumber">1</span><span class="Punctuation">,</span><span class="DecNumber">1</span><span class="Punctuation">,</span><span class="DecNumber">1</span><span class="Punctuation">]</span><span class="Punctuation">)</span> <span class="Comment"># false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Punctuation">[</span><span class="DecNumber">1</span><span class="Punctuation">,</span><span class="DecNumber">0</span><span class="Punctuation">,</span><span class="DecNumber">0</span><span class="Punctuation">]</span><span class="Punctuation">)</span> <span class="Comment"># false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Punctuation">[</span><span class="DecNumber">0</span><span class="Punctuation">,</span><span class="DecNumber">0</span><span class="Punctuation">,</span><span class="DecNumber">1</span><span class="Punctuation">]</span><span class="Punctuation">)</span> <span class="Comment"># false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Punctuation">[</span><span class="DecNumber">0</span><span class="Punctuation">,</span><span class="DecNumber">1</span><span class="Punctuation">,</span><span class="DecNumber">0</span><span class="Punctuation">]</span><span class="Punctuation">)</span> <span class="Comment"># false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Punctuation">[</span><span class="StringLit">&quot;&quot;</span><span class="Punctuation">,</span><span class="StringLit">&quot;&quot;</span><span class="Punctuation">,</span><span class="StringLit">&quot;&quot;</span><span class="Punctuation">]</span><span class="Punctuation">)</span> <span class="Comment"># true</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Punctuation">[</span><span class="StringLit">&quot;Foo&quot;</span><span class="Punctuation">,</span><span class="StringLit">&quot;Bar&quot;</span><span class="Punctuation">,</span><span class="StringLit">&quot;Baz&quot;</span><span class="Punctuation">]</span><span class="Punctuation">)</span> <span class="Comment"># false</span></pre></p></blockquote>
+
 
 </dd>
 <dt id="isFullZero"><a name="isFullZero,T"></a><pre><span class="Keyword">proc</span> <span class="Identifier">isFullZero</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
+Checks if the data of arbitrary type is zeroed out<blockquote><p><pre class="listing"><span class="Keyword">import</span> <span class="Identifier">nimcrypto</span>
+
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="CharLit">'0'</span><span class="Punctuation">)</span> <span class="Comment"># false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="CharLit">'1'</span><span class="Punctuation">)</span> <span class="Comment"># false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="StringLit">&quot;0&quot;</span><span class="Punctuation">)</span> <span class="Comment"># false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="StringLit">&quot;&quot;</span><span class="Punctuation">)</span> <span class="Comment"># true</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="StringLit">&quot;Alice&quot;</span><span class="Punctuation">)</span> <span class="Comment">#false</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="DecNumber">0</span><span class="Punctuation">)</span> <span class="Comment"># true</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Identifier">false</span><span class="Punctuation">)</span> <span class="Comment"># true</span>
+<span class="Identifier">echo</span> <span class="Identifier">isFullZero</span><span class="Punctuation">(</span><span class="Identifier">true</span><span class="Punctuation">)</span> <span class="Comment"># false</span></pre></p></blockquote>
 
 
 </dd>
@@ -1474,12 +1513,12 @@ iterates over each item of <cite>a</cite>.
 </dd>
 <dt id="burnMem"><a name="burnMem.t,seq[T]"></a><pre><span class="Keyword">template</span> <span class="Identifier">burnMem</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span></pre></dt>
 <dd>
-
+Clears sequence of any type from memory
 
 </dd>
 <dt id="burnMem"><a name="burnMem.t,array[A,B]"></a><pre><span class="Keyword">template</span> <span class="Identifier">burnMem</span><span class="Other">[</span><span class="Identifier">A</span><span class="Other">;</span> <span class="Identifier">B</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">array</span><span class="Other">[</span><span class="Identifier">A</span><span class="Other">,</span> <span class="Identifier">B</span><span class="Other">]</span><span class="Other">)</span></pre></dt>
 <dd>
-
+Clears array from memory
 
 </dd>
 
@@ -1492,7 +1531,7 @@ iterates over each item of <cite>a</cite>.
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2018-10-25 08:21:47 UTC</small>
+        <small>Made with Nim. Generated: 2018-10-30 12:44:19 UTC</small>
       </div>
     </div>
   </div>

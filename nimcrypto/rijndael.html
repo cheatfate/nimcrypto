@@ -1364,27 +1364,27 @@ function main() {
 <dl class="item">
 <dt id="rijndaelEncrypt"><a name="rijndaelEncrypt,RijndaelContext,ptr.byte,ptr.byte"></a><pre><span class="Keyword">proc</span> <span class="Identifier">rijndaelEncrypt</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">RijndaelContext</span><span class="Other">;</span> <span class="Identifier">inp</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">;</span> <span class="Identifier">oup</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">)</span></pre></dt>
 <dd>
-&quot;is greater&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt; x</span></tt>.
+Encrypts via Rijndael
 
 </dd>
 <dt id="rijndaelDecrypt"><a name="rijndaelDecrypt,RijndaelContext,ptr.byte,ptr.byte"></a><pre><span class="Keyword">proc</span> <span class="Identifier">rijndaelDecrypt</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">RijndaelContext</span><span class="Other">;</span> <span class="Identifier">inp</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">;</span> <span class="Identifier">oup</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">)</span></pre></dt>
 <dd>
-&quot;is greater&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt; x</span></tt>.
+Encrypts via Rijndael
 
 </dd>
 <dt id="initRijndaelContext"><a name="initRijndaelContext,RijndaelContext,int,ptr.byte"></a><pre><span class="Keyword">proc</span> <span class="Identifier">initRijndaelContext</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">RijndaelContext</span><span class="Other">;</span> <span class="Identifier">N</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">)</span></pre></dt>
 <dd>
-
+Initializes the context
 
 </dd>
 <dt id="init"><a name="init,RijndaelContext,ptr.byte,int"></a><pre><span class="Keyword">proc</span> <span class="Identifier">init</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">RijndaelContext</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Keyword">ptr</span> <span class="Identifier">byte</span><span class="Other">;</span> <span class="Identifier">nkey</span><span class="Other">:</span> <span class="Identifier">int</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-
+Initializes the context for pointer
 
 </dd>
 <dt id="init"><a name="init,RijndaelContext,openArray[byte]"></a><pre><span class="Keyword">proc</span> <span class="Identifier">init</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">RijndaelContext</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
-&quot;is greater or equals&quot; operator. This is the same as <tt class="docutils literal"><span class="pre">y &lt;= x</span></tt>.
+Initializes the context for array
 
 </dd>
 <dt id="clear"><a name="clear,RijndaelContext"></a><pre><span class="Keyword">proc</span> <span class="Identifier">clear</span><span class="Other">(</span><span class="Identifier">ctx</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">RijndaelContext</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
@@ -1449,7 +1449,7 @@ function main() {
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2018-10-25 08:21:48 UTC</small>
+        <small>Made with Nim. Generated: 2018-10-30 12:44:20 UTC</small>
       </div>
     </div>
   </div>

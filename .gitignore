@@ -1,1 +1,52 @@
 nimcache
+# Composer
+vendor
+composer.phar
+
+# IntelliJ - PhpStorm and PyCharm
+.idea
+*.ipr
+*.iws
+
+# Eclipse
+/.project
+/.settings
+/.classpath
+
+# Logs
+logs
+error.log
+access.log
+
+# Netbeans
+nbproject
+.nbproject
+.nbproject/*
+nbproject/*
+nbproject/private/
+nbbuild/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# Mac OSX
+.DS_Store
+# Thumbnails
+._*
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# SublimeText project files
+/*.sublime-project
+*.sublime-workspace
+
+# Dart
+packages
+packages/*
+
+# Vagrant
+.vagrant
+.vagrant/*
+
+.env

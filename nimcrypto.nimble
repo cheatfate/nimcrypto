@@ -5,7 +5,7 @@ version       = "0.3.7"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"
-skipDirs      = @["tests", "examples", "Nim"]
+skipDirs      = @["tests", "examples", "Nim", "docs"]
 
 requires "nim > 0.18.0"
 

@@ -7,7 +7,7 @@
 #    distribution, for details about the copyright.
 #
 
-## This module utility functions.
+## This module provides utility functions common to all other submodules of nimcrypto.
 
 {.deadCodeElim:on.}
 

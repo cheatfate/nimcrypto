@@ -53,3 +53,5 @@ packages/*
 .env
 examples/*
 !examples/*.nim
+tests/*
+!tests/*.nim

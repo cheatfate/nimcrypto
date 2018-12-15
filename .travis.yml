@@ -12,7 +12,7 @@ before_script:
   - cd ..
   - bin/nim c koch
   - ./koch boot -d:release
-  - ./koch nimble
+  - ./koch tools
   - export PATH=$(pwd)/bin:$PATH
   - cd ..
 script:

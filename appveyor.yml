@@ -30,7 +30,7 @@ install:
   - cd ..
   - bin\nim c koch
   - koch boot -d:release
-  - koch nimble
+  - koch tools
 build_script:
   - cd C:\projects\nimcrypto
   - nimble install -y --verbose

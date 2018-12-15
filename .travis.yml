@@ -5,7 +5,7 @@ os:
   - osx
 dist: trusty
 before_script:
-  - git clone https://github.com/nim-lang/Nim.git
+  - git clone --branch v0.19.0 https://github.com/nim-lang/Nim.git
   - cd Nim
   - git clone --depth 1 https://github.com/nim-lang/csources
   - cd csources && sh build.sh

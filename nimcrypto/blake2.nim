@@ -109,20 +109,20 @@ template B2SROUND(v, m, n: untyped) =
   B2S_G(v, 3, 4, 9, 14,  (m)[Sigma[(n)][14]], (m)[Sigma[(n)][15]])
 
 template BLGETU64*(p, o): uint64 =
-  (uint64(cast[ptr byte](cast[uint](p) + o)[])) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 32) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 40) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 48) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 7))[]) shl 56)
+  (cast[uint64](cast[ptr byte](cast[uint](p) + o)[])) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 32) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 40) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 48) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 7))[]) shl 56)
 
 template BLGETU32*(p, o): uint32 =
-  (uint32(cast[ptr byte](cast[uint](p) + o)[])) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24)
+  (cast[uint32](cast[ptr byte](cast[uint](p) + o)[])) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24)
 
 template B2BFILL(m, c: untyped) =
   (m)[0] = BLGETU64(addr((c).b), 0); (m)[1] = BLGETU64(addr((c).b), 8)

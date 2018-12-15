@@ -24,20 +24,20 @@ proc ROR*[T: uint32|uint64](x: T, n: int): T {.inline.} =
     result = (x shr T(n and 0x3F)) or (x shl T(8 * sizeof(T) - (n and 0x3F)))
 
 template GETU32*(p, o): uint32 =
-  (uint32(cast[ptr byte](cast[uint](p) + o)[]) shl 24) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 16) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 8) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 3))[]))
+  (cast[uint32](cast[ptr byte](cast[uint](p) + o)[]) shl 24) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 16) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 8) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 3))[]))
 
 template GETU64*(p, o): uint64 =
-  (uint64(cast[ptr byte](cast[uint](p) + o)[]) shl 56) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 48) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 40) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 32) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 24) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 16) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 8) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 7))[]))
+  (cast[uint64](cast[ptr byte](cast[uint](p) + o)[]) shl 56) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 48) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 40) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 32) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 24) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 16) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 8) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 7))[]))
 
 template PUTU32*(p, o, v) =
   cast[ptr byte](cast[uint](p) + o)[] = cast[byte](v shr 24)

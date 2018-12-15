@@ -1,13 +1,16 @@
-mode = ScriptMode.Verbose
+# Package
 
-# packageName   = "nimcrypto"
 version       = "0.3.8"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"
 skipDirs      = @["tests", "examples", "Nim", "docs"]
 
+# Dependencies
+
 requires "nim > 0.18.0"
+
+# Tests
 
 task tests, "Runs the test suite":
   exec "nim c -f -r tests/testkeccak"

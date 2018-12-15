@@ -16,5 +16,5 @@ before_script:
   - export PATH=$(pwd)/bin:$PATH
   - cd ..
 script:
-  - nimble install -y
+  - nimble install -y --verbose
   - nimble tests

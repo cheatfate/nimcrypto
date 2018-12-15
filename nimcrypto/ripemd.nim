@@ -58,31 +58,31 @@ template J(x, y, z: untyped): untyped =
 # Eight basic operations FF() through III() for 128 and 256 bits
 template FF128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + F((b), (c), (d)) + (x)
-  (a) = ROL(uint32(a), (s))
+  (a) = ROL(cast[uint32](a), (s))
 
 template GG128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + G((b), (c), (d)) + (x) + 0x5A827999'u32
-  (a) = ROL(uint32(a), (s))
+  (a) = ROL(cast[uint32](a), (s))
 
 template HH128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + H((b), (c), (d)) + (x) + 0x6ED9EBA1'u32
-  (a) = ROL(uint32(a), (s))
+  (a) = ROL(cast[uint32](a), (s))
 
 template II128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + I((b), (c), (d)) + (x) + 0x8F1BBCDC'u32
-  (a) = ROL(uint32(a), (s))
+  (a) = ROL(cast[uint32](a), (s))
 
 template FFF128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + F((b), (c), (d)) + (x)
-  (a) = ROL(uint32(a), (s))
+  (a) = ROL(cast[uint32](a), (s))
 
 template GGG128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + G((b), (c), (d)) + (x) + 0x6D703EF3'u32
-  (a) = ROL(uint32(a), (s))
+  (a) = ROL(cast[uint32](a), (s))
 
 template HHH128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + H((b), (c), (d)) + (x) + 0x5C4DD124'u32
-  (a) = ROL(uint32(a), (s))
+  (a) = ROL(cast[uint32](a), (s))
 
 template III128(a, b, c, d, x, s: untyped): void =
   (a) = (a) + I((b), (c), (d)) + (x) + 0x50A28BE6'u32
@@ -91,53 +91,53 @@ template III128(a, b, c, d, x, s: untyped): void =
 # Ten basic operations FF() through III() for 160 and 320 bits
 template FF160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + F((b), (c), (d)) + (x)
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template GG160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + G((b), (c), (d)) + (x) + 0x5A827999'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template HH160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + H((b), (c), (d)) + (x) + 0x6ED9EBA1'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template II160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + I((b), (c), (d)) + (x) + 0x8F1BBCDC'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template JJ160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + J((b), (c), (d)) + (x) + 0xA953FD4E'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template FFF160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + F((b), (c), (d)) + (x)
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template GGG160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + G((b), (c), (d)) + (x) + 0x7A6D76E9'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template HHH160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + H((b), (c), (d)) + (x) + 0x6D703EF3'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template III160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + I((b), (c), (d)) + (x) + 0x5C4DD124'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template JJJ160(a, b, c, d, e, x, s: untyped): void =
   (a) = (a) + J((b), (c), (d)) + (x) + 0x50A28BE6'u32
-  (a) = ROL(uint32(a), (s)) + (e)
-  (c) = ROL(uint32(c), 10)
+  (a) = ROL(cast[uint32](a), (s)) + (e)
+  (c) = ROL(cast[uint32](c), 10)
 
 template LROUND128N1(a, b, c, d, x): void =
   FF128(a, b, c, d, x[ 0], 11)
@@ -666,14 +666,14 @@ proc update*(ctx: var RipemdContext, data: ptr byte, ulen: uint) =
   var length = ulen
 
   while length > 0'u:
-    let offset = uint(ctx.count[0] and 0x3F)
+    let offset = cast[uint](ctx.count[0] and 0x3F)
     let size = min(64'u - offset, length)
     copyMem(addr(ctx.buffer[offset]),
             cast[pointer](cast[uint](data) + pos), size)
     pos = pos + size
     length = length - size
-    ctx.count[0] += uint32(size)
-    if ctx.count[0] < uint32(size):
+    ctx.count[0] += cast[uint32](size)
+    if ctx.count[0] < cast[uint32](size):
       ctx.count[1] += 1'u32
     if (ctx.count[0] and 0x3F) == 0:
       when ctx.bits == 128:
@@ -689,7 +689,7 @@ proc update*[T: bchar](ctx: var RipemdContext, data: openarray[T]) =
   if len(data) == 0:
     ctx.update(nil, 0)
   else:
-    ctx.update(cast[ptr byte](unsafeAddr data[0]), uint(len(data)))
+    ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
 
 proc finalize(ctx: var RipemdContext) =
   let size = (ctx.count[0] and 0x3F)
@@ -743,8 +743,8 @@ proc finish*(ctx: var RipemdContext, data: ptr byte, ulen: uint): uint =
 
 proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 uint(len(result.data)))
+                 cast[uint](len(result.data)))
 
 proc finish*[T: bchar](ctx: var RipemdContext, data: var openarray[T]) =
   assert(uint(len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))
+  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))

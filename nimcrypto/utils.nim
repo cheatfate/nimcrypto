@@ -71,13 +71,13 @@ when cpuEndian == bigEndian:
   template LSWAP*[T: uint32|uint64](x: T): T =
     x
   template EGETU32*(p, o): uint32 =
-    cast[ptr uint32]((cast[uint](p) + uint(o)))[]
+    cast[ptr uint32]((cast[uint](p) + cast[uint](o)))[]
   template EPUTU32*(p, o, v) =
-    cast[ptr uint32]((cast[uint](p) + uint(o)))[] = v
+    cast[ptr uint32]((cast[uint](p) + cast[uint](o)))[] = v
   template EGETU64*(p, o): uint64 =
-    cast[ptr uint64]((cast[uint](p) + uint(o)))[]
+    cast[ptr uint64]((cast[uint](p) + cast[uint](o)))[]
   template EPUTU64*(p, o, v) =
-    cast[ptr uint64]((cast[uint](p) + uint(o)))[] = v
+    cast[ptr uint64]((cast[uint](p) + cast[uint](o)))[] = v
 else:
   template BSWAP*[T: uint32|uint64](x: T): T =
     x
@@ -103,22 +103,22 @@ else:
     PUTU64(p, o, v)
 
 template GET_DWORD*(p: ptr byte, i: int): uint32 =
-  cast[ptr uint32](cast[uint](p) + (sizeof(uint32) * i).uint)[]
+  cast[ptr uint32](cast[uint](p) + cast[uint](sizeof(uint32) * i))[]
 
 template SET_DWORD*(p: ptr byte, i: int, v: uint32) =
-  cast[ptr uint32](cast[uint](p) + (sizeof(uint32) * i).uint)[] = v
+  cast[ptr uint32](cast[uint](p) + cast[uint](sizeof(uint32) * i))[] = v
 
 template GET_QWORD*(p: ptr byte, i: int): uint64 =
-  cast[ptr uint64](cast[uint](p) + (sizeof(uint64) * i).uint)[]
+  cast[ptr uint64](cast[uint](p) + cast[uint](sizeof(uint64) * i))[]
 
 template SET_QWORD*(p: ptr byte, i: int, v: uint64) =
-  cast[ptr uint64](cast[uint](p) + (sizeof(uint64) * i).uint)[] = v
+  cast[ptr uint64](cast[uint](p) + cast[uint](sizeof(uint64) * i))[] = v
 
 template GETU8*(p, o): byte =
-  cast[ptr byte](cast[uint](p) + uint(o))[]
+  cast[ptr byte](cast[uint](p) + cast[uint](o))[]
 
 template PUTU8*(p, o, v) =
-  cast[ptr byte](cast[uint](p) + uint(o))[] = v
+  cast[ptr byte](cast[uint](p) + cast[uint](o))[] = v
 
 proc hexToBytes*(a: string, result: var openarray[byte]) =
   doAssert(len(a) == 2 * len(result))

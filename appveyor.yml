@@ -22,7 +22,7 @@ install:
   - IF not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
   - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\Nim\bin;%PATH%
-  - git clone --branch v0.19.0 https://github.com/nim-lang/Nim.git %CD%\Nim
+  - git clone https://github.com/nim-lang/Nim.git %CD%\Nim
   - cd %CD%\Nim
   - git clone --depth 1 https://github.com/nim-lang/csources
   - cd csources

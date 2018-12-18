@@ -20,13 +20,13 @@ import hash, utils
 {.deadCodeElim:on.}
 
 type
-  Blake2bContext[bits: static[int]] = object
+  Blake2bContext*[bits: static[int]] = object
     b: array[128, byte]
     h: array[8, uint64]
     t: array[2, uint64]
     c: int
 
-  Blake2sContext[bits: static[int]] = object
+  Blake2sContext*[bits: static[int]] = object
     b: array[64, byte]
     h: array[8, uint32]
     t: array[2, uint32]
@@ -260,7 +260,7 @@ template sizeBlock*(r: typedesc[blake2]): int =
   else:
     (128)
 
-proc update*(ctx: var Blake2Context, data: ptr byte, ulen: uint) =
+proc update*(ctx: var Blake2Context, data: pointer, ulen: Natural) =
   var i = 0'u
   while i < ulen:
     if ctx.c == int(ctx.sizeBlock):
@@ -285,7 +285,7 @@ proc update*[T: bchar](ctx: var Blake2Context, data: openarray[T]) {.inline.} =
   else:
     ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
 
-proc finish*(ctx: var Blake2sContext, data: ptr byte, ulen: uint): uint =
+proc finish*(ctx: var Blake2sContext, data: pointer, ulen: Natural): uint =
   ctx.t[0] = ctx.t[0] + cast[uint32](ctx.c)
   if ctx.t[0] < cast[uint32](ctx.c):
     ctx.t[1] = ctx.t[1] + 1
@@ -300,7 +300,7 @@ proc finish*(ctx: var Blake2sContext, data: ptr byte, ulen: uint): uint =
     for i in 0..<length:
       p[i] = cast[byte]((ctx.h[i shr 2] shr (8 * (i and 3))) and 0xFF)
 
-proc finish*(ctx: var Blake2bContext, data: ptr byte, ulen: uint): uint =
+proc finish*(ctx: var Blake2bContext, data: pointer, ulen: Natural): uint =
   ctx.t[0] = ctx.t[0] + cast[uint64](ctx.c)
   if ctx.t[0] < cast[uint64](ctx.c):
     ctx.t[1] = ctx.t[1] + 1

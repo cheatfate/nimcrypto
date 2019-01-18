@@ -13,7 +13,7 @@ requires "nim > 0.18.0"
 # Tests
 
 task tests, "Runs the test suite":
-  for tfile in @[
+  let testFiles = @[
       "testkeccak",
       "testsha2",
       "testripemd",
@@ -26,29 +26,33 @@ task tests, "Runs the test suite":
       "testsysrand",
       "testkdf",
       "testapi",
-    ]:
-    for cmd in @[
-        "nim c -f -r tests/" & tfile,
-        "nim c -f -d:release -r tests/" & tfile,
-        "nim c -f -d:release --threads:on -r tests/" & tfile,
-      ]:
-      echo "\n" & cmd
-      exec cmd
-      rmFile("tests/" & tfile.toExe())
-
-  for efile in @[
+    ]
+  let testCommands = @[
+      "nim c -f -r tests/",
+      "nim c -f -d:release -r tests/",
+      "nim c -f -d:release --threads:on -r tests/",
+    ]
+  let exampleFiles = @[
       "ecb",
       "cbc",
       "ofb",
       "cfb",
       "ctr",
       "gcm",
-    ]:
-    for cmd in @[
-        "nim c -f -r examples/" & efile,
-        "nim c -f -r --threads:on examples/" & efile,
-      ]:
-      echo "\n" & cmd
-      exec cmd
+    ]
+  let exampleCommands = @[
+      "nim c -f -r examples/",
+      "nim c -f -r --threads:on examples/",
+    ]
+
+  for tfile in testFiles:
+    for cmd in testCommands:
+      echo "\n" & cmd & tfile
+      exec cmd & tfile
+      rmFile("tests/" & tfile.toExe())
+  for efile in exampleFiles:
+    for cmd in exampleCommands:
+      echo "\n" & cmd & efile
+      exec cmd & efile
       rmFile("examples/" & efile.toExe())
 

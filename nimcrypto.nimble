@@ -13,55 +13,46 @@ requires "nim > 0.18.0"
 # Tests
 
 task tests, "Runs the test suite":
-  exec "nim c -f -r tests/testkeccak"
-  exec "nim c -f -r tests/testsha2"
-  exec "nim c -f -r tests/testripemd"
-  exec "nim c -f -r tests/testblake2"
-  exec "nim c -f -r tests/testhmac"
-  exec "nim c -f -r tests/testrijndael"
-  exec "nim c -f -r tests/testtwofish"
-  exec "nim c -f -r tests/testblowfish"
-  exec "nim c -f -r tests/testbcmode"
-  exec "nim c -f -r tests/testsysrand"
-  exec "nim c -f -r tests/testkdf"
-  exec "nim c -f -r tests/testapi"
+  let testFiles = @[
+      "testkeccak",
+      "testsha2",
+      "testripemd",
+      "testblake2",
+      "testhmac",
+      "testrijndael",
+      "testtwofish",
+      "testblowfish",
+      "testbcmode",
+      "testsysrand",
+      "testkdf",
+      "testapi",
+    ]
+  let testCommands = @[
+      "nim c -f -r tests/",
+      "nim c -f -d:release -r tests/",
+      "nim c -f -d:release --threads:on -r tests/",
+    ]
+  let exampleFiles = @[
+      "ecb",
+      "cbc",
+      "ofb",
+      "cfb",
+      "ctr",
+      "gcm",
+    ]
+  let exampleCommands = @[
+      "nim c -f -r examples/",
+      "nim c -f -r --threads:on examples/",
+    ]
 
-  exec "nim c -f -d:release -r tests/testkeccak"
-  exec "nim c -f -d:release -r tests/testsha2"
-  exec "nim c -f -d:release -r tests/testripemd"
-  exec "nim c -f -d:release -r tests/testblake2"
-  exec "nim c -f -d:release -r tests/testhmac"
-  exec "nim c -f -d:release -r tests/testrijndael"
-  exec "nim c -f -d:release -r tests/testtwofish"
-  exec "nim c -f -d:release -r tests/testblowfish"
-  exec "nim c -f -d:release -r tests/testbcmode"
-  exec "nim c -f -d:release -r tests/testsysrand"
-  exec "nim c -f -d:release -r tests/testkdf"
-  exec "nim c -f -d:release -r tests/testapi"
+  for tfile in testFiles:
+    for cmd in testCommands:
+      echo "\n" & cmd & tfile
+      exec cmd & tfile
+      rmFile("tests/" & tfile.toExe())
+  for efile in exampleFiles:
+    for cmd in exampleCommands:
+      echo "\n" & cmd & efile
+      exec cmd & efile
+      rmFile("examples/" & efile.toExe())
 
-  exec "nim c -f -d:release --threads:on -r tests/testkeccak"
-  exec "nim c -f -d:release --threads:on -r tests/testsha2"
-  exec "nim c -f -d:release --threads:on -r tests/testripemd"
-  exec "nim c -f -d:release --threads:on -r tests/testblake2"
-  exec "nim c -f -d:release --threads:on -r tests/testhmac"
-  exec "nim c -f -d:release --threads:on -r tests/testrijndael"
-  exec "nim c -f -d:release --threads:on -r tests/testtwofish"
-  exec "nim c -f -d:release --threads:on -r tests/testblowfish"
-  exec "nim c -f -d:release --threads:on -r tests/testbcmode"
-  exec "nim c -f -d:release --threads:on -r tests/testsysrand"
-  exec "nim c -f -d:release --threads:on -r tests/testkdf"
-  exec "nim c -f -d:release --threads:on -r tests/testapi"
-
-  exec "nim c -f -r examples/ecb"
-  exec "nim c -f -r examples/cbc"
-  exec "nim c -f -r examples/ofb"
-  exec "nim c -f -r examples/cfb"
-  exec "nim c -f -r examples/ctr"
-  exec "nim c -f -r examples/gcm"
-
-  exec "nim c -f -r --threads:on examples/ecb"
-  exec "nim c -f -r --threads:on examples/cbc"
-  exec "nim c -f -r --threads:on examples/ofb"
-  exec "nim c -f -r --threads:on examples/cfb"
-  exec "nim c -f -r --threads:on examples/ctr"
-  exec "nim c -f -r --threads:on examples/gcm"

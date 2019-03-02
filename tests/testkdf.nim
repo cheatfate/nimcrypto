@@ -1,4 +1,5 @@
 import nimcrypto/pbkdf2, nimcrypto/hmac, nimcrypto/sha2, nimcrypto/utils
+import nimcrypto/sha
 import unittest
 
 const
@@ -346,8 +347,42 @@ const
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65
   ]
 
+  # PBKDF2[HMAC-SHA1] test vectors obtained from
+  # https://www.ietf.org/rfc/rfc6070.txt
+  passwords1 = [
+    "70617373776F7264",
+    "70617373776F7264",
+    "70617373776F7264",
+    "70617373776F726450415353574F524470617373776F7264",
+    "7061737300776F7264"
+  ]
+
+  salts1 = [
+    "73616C74",
+    "73616C74",
+    "73616C74",
+    "73616C7453414C5473616C7453414C5473616C7453414C5473616C7453414C5473616C74",
+    "7361006C74"
+  ]
+
+  lengths1 = [
+    20, 20, 20, 25, 16
+  ]
+
+  runs1 = [
+    1, 2, 4096, 4096, 4096
+  ]
+
+  expects1 = [
+    "0C60C80F961F0E71F3A9B524AF6012062FE037A6",
+    "EA6C014DC72D6F8CCD1ED92ACE1D41F0D8DE8957",
+    "4B007901B765489ABEAD49D926F721D065A429C1",
+    "3D2EEC4FE41C849B80C8D83662C0E44A8B291A964CF2F07038",
+    "56FA6AA75548099DCC37D7F03425E0C3"
+  ]
+
 when defined(release):
-  const 
+  const
     expects224_100k = [
       "0ADF2D99E7FF8DBC6B1DF4382D32959021BFDACB99B796BF9089D0E386",
       "B9B9602122E170602C74FDBE3035AB2D4F79143F45C316D1EC8855D6E5",
@@ -425,7 +460,19 @@ proc compare(x: openarray[byte], y: openarray[byte]): bool =
   if len(x) == len(y):
     result = equalMem(unsafeAddr x[0], unsafeAddr y[0], len(x))
 
-suite "PBKDF2-HMAC-SHA224/256/384/512 tests suite":
+suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
+  test "PBKDF2-HMAC-SHA1 (1 and 4096 iterations)":
+    var ctx: HMAC[sha1]
+    var output: array[128, byte]
+    for i in 0..<len(lengths1):
+      let p = cast[string](fromHex(stripSpaces(passwords1[i])))
+      let s = cast[string](fromHex(stripSpaces(salts1[i])))
+      let e = fromHex(stripSpaces(expects1[i]))
+      let length = lengths1[i]
+      check:
+        pbkdf2(ctx, p, s, runs1[i], output, length) == length
+        compare(toOpenArray(e, 0, length - 1),
+                toOpenArray(output, 0, length - 1)) == true
   test "PBKDF2-HMAC-SHA224 (1 iteration)":
     var ctx: HMAC[sha224]
     var output: array[128, byte]

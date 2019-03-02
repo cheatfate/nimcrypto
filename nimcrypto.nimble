@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.3.8"
+version       = "0.3.9"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"
@@ -15,6 +15,7 @@ requires "nim > 0.18.0"
 task tests, "Runs the test suite":
   let testFiles = @[
       "testkeccak",
+      "testsha1",
       "testsha2",
       "testripemd",
       "testblake2",

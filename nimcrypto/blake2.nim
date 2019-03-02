@@ -297,6 +297,7 @@ proc finish*(ctx: var Blake2sContext, data: ptr byte, ulen: uint): uint =
   var length = int(ctx.sizeDigest)
   var p = cast[ptr UncheckedArray[byte]](data)
   if ulen >= ctx.sizeDigest:
+    result = ctx.sizeDigest
     for i in 0..<length:
       p[i] = cast[byte]((ctx.h[i shr 2] shr (8 * (i and 3))) and 0xFF)
 
@@ -313,6 +314,7 @@ proc finish*(ctx: var Blake2bContext, data: ptr byte, ulen: uint): uint =
   var length = int(ctx.sizeDigest)
   var p = cast[ptr UncheckedArray[byte]](data)
   if ulen >= ctx.sizeDigest:
+    result = ctx.sizeDigest
     for i in 0..<length:
       p[i] = cast[byte]((ctx.h[i shr 3] shr (8 * (i and 7))) and 0xFF)
 

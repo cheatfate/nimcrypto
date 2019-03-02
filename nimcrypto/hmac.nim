@@ -14,19 +14,19 @@
 ## ``Classic`` method allows to process big chunks of data using limited amount
 ## of memory, while ``one-line`` method allows you to perform HMAC calculation
 ## in one line of code.
-## 
+##
 ##  .. code-block::nim
 ##    import nimcrypto
-## 
+##
 ##    ## ``Classic`` method of HMAC calculation.
-## 
+##
 ##    var stringToHmac = "Hello World!"
 ##    var stringHmacKey = "AliceKey"
 ##    let ptrToHmac = cast[ptr byte](addr stringToHmac[0])
 ##    let ptrHmacKey = cast[ptr byte](addr stringHmacKey[0])
 ##    let toHmacLen = uint(len(stringToHmac))
 ##    let hmacKeyLen = uint(len(stringHmacKey))
-## 
+##
 ##    # Declare context objects
 ##    var hctx1, hctx2: HMAC[sha256]
 ##    # Initalize HMAC[SHA256] contexts with key `AliceKey`.
@@ -44,13 +44,13 @@
 ##    # Do not forget to clear contexts.
 ##    hctx1.clear()
 ##    hctx2.clear()
-## 
+##
 ##    ## ``One-line`` method of HMAC calculation.
-## 
+##
 ##    # Print HMAC[SHA256] digest of `Hello World!Hello World!` using key
 ##    # `AliceKey`.
 ##    echo $sha256.hmac(stringHmacKey, stringToHmac & stringToHmac)
-##    
+##
 ##    # Output to stdout must be 3 equal digests:
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
@@ -60,6 +60,7 @@ from sha2 import Sha2Context
 from ripemd import RipemdContext
 from keccak import KeccakContext
 from blake2 import Blake2Context
+from sha import Sha1Context
 
 {.deadCodeElim:on.}
 
@@ -104,6 +105,11 @@ template sizeBlock*(h: HMAC[Blake2Context]): uint =
   ## operation using BLAKE2b/BLAKE2s algorithms.
   cast[uint](h.HashType.sizeBlock)
 
+template sizeBlock*(h: HMAC[Sha1Context]): uint =
+  ## Size of processing block in octets (bytes), while perform HMAC
+  ## operation using SHA1 algorithm.
+  cast[uint](h.HashType.sizeBlock)
+
 template sizeDigest*(h: HMAC[Sha2Context]): uint =
   ## Size of HMAC digest in octets (bytes) using SHA2 algorithms.
   cast[uint](h.mdctx.sizeDigest)
@@ -121,9 +127,13 @@ template sizeDigest*(h: HMAC[Blake2Context]): uint =
   ## Size of HMAC digest in octets (bytes) using BLAKE2b/BLAKE2s algorithms.
   cast[uint](h.mdctx.sizeDigest)
 
+template sizeDigest*(h: HMAC[Sha1Context]): uint =
+  ## Size of HMAC digest in octets (bytes) using SHA1 algorithm.
+  cast[uint](h.mdctx.sizeDigest)
+
 proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` and size ``ulen``.
-  ## 
+  ##
   ## ``key`` can be ``nil``.
   mixin init, update, finish
   var k: array[MaxHmacBlockSize, byte]
@@ -153,7 +163,7 @@ proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
 
 proc init*[T](hmctx: var HMAC[T], key: openarray[byte]) {.inline.} =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` array.
-  ## 
+  ##
   ## ``key`` can be zero-length array.
   if len(key) == 0:
     init(hmctx, nil, 0'u)
@@ -162,7 +172,7 @@ proc init*[T](hmctx: var HMAC[T], key: openarray[byte]) {.inline.} =
 
 proc init*[T](hmctx: var HMAC[T], key: openarray[char]) {.inline.} =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` string/array.
-  ## 
+  ##
   ## ``key`` can be zero-length array.
   if len(key) == 0:
     init(hmctx, nil, 0'u)
@@ -177,7 +187,7 @@ proc update*(hmctx: var HMAC, data: ptr byte, ulen: uint) =
   ## Update HMAC context ``hmctx`` with data pointed by ``data`` and length
   ## ``ulen``. Repeated calls are equivalent to a single call with the
   ## concatenation of all ``data`` arguments.
-  ## 
+  ##
   ## ``data`` can be ``nil``, but ``ulen`` must be ``0`` in such case.
   mixin update
   assert((not isNil(data)) or (isNil(data) and ulen == 0'u))
@@ -187,7 +197,7 @@ proc update*[T: bchar](hmctx: var HMAC, data: openarray[T]) {.inline.} =
   ## Update HMAC context ``hmctx`` with data array ``data``. Repeated calls are
   ## equivalent to a single call with the concatenation of all ``data``
   ## arguments.
-  ## 
+  ##
   ## ``data`` can be zero-length array.
   if len(data) == 0:
     update(hmctx, nil, 0'u)
@@ -196,7 +206,7 @@ proc update*[T: bchar](hmctx: var HMAC, data: openarray[T]) {.inline.} =
 
 proc finish*(hmctx: var HMAC, data: ptr byte, ulen: uint): uint =
   ## Finalize HMAC context ``hmctx`` and store calculated digest in data pointed
-  ## by ``data`` and length ``ulen``. ``data`` must be able to hold 
+  ## by ``data`` and length ``ulen``. ``data`` must be able to hold result.
   assert((not isNil(data)) or (isNil(data) and ulen == 0'u))
   mixin update, finish
   var buffer: array[hmctx.sizeDigest, byte]
@@ -223,7 +233,7 @@ proc hmac*(HashType: typedesc, key: ptr byte, klen: uint,
            data: ptr byte, ulen: uint): MDigest[HashType.bits] =
   ## Perform HMAC computation with hash algorithm ``HashType`` using key ``key``
   ## of length ``klen`` on data buffer pointed by ``data`` of length ``ulen``.
-  ## 
+  ##
   ##  .. code-block::nim
   ##    import nimcrypto
   ##
@@ -237,9 +247,9 @@ proc hmac*(HashType: typedesc, key: ptr byte, klen: uint,
   ##    echo sha256.hmac(key, keylen, data, datalen)
   ##    # Print HMAC[SHA512](key = "AliceKey", data = "Hello World!")
   ##    echo sha512.hmac(key, keylen, data, datalen)
-  ##    # Print HMAC[KECCAK256](key = "AliceKey", data = "Hello World!") 
+  ##    # Print HMAC[KECCAK256](key = "AliceKey", data = "Hello World!")
   ##    echo keccak256.hmac(key, keylen, data, datalen)
-  ##    # Print HMAC[RIPEMD160](key = "AliceKey", data = "Hello World!") 
+  ##    # Print HMAC[RIPEMD160](key = "AliceKey", data = "Hello World!")
   ##    echo ripemd160.hmac(key, keylen, data, datalen)
   var ctx: HMAC[HashType]
   ctx.init(key, klen)
@@ -253,7 +263,7 @@ proc hmac*[A, B](HashType: typedesc, key: openarray[A],
   ## Perform HMAC computation with hash algorithm ``HashType`` using key ``key``
   ## of data ``data``, in slice ``[ostart, ofinish]``, both ``ostart`` and
   ## ``ofinish`` are inclusive.
-  ## 
+  ##
   ##  .. code-block::nim
   ##    import nimcrypto
   ##

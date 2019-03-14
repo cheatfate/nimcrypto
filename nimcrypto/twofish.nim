@@ -422,7 +422,7 @@ proc init*(ctx: var TwofishContext, key: ptr byte, nkey: int = 0) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)
 
 proc init*(ctx: var TwofishContext, key: openarray[byte]) {.inline.} =
-  assert(len(key) >= ctx.sizeKey())
+  doAssert(len(key) >= ctx.sizeKey())
   initTwofishContext(ctx, ctx.bits, unsafeAddr key[0])
 
 proc clear*(ctx: var TwofishContext) {.inline.} =
@@ -438,12 +438,12 @@ proc decrypt*(ctx: var TwofishContext, inbytes: ptr byte,
 
 proc encrypt*(ctx: var TwofishContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
+  doAssert(len(input) == ctx.sizeBlock)
+  doAssert(len(input) <= len(output))
   twofishEncrypt(ctx, unsafeAddr input[0], addr output[0])
 
 proc decrypt*(ctx: var TwofishContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
+  doAssert(len(input) == ctx.sizeBlock)
+  doAssert(len(input) <= len(output))
   twofishDecrypt(ctx, unsafeAddr input[0], addr output[0])

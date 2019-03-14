@@ -282,7 +282,7 @@ else:
     result = urandomRead(pbytes, nbytes)
 
 proc randomBytes*[T](bytes: var openarray[T]): int =
-  assert(len(bytes) > 0)
+  doAssert(len(bytes) > 0)
   let length = len(bytes) * sizeof(T)
   result = randomBytes(addr bytes[0], length)
   if result != -1:

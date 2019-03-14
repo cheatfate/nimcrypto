@@ -62,7 +62,7 @@ block:
   echo "ENCODED TEXT: ", toHex(encText)
   echo "DECODED TEXT: ", toHex(decText)
 
-  assert(equalMem(addr plainText[0], addr decText[0], len(plainText)))
+  doAssert(equalMem(addr plainText[0], addr decText[0], len(plainText)))
 
 block:
   ## UNSAFE way API pointer/size.
@@ -116,7 +116,7 @@ block:
   echo "ENCODED TEXT: ", toHex(encText)
   echo "DECODED TEXT: ", toHex(decText)
 
-  assert(equalMem(addr plainText[0], addr decText[0], len(plainText)))
+  doAssert(equalMem(addr plainText[0], addr decText[0], len(plainText)))
 
 block:
   ## Nim's way API using strings.
@@ -162,4 +162,4 @@ block:
   echo "ENCODED TEXT: ", $encText
   echo "DECODED TEXT: ", $decText
 
-  assert(equalMem(addr plainText[0], addr decText[0], len(plainText)))
+  doAssert(equalMem(addr plainText[0], addr decText[0], len(plainText)))

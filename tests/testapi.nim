@@ -26,7 +26,7 @@ suite "Test API":
       h == MDigest[256].fromHex("C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470")
   
     template rejectDigest(x) =
-      assert(not compiles(x.toDigest))
+      doAssert(not compiles(x.toDigest))
       
       expect AssertionError:
         var h = MDigest[256].fromHex(x)

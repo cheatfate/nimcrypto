@@ -1013,7 +1013,7 @@ proc init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =
   ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)
 
 proc init*(ctx: var RijndaelContext, key: openarray[byte]) {.inline.} =
-  assert(len(key) >= ctx.sizeKey)
+  doAssert(len(key) >= ctx.sizeKey)
   ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, unsafeAddr key[0])
 
 proc clear*(ctx: var RijndaelContext) {.inline.} =
@@ -1029,12 +1029,12 @@ proc decrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
 
 proc encrypt*(ctx: var RijndaelContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
+  doAssert(len(input) == ctx.sizeBlock)
+  doAssert(len(input) <= len(output))
   rijndaelEncrypt(ctx, unsafeAddr input[0], addr output[0])
 
 proc decrypt*(ctx: var RijndaelContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
+  doAssert(len(input) == ctx.sizeBlock)
+  doAssert(len(input) <= len(output))
   rijndaelDecrypt(ctx, unsafeAddr input[0], addr output[0])

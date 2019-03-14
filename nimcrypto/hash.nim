@@ -119,7 +119,7 @@ proc `==`*[A, B](d1: MDigest[A], d2: MDigest[B]): bool =
 when true:
   proc toDigestAux(n: static int, s: static string): MDigest[n] =
     static:
-      assert n > 0 and n mod 8 == 0,
+      doAssert n > 0 and n mod 8 == 0,
             "The provided hex string should have an even non-zero length"
     hexToBytes(s, result.data)
 
@@ -144,7 +144,7 @@ else:
   # type as MDigest[N] even when s.len * 4 == N
   proc toDigest*(s: static string): MDigest[s.len * 4] =
     static:
-      assert s.len > 0 and s.len mod 2 == 0,
+      doAssert s.len > 0 and s.len mod 2 == 0,
             "The provided hex string should have an even non-zero length"
     const digest = hexToBytes(s, result.data)
     return digest

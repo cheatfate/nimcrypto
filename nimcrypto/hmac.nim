@@ -190,7 +190,7 @@ proc update*(hmctx: var HMAC, data: ptr byte, ulen: uint) =
   ##
   ## ``data`` can be ``nil``, but ``ulen`` must be ``0`` in such case.
   mixin update
-  assert((not isNil(data)) or (isNil(data) and ulen == 0'u))
+  doAssert((not isNil(data)) or (isNil(data) and ulen == 0'u))
   update(hmctx.mdctx, data, ulen)
 
 proc update*[T: bchar](hmctx: var HMAC, data: openarray[T]) {.inline.} =
@@ -207,7 +207,7 @@ proc update*[T: bchar](hmctx: var HMAC, data: openarray[T]) {.inline.} =
 proc finish*(hmctx: var HMAC, data: ptr byte, ulen: uint): uint =
   ## Finalize HMAC context ``hmctx`` and store calculated digest in data pointed
   ## by ``data`` and length ``ulen``. ``data`` must be able to hold result.
-  assert((not isNil(data)) or (isNil(data) and ulen == 0'u))
+  doAssert((not isNil(data)) or (isNil(data) and ulen == 0'u))
   mixin update, finish
   var buffer: array[hmctx.sizeDigest, byte]
   let size = finish(hmctx.mdctx, addr buffer[0], cast[uint](hmctx.sizeDigest))
@@ -220,7 +220,7 @@ proc finish*[T: bchar](hmctx: var HMAC,
   ## ``data``. ``data`` length must be at least ``hmctx.sizeDigest`` octets
   ## (bytes).
   let ulen = cast[uint](len(data))
-  assert(ulen >= hmctx.sizeDigest)
+  doAssert(ulen >= hmctx.sizeDigest)
   result = finish(hmctx, cast[ptr byte](addr data[0]), ulen)
 
 proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =

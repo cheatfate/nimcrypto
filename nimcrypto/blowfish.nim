@@ -453,7 +453,7 @@ proc init*(ctx: var BlowfishContext, key: ptr byte, nkey: int) {.inline.} =
   initBlowfishContext(ctx, key, ctx.sizeKey)
 
 proc init*(ctx: var BlowfishContext, key: openarray[byte]) {.inline.} =
-  assert(len(key) > 0)
+  doAssert(len(key) > 0)
   ctx.sizeKey = len(key) shl 3
   initBlowfishContext(ctx, unsafeAddr key[0], ctx.sizeKey)
 
@@ -470,12 +470,12 @@ proc decrypt*(ctx: var BlowfishContext, inbytes: ptr byte,
 
 proc encrypt*(ctx: var BlowfishContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
+  doAssert(len(input) == ctx.sizeBlock)
+  doAssert(len(input) <= len(output))
   blowfishEncrypt(ctx, unsafeAddr input[0], addr output[0])
 
 proc decrypt*(ctx: var BlowfishContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
+  doAssert(len(input) == ctx.sizeBlock)
+  doAssert(len(input) <= len(output))
   blowfishDecrypt(ctx, unsafeAddr input[0], addr output[0])

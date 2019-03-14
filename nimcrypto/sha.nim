@@ -251,5 +251,5 @@ proc finish*(ctx: var Sha1Context): MDigest[160] =
                  cast[uint](len(result.data)))
 
 proc finish*[T: bchar](ctx: var Sha1Context, data: var openarray[T]) =
-  assert(cast[uint](len(data)) >= ctx.sizeDigest)
+  doAssert(cast[uint](len(data)) >= ctx.sizeDigest)
   discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))

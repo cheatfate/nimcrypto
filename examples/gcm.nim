@@ -77,7 +77,7 @@ block:
 
   # Note that if tags are not equal, decrypted data must not be considered as
   # successfully decrypted.
-  assert(equalMem(addr dtag[0], addr etag[0], len(etag)))
+  doAssert(equalMem(addr dtag[0], addr etag[0], len(etag)))
   # Compare plaintext with decoded text.
-  assert(equalMem(addr plainText[0], addr decText[0], len(plainText)))
+  doAssert(equalMem(addr plainText[0], addr decText[0], len(plainText)))
 

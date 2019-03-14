@@ -327,7 +327,7 @@ proc finish*(ctx: var Blake2bContext): MDigest[ctx.bits] =
                  cast[uint](len(result.data)))
 
 proc finish*[T: bchar](ctx: var Blake2Context, data: var openarray[T]) =
-  assert(cast[uint](len(data)) >= ctx.sizeDigest)
+  doAssert(cast[uint](len(data)) >= ctx.sizeDigest)
   discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
 
 proc init*(ctx: var Blake2Context, key: ptr byte = nil, keylen: uint = 0'u) =

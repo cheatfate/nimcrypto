@@ -282,7 +282,7 @@ proc finalizeKeccak(ctx: var KeccakContext) =
 proc xof*(ctx: var KeccakContext) =
   when ctx.kind != Shake:
     {.error: "Only `Shake128` and `Shake256` types are supported".}
-  assert(ctx.kind == Shake)
+  doAssert(ctx.kind == Shake)
   var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
   d[ctx.pt] = d[ctx.pt] xor 0x1F'u8
   d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
@@ -320,5 +320,5 @@ proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] =
                  cast[uint](len(result.data)))
 
 proc finish*[T: bchar](ctx: var KeccakContext, data: var openarray[T]) =
-  assert(cast[uint](len(data)) >= ctx.sizeDigest)
+  doAssert(cast[uint](len(data)) >= ctx.sizeDigest)
   discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))

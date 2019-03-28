@@ -225,3 +225,67 @@ proc isFullZero*[T](a: openarray[T]): bool {.inline.} =
 
 proc isFullZero*[T](a: T): bool {.inline.} =
   result = isFullZero(unsafeAddr a, sizeof(T))
+
+proc lit64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
+  ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
+  ## stored in little-endian order.
+  when cpuEndian == bigEndian:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    result = cast[uint64](pp[offset + 0] shl 56) or
+             cast[uint64](pp[offset + 1] shl 48) or
+             cast[uint64](pp[offset + 2] shl 40) or
+             cast[uint64](pp[offset + 3] shl 32) or
+             cast[uint64](pp[offset + 4] shl 24) or
+             cast[uint64](pp[offset + 5] shl 16) or
+             cast[uint64](pp[offset + 6] shl 8) or
+             cast[uint64](pp[offset + 7])
+  elif cpuEndian == littleEndian:
+    result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
+
+proc big64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
+  ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
+  ## stored in big-endian order.
+  when cpuEndian == bigEndian:
+    result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
+  else:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    result = cast[uint64](pp[offset + 0] shl 56) or
+             cast[uint64](pp[offset + 1] shl 48) or
+             cast[uint64](pp[offset + 2] shl 40) or
+             cast[uint64](pp[offset + 3] shl 32) or
+             cast[uint64](pp[offset + 4] shl 24) or
+             cast[uint64](pp[offset + 5] shl 16) or
+             cast[uint64](pp[offset + 6] shl 8) or
+             cast[uint64](pp[offset + 7])
+
+proc cpuToLit64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
+  ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
+  ## little-endian order.
+  when cpuEndian == bigEndian:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    pp[0] = cast[byte](v shr 56)
+    pp[1] = cast[byte](v shr 48)
+    pp[2] = cast[byte](v shr 40)
+    pp[3] = cast[byte](v shr 32)
+    pp[4] = cast[byte](v shr 24)
+    pp[5] = cast[byte](v shr 16)
+    pp[6] = cast[byte](v shr 8)
+    pp[7] = cast[byte](v)
+  elif cpuEndian == littleEndian:
+    cast[ptr uint64](cast[uint](p) + cast[uint](offset))[] = v
+
+proc cpuToBig64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
+  ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
+  ## big-endian order.
+  when cpuEndian == bigEndian:
+    cast[ptr uint64](cast[uint](p) + cast[uint](offset))[] = v
+  elif cpuEndian == littleEndian:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    pp[0] = cast[byte](v shr 56)
+    pp[1] = cast[byte](v shr 48)
+    pp[2] = cast[byte](v shr 40)
+    pp[3] = cast[byte](v shr 32)
+    pp[4] = cast[byte](v shr 24)
+    pp[5] = cast[byte](v shr 16)
+    pp[6] = cast[byte](v shr 8)
+    pp[7] = cast[byte](v)

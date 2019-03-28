@@ -56,11 +56,8 @@
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
 import hash, utils
-from sha2 import Sha2Context
-from ripemd import RipemdContext
-from keccak import KeccakContext
-from blake2 import Blake2Context
-from sha import Sha1Context
+import sha, sha2, ripemd, keccak, blake2
+export sha, sha2, ripemd, keccak, blake2
 
 {.deadCodeElim:on.}
 

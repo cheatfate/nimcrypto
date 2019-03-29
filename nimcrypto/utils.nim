@@ -127,14 +127,16 @@ template skip0xPrefix(hexStr: string): int =
   else: 0
 
 proc hexToBytes*(a: string, result: var openarray[byte]) =
-  var i = skip0xPrefix(a)
-  doAssert(len(a) - i == 2 * len(result))
+  let offset = skip0xPrefix(a)
+  let length = len(a) - offset
+  doAssert(length == 2 * len(result))
+  var i = offset
   var k = 0
   var r = 0
-  if len(a) > 0:
+  if length > 0:
     while i < len(a):
       let c = a[i]
-      if i != 0 and i %% 2 == 0:
+      if i != offset and i %% 2 == 0:
         result[k] = r.byte
         r = 0
         inc(k)
@@ -157,7 +159,8 @@ proc fromHex*(a: string): seq[byte] =
   if len(a) == 0:
     result = newSeq[byte]()
   else:
-    result = newSeq[byte](len(a) div 2)
+    let offset = skip0xPrefix(a)
+    result = newSeq[byte]((len(a) - offset) div 2)
     hexToBytes(a, result)
 
 proc hexChar*(c: byte, lowercase: bool = false): string =

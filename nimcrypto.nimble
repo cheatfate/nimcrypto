@@ -27,6 +27,7 @@ task tests, "Runs the test suite":
       "testsysrand",
       "testkdf",
       "testapi",
+      "testutils",
     ]
   let testCommands = @[
       "nim c -f -r tests/",

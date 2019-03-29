@@ -127,8 +127,8 @@ template skip0xPrefix(hexStr: string): int =
   else: 0
 
 proc hexToBytes*(a: string, result: var openarray[byte]) =
-  doAssert(len(a) == 2 * len(result))
   var i = skip0xPrefix(a)
+  doAssert(len(a) - i == 2 * len(result))
   var k = 0
   var r = 0
   if len(a) > 0:

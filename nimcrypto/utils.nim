@@ -123,7 +123,8 @@ template PUTU8*(p, o, v) =
 template skip0xPrefix(hexStr: string): int =
   ## Returns the index of the first meaningful char in `hexStr` by skipping
   ## "0x" prefix
-  if hexStr[0] == '0' and hexStr[1] in {'x', 'X'}: 2
+  if hexStr.len == 0: 0
+  elif hexStr[0] == '0' and hexStr[1] in {'x', 'X'}: 2
   else: 0
 
 proc hexToBytes*(a: string, result: var openarray[byte]) =

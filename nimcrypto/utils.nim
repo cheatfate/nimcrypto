@@ -120,9 +120,15 @@ template GETU8*(p, o): byte =
 template PUTU8*(p, o, v) =
   cast[ptr byte](cast[uint](p) + cast[uint](o))[] = v
 
+template skip0xPrefix(hexStr: string): int =
+  ## Returns the index of the first meaningful char in `hexStr` by skipping
+  ## "0x" prefix
+  if hexStr[0] == '0' and hexStr[1] in {'x', 'X'}: 2
+  else: 0
+
 proc hexToBytes*(a: string, result: var openarray[byte]) =
   doAssert(len(a) == 2 * len(result))
-  var i = 0
+  var i = skip0xPrefix(a)
   var k = 0
   var r = 0
   if len(a) > 0:
@@ -142,7 +148,7 @@ proc hexToBytes*(a: string, result: var openarray[byte]) =
       of '0'..'9':
         r = r or (ord(c) - ord('0'))
       else:
-        doAssert(false)
+        doAssert(false, "Unexpected non-hex character \"" & $c & "\"")
       inc(i)
     result[k] = r.byte
 
@@ -177,7 +183,7 @@ proc toHex*(a: openarray[byte], lowercase: bool = false): string =
 
 proc stripSpaces*(s: string): string =
   result = ""
-  let allowed:set[char] = {'A'..'Z', 'a'..'z', '0'..'9'}
+  const allowed:set[char] = {'A'..'Z', 'a'..'z', '0'..'9'}
   for i in s:
     if i in allowed:
       result &= i

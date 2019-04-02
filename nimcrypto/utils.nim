@@ -120,15 +120,24 @@ template GETU8*(p, o): byte =
 template PUTU8*(p, o, v) =
   cast[ptr byte](cast[uint](p) + cast[uint](o))[] = v
 
+template skip0xPrefix(hexStr: string): int =
+  ## Returns the index of the first meaningful char in `hexStr` by skipping
+  ## "0x" prefix
+  if hexStr.len == 0: 0
+  elif hexStr[0] == '0' and hexStr[1] in {'x', 'X'}: 2
+  else: 0
+
 proc hexToBytes*(a: string, result: var openarray[byte]) =
-  doAssert(len(a) == 2 * len(result))
-  var i = 0
+  let offset = skip0xPrefix(a)
+  let length = len(a) - offset
+  doAssert(length == 2 * len(result))
+  var i = offset
   var k = 0
   var r = 0
-  if len(a) > 0:
+  if length > 0:
     while i < len(a):
       let c = a[i]
-      if i != 0 and i %% 2 == 0:
+      if i != offset and i %% 2 == 0:
         result[k] = r.byte
         r = 0
         inc(k)
@@ -142,7 +151,7 @@ proc hexToBytes*(a: string, result: var openarray[byte]) =
       of '0'..'9':
         r = r or (ord(c) - ord('0'))
       else:
-        doAssert(false)
+        doAssert(false, "Unexpected non-hex character \"" & $c & "\"")
       inc(i)
     result[k] = r.byte
 
@@ -151,7 +160,8 @@ proc fromHex*(a: string): seq[byte] =
   if len(a) == 0:
     result = newSeq[byte]()
   else:
-    result = newSeq[byte](len(a) div 2)
+    let offset = skip0xPrefix(a)
+    result = newSeq[byte]((len(a) - offset) div 2)
     hexToBytes(a, result)
 
 proc hexChar*(c: byte, lowercase: bool = false): string =
@@ -177,7 +187,7 @@ proc toHex*(a: openarray[byte], lowercase: bool = false): string =
 
 proc stripSpaces*(s: string): string =
   result = ""
-  let allowed:set[char] = {'A'..'Z', 'a'..'z', '0'..'9'}
+  const allowed:set[char] = {'A'..'Z', 'a'..'z', '0'..'9'}
   for i in s:
     if i in allowed:
       result &= i

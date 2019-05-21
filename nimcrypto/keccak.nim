@@ -56,26 +56,26 @@ type
   keccak* = keccak224 | keccak256 | keccak384 | keccak512 |
             sha3_224 | sha3_256 | sha3_384 | sha3_512
 
-template THETA1(a: var array[5, uint64], b: array[25, uint64], c: int) =
+proc THETA1(a: var array[5, uint64], b: array[25, uint64], c: int) {.inline.} =
   (a)[(c)] = (b)[(c)] xor (b)[(c) + 5] xor (b)[(c) + 10] xor
              (b)[(c) + 15] xor (b)[(c) + 20]
 
-template THETA2(a: var uint64, b: array[5, uint64], c: int) =
+proc THETA2(a: var uint64, b: array[5, uint64], c: int) {.inline.} =
   (a) = (b)[((c) + 4) mod 5] xor ROL(cast[uint64]((b)[((c) + 1) mod 5]), 1)
 
-template THETA3(a: var array[25, uint64], b: int, t: uint64) =
+proc THETA3(a: var array[25, uint64], b: int, t: uint64) =
   (a)[(b)] = (a)[(b)] xor t
   (a)[(b) + 5] = (a)[(b) + 5] xor t
   (a)[(b) + 10] = (a)[(b) + 10] xor t
   (a)[(b) + 15] = (a)[(b) + 15] xor t
   (a)[(b) + 20] = (a)[(b) + 20] xor t
 
-template RHOPI(a: var array[5, uint64], b: var array[25, uint64], c: var uint64, d, e: int) =
+proc RHOPI(a: var array[5, uint64], b: var array[25, uint64], c: var uint64, d, e: int) {.inline.} =
   (a)[0] = (b)[(d)]
   (b)[(d)] = ROL(cast[uint64](c), e)
   (c) = (a)[0]
 
-template CHI(a: var array[5, uint64], b: var array[25, uint64], c: int) =
+proc CHI(a: var array[5, uint64], b: var array[25, uint64], c: int) {.inline.} =
   (a)[0] = (b)[(c)]
   (a)[1] = (b)[(c) + 1]
   (a)[2] = (b)[(c) + 2]
@@ -87,7 +87,7 @@ template CHI(a: var array[5, uint64], b: var array[25, uint64], c: int) =
   (b)[(c + 3)] = (b)[(c + 3)] xor (not((a)[4]) and (a)[0])
   (b)[(c + 4)] = (b)[(c + 4)] xor (not((a)[0]) and (a)[1])
 
-template KECCAKROUND(a: var array[25, uint64], b: var array[5, uint64], c: var uint64, r: int) =
+proc KECCAKROUND(a: var array[25, uint64], b: var array[5, uint64], c: var uint64, r: int) {.inline.} =
   THETA1((b), (a), 0)
   THETA1((b), (a), 1)
   THETA1((b), (a), 2)

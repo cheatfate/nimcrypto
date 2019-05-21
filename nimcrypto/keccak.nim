@@ -56,26 +56,26 @@ type
   keccak* = keccak224 | keccak256 | keccak384 | keccak512 |
             sha3_224 | sha3_256 | sha3_384 | sha3_512
 
-template THETA1(a, b, c: untyped) =
+template THETA1(a: var array[5, uint64], b: array[25, uint64], c: int) =
   (a)[(c)] = (b)[(c)] xor (b)[(c) + 5] xor (b)[(c) + 10] xor
              (b)[(c) + 15] xor (b)[(c) + 20]
 
-template THETA2(a, b, c: untyped) =
+template THETA2(a: var uint64, b: array[5, uint64], c: int) =
   (a) = (b)[((c) + 4) mod 5] xor ROL(cast[uint64]((b)[((c) + 1) mod 5]), 1)
 
-template THETA3(a, b) =
+template THETA3(a: var array[25, uint64], b: int, t: uint64) =
   (a)[(b)] = (a)[(b)] xor t
   (a)[(b) + 5] = (a)[(b) + 5] xor t
   (a)[(b) + 10] = (a)[(b) + 10] xor t
   (a)[(b) + 15] = (a)[(b) + 15] xor t
   (a)[(b) + 20] = (a)[(b) + 20] xor t
 
-template RHOPI(a, b, c, d, e) =
+template RHOPI(a: var array[5, uint64], b: var array[25, uint64], c: var uint64, d, e: int) =
   (a)[0] = (b)[(d)]
   (b)[(d)] = ROL(cast[uint64](c), e)
   (c) = (a)[0]
 
-template CHI(a, b, c) =
+template CHI(a: var array[5, uint64], b: var array[25, uint64], c: int) =
   (a)[0] = (b)[(c)]
   (a)[1] = (b)[(c) + 1]
   (a)[2] = (b)[(c) + 2]
@@ -87,7 +87,7 @@ template CHI(a, b, c) =
   (b)[(c + 3)] = (b)[(c + 3)] xor (not((a)[4]) and (a)[0])
   (b)[(c + 4)] = (b)[(c + 4)] xor (not((a)[0]) and (a)[1])
 
-template KECCAKROUND(a, b, c, r) =
+template KECCAKROUND(a: var array[25, uint64], b: var array[5, uint64], c: var uint64, r: int) =
   THETA1((b), (a), 0)
   THETA1((b), (a), 1)
   THETA1((b), (a), 2)
@@ -95,15 +95,15 @@ template KECCAKROUND(a, b, c, r) =
   THETA1((b), (a), 4)
 
   THETA2((c), (b), 0)
-  THETA3((a), 0)
+  THETA3((a), 0, c)
   THETA2((c), (b), 1)
-  THETA3((a), 1)
+  THETA3((a), 1, c)
   THETA2((c), (b), 2)
-  THETA3((a), 2)
+  THETA3((a), 2, c)
   THETA2((c), (b), 3)
-  THETA3((a), 3)
+  THETA3((a), 3, c)
   THETA2((c), (b), 4)
-  THETA3((a), 4)
+  THETA3((a), 4, c)
 
   (c) = (a)[1]
   RHOPI((b), (a), (c), 10, 1)
@@ -140,35 +140,44 @@ template KECCAKROUND(a, b, c, r) =
 
   (a)[0] = (a)[0] xor RNDC[(r)]
 
+proc stBSWAPAux(v: var uint64) {.used.} =
+  v = BSWAP(v)
+
 proc keccakTransform(st: var array[25, uint64]) =
   var bc: array[5, uint64]
   var t: uint64
 
-  st[0] = BSWAP(st[0])
-  st[1] = BSWAP(st[1])
-  st[2] = BSWAP(st[2])
-  st[3] = BSWAP(st[3])
-  st[4] = BSWAP(st[4])
-  st[5] = BSWAP(st[5])
-  st[6] = BSWAP(st[6])
-  st[7] = BSWAP(st[7])
-  st[8] = BSWAP(st[8])
-  st[9] = BSWAP(st[9])
-  st[10] = BSWAP(st[10])
-  st[11] = BSWAP(st[11])
-  st[12] = BSWAP(st[12])
-  st[13] = BSWAP(st[13])
-  st[14] = BSWAP(st[14])
-  st[15] = BSWAP(st[15])
-  st[16] = BSWAP(st[16])
-  st[17] = BSWAP(st[17])
-  st[18] = BSWAP(st[18])
-  st[19] = BSWAP(st[19])
-  st[20] = BSWAP(st[20])
-  st[21] = BSWAP(st[21])
-  st[22] = BSWAP(st[22])
-  st[23] = BSWAP(st[23])
-  st[24] = BSWAP(st[24])
+  template stBSWAP(idx: int) =
+    when nimvm:
+      stBSWAPAux(st[idx])
+    else:
+      st[idx] = BSWAP(st[idx])
+
+  stBSWAP(0)
+  stBSWAP(1)
+  stBSWAP(2)
+  stBSWAP(3)
+  stBSWAP(4)
+  stBSWAP(5)
+  stBSWAP(6)
+  stBSWAP(7)
+  stBSWAP(8)
+  stBSWAP(9)
+  stBSWAP(10)
+  stBSWAP(11)
+  stBSWAP(12)
+  stBSWAP(13)
+  stBSWAP(14)
+  stBSWAP(15)
+  stBSWAP(16)
+  stBSWAP(17)
+  stBSWAP(18)
+  stBSWAP(19)
+  stBSWAP(20)
+  stBSWAP(21)
+  stBSWAP(22)
+  stBSWAP(23)
+  stBSWAP(24)
 
   KECCAKROUND(st, bc, t, 0)
   KECCAKROUND(st, bc, t, 1)
@@ -195,31 +204,31 @@ proc keccakTransform(st: var array[25, uint64]) =
   KECCAKROUND(st, bc, t, 22)
   KECCAKROUND(st, bc, t, 23)
 
-  st[0] = BSWAP(st[0])
-  st[1] = BSWAP(st[1])
-  st[2] = BSWAP(st[2])
-  st[3] = BSWAP(st[3])
-  st[4] = BSWAP(st[4])
-  st[5] = BSWAP(st[5])
-  st[6] = BSWAP(st[6])
-  st[7] = BSWAP(st[7])
-  st[8] = BSWAP(st[8])
-  st[9] = BSWAP(st[9])
-  st[10] = BSWAP(st[10])
-  st[11] = BSWAP(st[11])
-  st[12] = BSWAP(st[12])
-  st[13] = BSWAP(st[13])
-  st[14] = BSWAP(st[14])
-  st[15] = BSWAP(st[15])
-  st[16] = BSWAP(st[16])
-  st[17] = BSWAP(st[17])
-  st[18] = BSWAP(st[18])
-  st[19] = BSWAP(st[19])
-  st[20] = BSWAP(st[20])
-  st[21] = BSWAP(st[21])
-  st[22] = BSWAP(st[22])
-  st[23] = BSWAP(st[23])
-  st[24] = BSWAP(st[24])
+  stBSWAP(0)
+  stBSWAP(1)
+  stBSWAP(2)
+  stBSWAP(3)
+  stBSWAP(4)
+  stBSWAP(5)
+  stBSWAP(6)
+  stBSWAP(7)
+  stBSWAP(8)
+  stBSWAP(9)
+  stBSWAP(10)
+  stBSWAP(11)
+  stBSWAP(12)
+  stBSWAP(13)
+  stBSWAP(14)
+  stBSWAP(15)
+  stBSWAP(16)
+  stBSWAP(17)
+  stBSWAP(18)
+  stBSWAP(19)
+  stBSWAP(20)
+  stBSWAP(21)
+  stBSWAP(22)
+  stBSWAP(23)
+  stBSWAP(24)
 
 template sizeDigest*(ctx: KeccakContext): uint =
   (ctx.bits div 8)
@@ -245,6 +254,25 @@ template sizeDigest*(r: typedesc[keccak | shake128 | shake256]): int =
 template sizeBlock*(r: typedesc[keccak | shake128 | shake256]): int =
   (200)
 
+proc setQb(ctx: var KeccakContext, idx: int, v: byte) {.inline.} =
+  when nimvm:
+    let i = idx div sizeof(uint64)
+    let bi = idx mod sizeof(uint64)
+    let bt = bi * 8
+    ctx.q[i] = (ctx.q[i] and (not (0xff'u64 shl bt))) or (v.uint64 shl bt)
+  else:
+    cast[ptr UncheckedArray[byte]](addr ctx.q[0])[idx] = v
+
+proc getQb(ctx: KeccakContext, idx: int): byte {.inline.} =
+  when nimvm:
+    result = byte((ctx.q[idx div sizeof(uint64)] shr ((idx mod sizeof(uint64)) * 8)) and 0xff'u64)
+  else:
+    result = cast[ptr UncheckedArray[byte]](unsafeAddr ctx.q[0])[idx]
+    assert(result == byte((ctx.q[idx div sizeof(uint64)] shr ((idx mod 8) * 8)) and 0x00000000000000ff'u64))
+
+proc xorQb(ctx: var KeccakContext, idx: int, v: byte) {.inline.} =
+  setQb(ctx, idx, getQb(ctx, idx) xor v)
+
 proc init*(ctx: var KeccakContext) {.inline.} =
   ctx = type(ctx)()
 
@@ -254,32 +282,32 @@ proc clear*(ctx: var KeccakContext) {.inline.} =
 proc reset*(ctx: var KeccakContext) {.inline.} =
   init(ctx)
 
-proc update*(ctx: var KeccakContext, data: ptr byte, ulen: uint) =
+proc update*(ctx: var KeccakContext, data: openarray[byte]) =
   var j = ctx.pt
-  var s = cast[ptr UncheckedArray[byte]](data)
-  var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
-  if ulen > 0'u:
-    for i in 0..(ulen - 1):
-      d[j] = d[j] xor s[i]
+  if data.len > 0:
+    for i in 0..(data.len - 1):
+      ctx.xorQb(j, data[i])
       inc(j)
       if j >= ctx.rsize:
         keccakTransform(ctx.q)
         j = 0
     ctx.pt = j
 
-proc update*[T: bchar](ctx: var KeccakContext, data: openarray[T]) =
+proc update*(ctx: var KeccakContext, data: ptr byte, ulen: uint) {.inline.} =
+  update(ctx, toOpenArray(cast[ptr array[0, byte]](data)[], 0, ulen.int - 1))
+
+proc update*(ctx: var KeccakContext, data: openarray[char]) =
   if len(data) == 0:
     update(ctx, nil, 0'u)
   else:
     update(ctx, cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
 
 proc finalizeKeccak(ctx: var KeccakContext) =
-  var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
   when ctx.kind == Sha3:
-    d[ctx.pt] = d[ctx.pt] xor 0x06'u8
+    ctx.xorQb(ctx.pt, 0x06'u8)
   else:
-    d[ctx.pt] = d[ctx.pt] xor 0x01'u8
-  d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
+    ctx.xorQb(ctx.pt, 0x01'u8)
+  ctx.xorQb(ctx.rsize - 1, 0x80'u8)
   keccakTransform(ctx.q)
 
 proc xof*(ctx: var KeccakContext) =
@@ -287,8 +315,8 @@ proc xof*(ctx: var KeccakContext) =
     {.error: "Only `Shake128` and `Shake256` types are supported".}
   assert(ctx.kind == Shake)
   var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
-  d[ctx.pt] = d[ctx.pt] xor 0x1F'u8
-  d[ctx.rsize - 1] = d[ctx.rsize - 1] xor 0x80'u8
+  ctx.xorQb(ctx.pt, 0x1F'u8)
+  ctx.xorQb(ctx.rsize - 1, 0x80'u8)
   keccakTransform(ctx.q)
   ctx.pt = 0
 
@@ -309,19 +337,22 @@ proc output*(ctx: var KeccakContext, data: ptr byte, ulen: uint): uint =
     ctx.pt = j
     result = ulen
 
-proc finish*(ctx: var KeccakContext, data: ptr byte, ulen: uint): uint =
+proc finishAux(ctx: var KeccakContext, data: var openarray[byte]): uint =
   finalizeKeccak(ctx)
-  var d = cast[ptr UncheckedArray[byte]](data)
-  var s = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
-  if ulen >= ctx.sizeDigest:
-    for i in 0..(ctx.sizeDigest - 1):
-      d[i] = s[i]
+  if data.len.uint >= ctx.sizeDigest:
+    for i in 0..(ctx.sizeDigest.int - 1):
+      data[i] = ctx.getQb(i)
     result = ctx.sizeDigest
 
-proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] =
-  discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 cast[uint](len(result.data)))
+proc finish*(ctx: var KeccakContext, data: var openarray[byte]) {.inline.} =
+  discard finishAux(ctx, data)
 
-proc finish*[T: bchar](ctx: var KeccakContext, data: var openarray[T]) =
+proc finish*(ctx: var KeccakContext, data: ptr byte, ulen: uint): uint {.inline.} =
+  finishAux(ctx, toOpenArray(cast[ptr array[0, byte]](data)[], 0, ulen.int - 1))
+
+proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] {.inline.} =
+  finish(ctx, result.data)
+
+proc finish*(ctx: var KeccakContext, data: var openarray[char]) {.inline.} =
   assert(cast[uint](len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
+  ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))

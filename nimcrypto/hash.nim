@@ -65,8 +65,28 @@ proc `$`*(digest: MDigest): string =
       of 0..9: result[i1] = chr(t0 + ord('0'))
       else: result[i1] = chr(t0 - 10 + alpha)
 
+proc digest*(HashType: typedesc, data: openarray[byte]): MDigest[HashType.bits] =
+  ## Calculate and return digest using algorithm ``HashType`` of data ``data``.
+  ##
+  ##  .. code-block::nim
+  ##    import nimcrypto
+  ##
+  ##    echo sha256.digest([1.byte, 2, 3])
+  mixin init, update, finish, clear
+  var ctx: HashType
+  ctx.init()
+  ctx.update(data)
+  result = ctx.finish()
+  ctx.clear()
+
+proc digest*(HashType: typedesc, data: openarray[byte], ostart: int): MDigest[HashType.bits] {.deprecated, inline.} =
+  digest(HashType, data.toOpenArray(ostart, data.high))
+
+proc digest*(HashType: typedesc, data: openarray[byte], ostart, ofinish: int): MDigest[HashType.bits] {.deprecated, inline.} =
+  digest(HashType, data.toOpenArray(ostart, ofinish))
+
 proc digest*(HashType: typedesc, data: ptr byte,
-             ulen: uint): MDigest[HashType.bits] =
+             ulen: uint): MDigest[HashType.bits] {.inline.} =
   ## Calculate and return digest using algorithm ``HashType`` of data ``data``
   ## with length ``ulen``.
   ##
@@ -77,14 +97,9 @@ proc digest*(HashType: typedesc, data: ptr byte,
   ##    let data = cast[ptr byte](addr stringToHash[0])
   ##    let datalen = uint(len(stringToHash))
   ##    echo sha256.digest(data, datalen)
-  mixin init, update, finish, clear
-  var ctx: HashType
-  ctx.init()
-  ctx.update(data, ulen)
-  result = ctx.finish()
-  ctx.clear()
+  digest(HashType, toOpenArray(cast[ptr array[0, byte]](data)[], 0, ulen.int - 1))
 
-proc digest*[T](HashType: typedesc, data: openarray[T],
+proc digest*[T: not byte](HashType: typedesc, data: openarray[T],
                 ostart: int = 0, ofinish: int = -1): MDigest[HashType.bits] =
   ## Calculate and return digest using algorithm ``HashType`` of data ``data``
   ## in slice ``[ostart, ofinish]``, both ``ostart`` and ``ofinish`` are

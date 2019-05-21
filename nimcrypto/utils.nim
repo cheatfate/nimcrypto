@@ -203,8 +203,11 @@ proc burnMem*(p: pointer, size: Natural) =
       dec(c)
 
 proc burnArray*[T](a: var openarray[T]) {.inline.} =
-  if len(a) > 0:
-    burnMem(addr a[0], len(a) * sizeof(T))
+  when nimvm:
+    discard
+  else:
+    if len(a) > 0:
+      burnMem(addr a[0], len(a) * sizeof(T))
 
 template burnMem*[T](a: var seq[T]) =
   burnArray(a)
@@ -213,7 +216,10 @@ template burnMem*[A, B](a: var array[A, B]) =
   burnArray(a)
 
 proc burnMem*[T](a: var T) {.inline.} =
-  burnMem(addr a, sizeof(T))
+  when nimvm:
+    discard
+  else:
+    burnMem(addr a, sizeof(T))
 
 proc isFullZero*(p: pointer, size: Natural): bool =
   result = true

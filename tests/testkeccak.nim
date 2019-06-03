@@ -1,5 +1,6 @@
 import nimcrypto/hash, nimcrypto/keccak, nimcrypto/utils
 from strutils import parseInt
+from sequtils import mapIt
 import unittest
 
 when defined(nimHasUsed): {.used.}
@@ -268,7 +269,7 @@ suite "KECCAK/SHA3 Tests":
     "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
     """abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn
        hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"""
-  ]
+  ].mapIt(stripSpaces(it))
   const digest224 = [
     "E642824C3F8CF24AD09234EE7D3C766FC9A3A5168D0C94AD73B46FDF",
     "6B4E03423667DBB73B6E15454F0EB1ABD4597F9A1B078E3F5B5A6BC7",
@@ -298,7 +299,7 @@ suite "KECCAK/SHA3 Tests":
        948D252D5E0E76847AA0774DDB90A842190D2C558B4B8340""",
     """A04296F4FCAAE14871BB5AD33E28DCF69238B04204D9941B
        8782E816D014BCB7540E4AF54F30D578F1A1CA2930847A12"""
-  ]
+  ].mapIt(stripSpaces(it))
   const digest512 = [
     """B751850B1A57168A5693CD924B6B096E08F621827444F70D884F5D0240D2712E
        10E116E9192AF3C91A7EC57647E3934057340B4CF408D5A56592F8274EEC53F0""",
@@ -312,7 +313,7 @@ suite "KECCAK/SHA3 Tests":
        ED311D0A9D5141CE9CC5C66EE689B266A8AA18ACE8282A0E0DB596C90B0A7B87""",
     """235FFD53504EF836A1342B488F483B396EABBFE642CF78EE0D31FEEC788B23D0
        D18D5C339550DD5958A500D4B95363DA1B5FA18AFFC1BAB2292DC63B7D85097C"""
-  ]
+  ].mapIt(stripSpaces(it))
 
   var sha224, osha224: sha3_224
   var sha256, osha256: sha3_256
@@ -321,7 +322,7 @@ suite "KECCAK/SHA3 Tests":
 
   test "SHA3 224/256/384/512 test vectors":
     for i in 0..(len(codes) - 1):
-      var msg = stripSpaces(codes[i])
+      var msg = codes[i]
       sha224.init()
       sha256.init()
       sha384.init()
@@ -345,14 +346,14 @@ suite "KECCAK/SHA3 Tests":
       osha384.update(msg)
       osha512.update(msg)
       check:
-        $sha224.finish() == stripSpaces(digest224[i])
-        $sha256.finish() == stripSpaces(digest256[i])
-        $sha384.finish() == stripSpaces(digest384[i])
-        $sha512.finish() == stripSpaces(digest512[i])
-        $osha224.finish() == stripSpaces(digest224[i])
-        $osha256.finish() == stripSpaces(digest256[i])
-        $osha384.finish() == stripSpaces(digest384[i])
-        $osha512.finish() == stripSpaces(digest512[i])
+        $sha224.finish() == digest224[i]
+        $sha256.finish() == digest256[i]
+        $sha384.finish() == digest384[i]
+        $sha512.finish() == digest512[i]
+        $osha224.finish() == digest224[i]
+        $osha256.finish() == digest256[i]
+        $osha384.finish() == digest384[i]
+        $osha512.finish() == digest512[i]
       sha224.clear()
       sha256.clear()
       sha384.clear()
@@ -381,26 +382,48 @@ suite "KECCAK/SHA3 Tests":
         var dcheck512 = $sha3_512.digest(cast[ptr uint8](addr msg[0]),
                                          uint(len(msg)))
         check:
-          dcheck224 == stripSpaces(digest224[i])
-          dcheck256 == stripSpaces(digest256[i])
-          dcheck384 == stripSpaces(digest384[i])
-          dcheck512 == stripSpaces(digest512[i])
+          dcheck224 == digest224[i]
+          dcheck256 == digest256[i]
+          dcheck384 == digest384[i]
+          dcheck512 == digest512[i]
       else:
         var dcheck224 = $sha3_224.digest(nil, 0'u)
         var dcheck256 = $sha3_256.digest(nil, 0'u)
         var dcheck384 = $sha3_384.digest(nil, 0'u)
         var dcheck512 = $sha3_512.digest(nil, 0'u)
         check:
-          dcheck224 == stripSpaces(digest224[i])
-          dcheck256 == stripSpaces(digest256[i])
-          dcheck384 == stripSpaces(digest384[i])
-          dcheck512 == stripSpaces(digest512[i])
+          dcheck224 == digest224[i]
+          dcheck256 == digest256[i]
+          dcheck384 == digest384[i]
+          dcheck512 == digest512[i]
       # openarray[T] test
       check:
-        $sha3_224.digest(msg) == stripSpaces(digest224[i])
-        $sha3_256.digest(msg) == stripSpaces(digest256[i])
-        $sha3_384.digest(msg) == stripSpaces(digest384[i])
-        $sha3_512.digest(msg) == stripSpaces(digest512[i])
+        $sha3_224.digest(msg) == digest224[i]
+        $sha3_256.digest(msg) == digest256[i]
+        $sha3_384.digest(msg) == digest384[i]
+        $sha3_512.digest(msg) == digest512[i]
+
+  test "SHA3 224/256/384/512 test vectors (Compile time)":
+    proc stringToBytes(s: string): seq[byte] =
+      # Ideally we should get rid of this. `digest` api should support strings in CT
+      for c in s: result.add(byte(c))
+
+    proc calculateDigests(Ctx: typedesc): seq[string] =
+      for i in 0..(len(codes) - 1):
+        var msg = codes[i]
+        result.add($Ctx.digest(stringToBytes(msg)))
+
+    const actualDigests224 = calculateDigests(sha3_224)
+    check actualDigests224 == digest224[0 .. actualDigests224.high]
+
+    const actualDigests256 = calculateDigests(sha3_256)
+    check actualDigests256 == digest256[0 .. actualDigests256.high]
+
+    const actualDigests384 = calculateDigests(sha3_384)
+    check actualDigests384 == digest384[0 .. actualDigests384.high]
+
+    const actualDigests512 = calculateDigests(sha3_512)
+    check actualDigests512 == digest512[0 .. actualDigests512.high]
 
   test "SHA3 224/256/384/512 million test":
     # Million 'a' test
@@ -423,14 +446,14 @@ suite "KECCAK/SHA3 Tests":
       osha384.update(msg)
       osha512.update(msg)
     check:
-      $sha224.finish() == stripSpaces(digest224[4])
-      $sha256.finish() == stripSpaces(digest256[4])
-      $sha384.finish() == stripSpaces(digest384[4])
-      $sha512.finish() == stripSpaces(digest512[4])
-      $osha224.finish() == stripSpaces(digest224[4])
-      $osha256.finish() == stripSpaces(digest256[4])
-      $osha384.finish() == stripSpaces(digest384[4])
-      $osha512.finish() == stripSpaces(digest512[4])
+      $sha224.finish() == digest224[4]
+      $sha256.finish() == digest256[4]
+      $sha384.finish() == digest384[4]
+      $sha512.finish() == digest512[4]
+      $osha224.finish() == digest224[4]
+      $osha256.finish() == digest256[4]
+      $osha384.finish() == digest384[4]
+      $osha512.finish() == digest512[4]
     sha224.clear()
     sha256.clear()
     sha384.clear()

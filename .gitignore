@@ -51,7 +51,4 @@ packages/*
 .vagrant/*
 
 .env
-examples/*
-!examples/*.nim
-tests/*
-!tests/*.nim
+

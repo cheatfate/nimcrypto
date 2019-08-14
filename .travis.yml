@@ -5,7 +5,6 @@ os:
   - osx
 dist: trusty
 before_script:
-  # - git clone -b nimbus https://github.com/status-im/Nim.git
   - git clone https://github.com/nim-lang/Nim.git
   - cd Nim
   - git clone --depth 1 https://github.com/nim-lang/csources
@@ -13,9 +12,9 @@ before_script:
   - cd ..
   - bin/nim c koch
   - ./koch boot -d:release
-  - ./koch nimble
+  - ./koch tools
   - export PATH=$(pwd)/bin:$PATH
   - cd ..
 script:
-  - nimble install -y
+  - nimble install -y --verbose
   - nimble tests

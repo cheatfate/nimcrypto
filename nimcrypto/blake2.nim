@@ -109,20 +109,20 @@ template B2SROUND(v, m, n: untyped) =
   B2S_G(v, 3, 4, 9, 14,  (m)[Sigma[(n)][14]], (m)[Sigma[(n)][15]])
 
 template BLGETU64*(p, o): uint64 =
-  (uint64(cast[ptr byte](cast[uint](p) + o)[])) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 32) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 40) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 48) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 7))[]) shl 56)
+  (cast[uint64](cast[ptr byte](cast[uint](p) + o)[])) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 32) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 40) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 48) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 7))[]) shl 56)
 
 template BLGETU32*(p, o): uint32 =
-  (uint32(cast[ptr byte](cast[uint](p) + o)[])) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24)
+  (cast[uint32](cast[ptr byte](cast[uint](p) + o)[])) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 8) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 16) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 24)
 
 template B2BFILL(m, c: untyped) =
   (m)[0] = BLGETU64(addr((c).b), 0); (m)[1] = BLGETU64(addr((c).b), 8)
@@ -265,12 +265,12 @@ proc update*(ctx: var Blake2Context, data: ptr byte, ulen: uint) =
   while i < ulen:
     if ctx.c == int(ctx.sizeBlock):
       when ctx is Blake2sContext:
-        ctx.t[0] = ctx.t[0] + uint32(ctx.c)
-        if ctx.t[0] < uint32(ctx.c):
+        ctx.t[0] = ctx.t[0] + cast[uint32](ctx.c)
+        if ctx.t[0] < cast[uint32](ctx.c):
           ctx.t[1] = ctx.t[1] + 1
       else:
-        ctx.t[0] = ctx.t[0] + uint64(ctx.c)
-        if ctx.t[0] < uint64(ctx.c):
+        ctx.t[0] = ctx.t[0] + cast[uint64](ctx.c)
+        if ctx.t[0] < cast[uint64](ctx.c):
           ctx.t[1] = ctx.t[1] + 1
       ctx.blake2Transform(false)
       ctx.c = 0
@@ -283,11 +283,11 @@ proc update*[T: bchar](ctx: var Blake2Context, data: openarray[T]) {.inline.} =
   if len(data) == 0:
     ctx.update(nil, 0)
   else:
-    ctx.update(cast[ptr byte](unsafeAddr data[0]), uint(len(data)))
+    ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
 
 proc finish*(ctx: var Blake2sContext, data: ptr byte, ulen: uint): uint =
-  ctx.t[0] = ctx.t[0] + uint32(ctx.c)
-  if ctx.t[0] < uint32(ctx.c):
+  ctx.t[0] = ctx.t[0] + cast[uint32](ctx.c)
+  if ctx.t[0] < cast[uint32](ctx.c):
     ctx.t[1] = ctx.t[1] + 1
   while ctx.c < int(ctx.sizeBlock):
     ctx.b[ctx.c] = 0
@@ -297,12 +297,13 @@ proc finish*(ctx: var Blake2sContext, data: ptr byte, ulen: uint): uint =
   var length = int(ctx.sizeDigest)
   var p = cast[ptr UncheckedArray[byte]](data)
   if ulen >= ctx.sizeDigest:
+    result = ctx.sizeDigest
     for i in 0..<length:
       p[i] = cast[byte]((ctx.h[i shr 2] shr (8 * (i and 3))) and 0xFF)
 
 proc finish*(ctx: var Blake2bContext, data: ptr byte, ulen: uint): uint =
-  ctx.t[0] = ctx.t[0] + uint64(ctx.c)
-  if ctx.t[0] < uint64(ctx.c):
+  ctx.t[0] = ctx.t[0] + cast[uint64](ctx.c)
+  if ctx.t[0] < cast[uint64](ctx.c):
     ctx.t[1] = ctx.t[1] + 1
 
   while ctx.c < int(ctx.sizeBlock):
@@ -313,20 +314,21 @@ proc finish*(ctx: var Blake2bContext, data: ptr byte, ulen: uint): uint =
   var length = int(ctx.sizeDigest)
   var p = cast[ptr UncheckedArray[byte]](data)
   if ulen >= ctx.sizeDigest:
+    result = ctx.sizeDigest
     for i in 0..<length:
       p[i] = cast[byte]((ctx.h[i shr 3] shr (8 * (i and 7))) and 0xFF)
 
 proc finish*(ctx: var Blake2sContext): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 uint(len(result.data)))
+                 cast[uint](len(result.data)))
 
 proc finish*(ctx: var Blake2bContext): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 uint(len(result.data)))
+                 cast[uint](len(result.data)))
 
 proc finish*[T: bchar](ctx: var Blake2Context, data: var openarray[T]) =
-  assert(uint(len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))
+  assert(cast[uint](len(data)) >= ctx.sizeDigest)
+  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
 
 proc init*(ctx: var Blake2Context, key: ptr byte = nil, keylen: uint = 0'u) =
   when ctx is Blake2sContext:
@@ -335,15 +337,16 @@ proc init*(ctx: var Blake2Context, key: ptr byte = nil, keylen: uint = 0'u) =
     ctx.h[2] = B2SIV[2]; ctx.h[3] = B2SIV[3]
     ctx.h[4] = B2SIV[4]; ctx.h[5] = B2SIV[5]
     ctx.h[6] = B2SIV[6]; ctx.h[7] = B2SIV[7]
-    let value = 0x01010000'u32 xor (uint32(keylen) shl 8) xor
-                uint32(ctx.sizeDigest)
+    let value = 0x01010000'u32 xor (cast[uint32](keylen) shl 8) xor
+                cast[uint32](ctx.sizeDigest)
   else:
     zeroMem(addr ctx.b[0], sizeof(byte) * 128)
     ctx.h[0] = B2BIV[0]; ctx.h[1] = B2BIV[1]
     ctx.h[2] = B2BIV[2]; ctx.h[3] = B2BIV[3]
     ctx.h[4] = B2BIV[4]; ctx.h[5] = B2BIV[5]
     ctx.h[6] = B2BIV[6]; ctx.h[7] = B2BIV[7]
-    let value = 0x01010000'u64 xor (uint64(keylen) shl 8) xor ctx.sizeDigest
+    let value = 0x01010000'u64 xor
+                (cast[uint64](keylen) shl 8) xor ctx.sizeDigest
 
   ctx.h[0] = ctx.h[0] xor value
   ctx.t[0] = 0
@@ -358,7 +361,7 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openarray[T]) {.inline.} =
   if len(key) == 0:
     ctx.init()
   else:
-    ctx.init(cast[ptr byte](unsafeAddr key[0]), uint(len(key)))
+    ctx.init(cast[ptr byte](unsafeAddr key[0]), cast[uint](len(key)))
 
 proc clear*(ctx: var Blake2Context) {.inline.} =
   burnMem(ctx)

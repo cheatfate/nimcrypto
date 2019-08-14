@@ -5,10 +5,7 @@ cache:
 - i686-4.9.2-release-win32-dwarf-rt_v4-rev4.7z
 
 matrix:
-  fast_finish: true     # set this flag to immediately finish build once one of the jobs fails.
-  allow_failures:
-    - platform: x64
-    - platform: x86
+  fast_finish: true # set this flag to immediately finish build once one of the jobs fails.
 
 environment:
   matrix:
@@ -25,7 +22,6 @@ install:
   - IF not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
   - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\Nim\bin;%PATH%
-  # - git clone -b nimbus https://github.com/status-im/Nim.git %CD%\Nim
   - git clone https://github.com/nim-lang/Nim.git %CD%\Nim
   - cd %CD%\Nim
   - git clone --depth 1 https://github.com/nim-lang/csources
@@ -34,10 +30,10 @@ install:
   - cd ..
   - bin\nim c koch
   - koch boot -d:release
-  - koch nimble
+  - koch tools
 build_script:
   - cd C:\projects\nimcrypto
-  - nimble install -y
+  - nimble install -y --verbose
 test_script:
   - nimble tests
 

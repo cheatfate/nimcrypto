@@ -1,6 +1,32 @@
 import nimcrypto/hmac, nimcrypto/hash, nimcrypto/utils
 import nimcrypto/sha2, nimcrypto/ripemd, nimcrypto/keccak
+import nimcrypto/sha
 import unittest
+
+# SHA1 test vectors
+# https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/HMAC_SHA1.pdf
+
+const sha1keys = [
+  """000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F
+     202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F""",
+  "000102030405060708090A0B0C0D0E0F10111213",
+  """000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F
+     202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F
+     404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F
+     60616263"""
+]
+
+const sha1data = [
+  "53616D706C65206D65737361676520666F72206B65796C656E3D626C6F636B6C656E",
+  "53616D706C65206D65737361676520666F72206B65796C656E3C626C6F636B6C656E",
+  "53616D706C65206D65737361676520666F72206B65796C656E3D626C6F636B6C656E"
+]
+
+const sha1digests = [
+  "5FD596EE78D5553C8FF4E72D266DFD192366DA29",
+  "4C99FF0CB1B31BD33F8431DBAF4D17FCD356A807",
+  "2D51B2F7750E410584662E38F133435F4C4FD42A"
+]
 
 # RIPEMD 128/160 test vectors
 # https://tools.ietf.org/html/rfc2286
@@ -265,6 +291,7 @@ suite "HMAC Tests":
     var ctx8: HMAC[sha3_256]
     var ctx9: HMAC[sha3_384]
     var ctx0: HMAC[sha3_512]
+    var ctxA: HMAC[sha1]
     check:
       ctx1.sizeBlock == 64'u
       ctx2.sizeBlock == 64'u
@@ -276,6 +303,7 @@ suite "HMAC Tests":
       ctx8.sizeBlock == 136'u
       ctx9.sizeBlock == 104'u
       ctx0.sizeBlock == 72'u
+      ctxA.sizeBlock == 64'u
 
   test "HMAC digest sizes":
     var ctx1: HMAC[sha224]
@@ -288,6 +316,7 @@ suite "HMAC Tests":
     var ctx8: HMAC[sha3_256]
     var ctx9: HMAC[sha3_384]
     var ctx0: HMAC[sha3_512]
+    var ctxA: HMAC[sha1]
     check:
       ctx1.sizeDigest == uint(sha224.sizeDigest)
       ctx2.sizeDigest == uint(sha256.sizeDigest)
@@ -299,6 +328,33 @@ suite "HMAC Tests":
       ctx8.sizeDigest == uint(sha3_256.sizeDigest)
       ctx9.sizeDigest == uint(sha3_384.sizeDigest)
       ctx0.sizeDigest == uint(sha3_512.sizeDigest)
+      ctxA.sizeDigest == uint(sha1.sizeDigest)
+
+  test "HMAC-SHA1 test vectors":
+    for i in 0..<len(sha1digests):
+      var key = fromHex(stripSpaces(sha1keys[i]))
+      var data = fromHex(stripSpaces(sha1data[i]))
+      var ctx: HMAC[sha1]
+      ctx.init(cast[ptr byte](addr key[0]), uint(len(key)))
+      ctx.update(cast[ptr byte](addr data[0]), uint(len(data)))
+      var digest1 = $ctx.finish()
+      ctx.init(key)
+      ctx.update(data)
+      var digest5 = $ctx.finish()
+      var digest2 = $sha1.hmac(
+        cast[ptr byte](addr key[0]), uint(len(key)),
+        cast[ptr byte](addr data[0]), uint(len(data))
+      )
+      var digest3 = $sha1.hmac(key, data)
+      var digest4 = $sha1.hmac(key, data, 0, len(data) - 1)
+      ctx.clear()
+      check:
+        digest1 == sha1digests[i]
+        digest2 == sha1digests[i]
+        digest3 == sha1digests[i]
+        digest4 == sha1digests[i]
+        digest5 == sha1digests[i]
+        ctx.isFullZero() == true
 
   test "HMAC-RIPEMD-128 test vectors":
     for i in 0..(len(ripemd128digests) - 1):

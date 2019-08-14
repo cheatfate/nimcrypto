@@ -61,7 +61,7 @@ template THETA1(a, b, c: untyped) =
              (b)[(c) + 15] xor (b)[(c) + 20]
 
 template THETA2(a, b, c: untyped) =
-  (a) = (b)[((c) + 4) mod 5] xor ROL(uint64((b)[((c) + 1) mod 5]), 1)
+  (a) = (b)[((c) + 4) mod 5] xor ROL(cast[uint64]((b)[((c) + 1) mod 5]), 1)
 
 template THETA3(a, b) =
   (a)[(b)] = (a)[(b)] xor t
@@ -72,7 +72,7 @@ template THETA3(a, b) =
 
 template RHOPI(a, b, c, d, e) =
   (a)[0] = (b)[(d)]
-  (b)[(d)] = ROL(uint64(c), e)
+  (b)[(d)] = ROL(cast[uint64](c), e)
   (c) = (a)[0]
 
 template CHI(a, b, c) =
@@ -246,10 +246,10 @@ template sizeBlock*(r: typedesc[keccak | shake128 | shake256]): int =
   (200)
 
 proc init*(ctx: var KeccakContext) =
-  burnMem(ctx)
+  ctx = type(ctx)()
 
 proc clear*(ctx: var KeccakContext) {.inline.} =
-  ctx.init()
+  burnMem(ctx)
 
 proc update*(ctx: var KeccakContext, data: ptr byte, ulen: uint) =
   var j = ctx.pt
@@ -268,7 +268,7 @@ proc update*[T: bchar](ctx: var KeccakContext, data: openarray[T]) =
   if len(data) == 0:
     update(ctx, nil, 0'u)
   else:
-    update(ctx, cast[ptr byte](unsafeAddr data[0]), uint(len(data)))
+    update(ctx, cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
 
 proc finalizeKeccak(ctx: var KeccakContext) =
   var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
@@ -317,8 +317,8 @@ proc finish*(ctx: var KeccakContext, data: ptr byte, ulen: uint): uint =
 
 proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 uint(len(result.data)))
+                 cast[uint](len(result.data)))
 
 proc finish*[T: bchar](ctx: var KeccakContext, data: var openarray[T]) =
-  assert(uint(len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))
+  assert(cast[uint](len(data)) >= ctx.sizeDigest)
+  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))

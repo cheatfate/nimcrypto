@@ -457,27 +457,27 @@ proc update*(ctx: var Sha2Context, data: ptr byte, inlen: uint) =
 
   when ctx.bsize == 64:
     while length > 0'u:
-      let offset = uint(ctx.count[0] and 0x3F)
+      let offset = cast[uint](ctx.count[0] and 0x3F)
       let size = min(64'u - offset, length)
       copyMem(addr(ctx.buffer[offset]),
               cast[pointer](cast[uint](data) + pos), size)
       pos = pos + size
       length = length - size
-      ctx.count[0] += uint32(size)
-      if ctx.count[0] < uint32(size):
+      ctx.count[0] += cast[uint32](size)
+      if ctx.count[0] < cast[uint32](size):
         ctx.count[1] += 1'u32
       if (ctx.count[0] and 0x3F) == 0:
         sha256Transform(ctx.state, addr(ctx.buffer[0]))
   elif ctx.bsize == 128:
     while length > 0'u:
-      let offset = uint(ctx.count[0] and 0x7F)
+      let offset = cast[uint](ctx.count[0] and 0x7F)
       let size = min(128'u - offset, length)
       copyMem(addr(ctx.buffer[offset]),
               cast[pointer](cast[uint](data) + pos), size)
       pos = pos + size
       length = length - size
-      ctx.count[0] += uint64(size)
-      if ctx.count[0] < uint64(size):
+      ctx.count[0] += cast[uint64](size)
+      if ctx.count[0] < cast[uint64](size):
         ctx.count[1] += 1'u64
       if (ctx.count[0] and 0x7F) == 0:
         sha512Transform(ctx.state, addr(ctx.buffer[0]))
@@ -486,7 +486,7 @@ proc update*[T: bchar](ctx: var Sha2Context, data: openarray[T]) =
   if len(data) == 0:
     ctx.update(nil, 0)
   else:
-    ctx.update(cast[ptr byte](unsafeAddr data[0]), uint(len(data)))
+    ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
 
 proc finalize256(ctx: var Sha2Context) =
   var buffer = addr(ctx.buffer[0])
@@ -561,12 +561,12 @@ proc finish*(ctx: var Sha2Context, pBytes: ptr byte, nBytes: uint): uint =
       SET_QWORD(pBytes, 0, LSWAP(ctx.state[0]))
       SET_QWORD(pBytes, 1, LSWAP(ctx.state[1]))
       SET_QWORD(pBytes, 2, LSWAP(ctx.state[2]))
-      SET_DWORD(pBytes, 6, LSWAP(ctx.state[3]).uint32)
+      SET_DWORD(pBytes, 6, cast[uint32](LSWAP(ctx.state[3])))
 
 proc finish*(ctx: var Sha2Context): MDigest[ctx.bits] =
   discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 uint(len(result.data)))
+                 cast[uint](len(result.data)))
 
 proc finish*[T: bchar](ctx: var Sha2Context, data: var openarray[T]) =
-  assert(uint(len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), uint(len(data)))
+  assert(cast[uint](len(data)) >= ctx.sizeDigest)
+  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))

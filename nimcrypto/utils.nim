@@ -24,20 +24,20 @@ proc ROR*[T: uint32|uint64](x: T, n: int): T {.inline.} =
     result = (x shr T(n and 0x3F)) or (x shl T(8 * sizeof(T) - (n and 0x3F)))
 
 template GETU32*(p, o): uint32 =
-  (uint32(cast[ptr byte](cast[uint](p) + o)[]) shl 24) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 16) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 8) xor
-    (uint32(cast[ptr byte](cast[uint](p) + (o + 3))[]))
+  (cast[uint32](cast[ptr byte](cast[uint](p) + o)[]) shl 24) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 16) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 8) xor
+    (cast[uint32](cast[ptr byte](cast[uint](p) + (o + 3))[]))
 
 template GETU64*(p, o): uint64 =
-  (uint64(cast[ptr byte](cast[uint](p) + o)[]) shl 56) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 48) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 40) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 32) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 24) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 16) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 8) xor
-    (uint64(cast[ptr byte](cast[uint](p) + (o + 7))[]))
+  (cast[uint64](cast[ptr byte](cast[uint](p) + o)[]) shl 56) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 1))[]) shl 48) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 2))[]) shl 40) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 3))[]) shl 32) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 4))[]) shl 24) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 5))[]) shl 16) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 6))[]) shl 8) xor
+    (cast[uint64](cast[ptr byte](cast[uint](p) + (o + 7))[]))
 
 template PUTU32*(p, o, v) =
   cast[ptr byte](cast[uint](p) + o)[] = cast[byte](v shr 24)
@@ -71,13 +71,13 @@ when cpuEndian == bigEndian:
   template LSWAP*[T: uint32|uint64](x: T): T =
     x
   template EGETU32*(p, o): uint32 =
-    cast[ptr uint32]((cast[uint](p) + uint(o)))[]
+    cast[ptr uint32]((cast[uint](p) + cast[uint](o)))[]
   template EPUTU32*(p, o, v) =
-    cast[ptr uint32]((cast[uint](p) + uint(o)))[] = v
+    cast[ptr uint32]((cast[uint](p) + cast[uint](o)))[] = v
   template EGETU64*(p, o): uint64 =
-    cast[ptr uint64]((cast[uint](p) + uint(o)))[]
+    cast[ptr uint64]((cast[uint](p) + cast[uint](o)))[]
   template EPUTU64*(p, o, v) =
-    cast[ptr uint64]((cast[uint](p) + uint(o)))[] = v
+    cast[ptr uint64]((cast[uint](p) + cast[uint](o)))[] = v
 else:
   template BSWAP*[T: uint32|uint64](x: T): T =
     x
@@ -103,32 +103,41 @@ else:
     PUTU64(p, o, v)
 
 template GET_DWORD*(p: ptr byte, i: int): uint32 =
-  cast[ptr uint32](cast[uint](p) + (sizeof(uint32) * i).uint)[]
+  cast[ptr uint32](cast[uint](p) + cast[uint](sizeof(uint32) * i))[]
 
 template SET_DWORD*(p: ptr byte, i: int, v: uint32) =
-  cast[ptr uint32](cast[uint](p) + (sizeof(uint32) * i).uint)[] = v
+  cast[ptr uint32](cast[uint](p) + cast[uint](sizeof(uint32) * i))[] = v
 
 template GET_QWORD*(p: ptr byte, i: int): uint64 =
-  cast[ptr uint64](cast[uint](p) + (sizeof(uint64) * i).uint)[]
+  cast[ptr uint64](cast[uint](p) + cast[uint](sizeof(uint64) * i))[]
 
 template SET_QWORD*(p: ptr byte, i: int, v: uint64) =
-  cast[ptr uint64](cast[uint](p) + (sizeof(uint64) * i).uint)[] = v
+  cast[ptr uint64](cast[uint](p) + cast[uint](sizeof(uint64) * i))[] = v
 
 template GETU8*(p, o): byte =
-  cast[ptr byte](cast[uint](p) + uint(o))[]
+  cast[ptr byte](cast[uint](p) + cast[uint](o))[]
 
 template PUTU8*(p, o, v) =
-  cast[ptr byte](cast[uint](p) + uint(o))[] = v
+  cast[ptr byte](cast[uint](p) + cast[uint](o))[] = v
+
+template skip0xPrefix(hexStr: string): int =
+  ## Returns the index of the first meaningful char in `hexStr` by skipping
+  ## "0x" prefix
+  if hexStr.len == 0: 0
+  elif hexStr[0] == '0' and hexStr[1] in {'x', 'X'}: 2
+  else: 0
 
 proc hexToBytes*(a: string, result: var openarray[byte]) =
-  doAssert(len(a) == 2 * len(result))
-  var i = 0
+  let offset = skip0xPrefix(a)
+  let length = len(a) - offset
+  doAssert(length == 2 * len(result))
+  var i = offset
   var k = 0
   var r = 0
-  if len(a) > 0:
+  if length > 0:
     while i < len(a):
       let c = a[i]
-      if i != 0 and i %% 2 == 0:
+      if i != offset and i %% 2 == 0:
         result[k] = r.byte
         r = 0
         inc(k)
@@ -142,7 +151,7 @@ proc hexToBytes*(a: string, result: var openarray[byte]) =
       of '0'..'9':
         r = r or (ord(c) - ord('0'))
       else:
-        doAssert(false)
+        doAssert(false, "Unexpected non-hex character \"" & $c & "\"")
       inc(i)
     result[k] = r.byte
 
@@ -151,7 +160,8 @@ proc fromHex*(a: string): seq[byte] =
   if len(a) == 0:
     result = newSeq[byte]()
   else:
-    result = newSeq[byte](len(a) div 2)
+    let offset = skip0xPrefix(a)
+    result = newSeq[byte]((len(a) - offset) div 2)
     hexToBytes(a, result)
 
 proc hexChar*(c: byte, lowercase: bool = false): string =
@@ -177,7 +187,7 @@ proc toHex*(a: openarray[byte], lowercase: bool = false): string =
 
 proc stripSpaces*(s: string): string =
   result = ""
-  let allowed:set[char] = {'A'..'Z', 'a'..'z', '0'..'9'}
+  const allowed:set[char] = {'A'..'Z', 'a'..'z', '0'..'9'}
   for i in s:
     if i in allowed:
       result &= i
@@ -225,3 +235,67 @@ proc isFullZero*[T](a: openarray[T]): bool {.inline.} =
 
 proc isFullZero*[T](a: T): bool {.inline.} =
   result = isFullZero(unsafeAddr a, sizeof(T))
+
+proc lit64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
+  ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
+  ## stored in little-endian order.
+  when cpuEndian == bigEndian:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    result = cast[uint64](pp[offset + 0] shl 56) or
+             cast[uint64](pp[offset + 1] shl 48) or
+             cast[uint64](pp[offset + 2] shl 40) or
+             cast[uint64](pp[offset + 3] shl 32) or
+             cast[uint64](pp[offset + 4] shl 24) or
+             cast[uint64](pp[offset + 5] shl 16) or
+             cast[uint64](pp[offset + 6] shl 8) or
+             cast[uint64](pp[offset + 7])
+  elif cpuEndian == littleEndian:
+    result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
+
+proc big64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
+  ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
+  ## stored in big-endian order.
+  when cpuEndian == bigEndian:
+    result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
+  else:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    result = cast[uint64](pp[offset + 0] shl 56) or
+             cast[uint64](pp[offset + 1] shl 48) or
+             cast[uint64](pp[offset + 2] shl 40) or
+             cast[uint64](pp[offset + 3] shl 32) or
+             cast[uint64](pp[offset + 4] shl 24) or
+             cast[uint64](pp[offset + 5] shl 16) or
+             cast[uint64](pp[offset + 6] shl 8) or
+             cast[uint64](pp[offset + 7])
+
+proc cpuToLit64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
+  ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
+  ## little-endian order.
+  when cpuEndian == bigEndian:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    pp[0] = cast[byte](v shr 56)
+    pp[1] = cast[byte](v shr 48)
+    pp[2] = cast[byte](v shr 40)
+    pp[3] = cast[byte](v shr 32)
+    pp[4] = cast[byte](v shr 24)
+    pp[5] = cast[byte](v shr 16)
+    pp[6] = cast[byte](v shr 8)
+    pp[7] = cast[byte](v)
+  elif cpuEndian == littleEndian:
+    cast[ptr uint64](cast[uint](p) + cast[uint](offset))[] = v
+
+proc cpuToBig64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
+  ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
+  ## big-endian order.
+  when cpuEndian == bigEndian:
+    cast[ptr uint64](cast[uint](p) + cast[uint](offset))[] = v
+  elif cpuEndian == littleEndian:
+    var pp = cast[ptr UncheckedArray[byte]](p)
+    pp[0] = cast[byte](v shr 56)
+    pp[1] = cast[byte](v shr 48)
+    pp[2] = cast[byte](v shr 40)
+    pp[3] = cast[byte](v shr 32)
+    pp[4] = cast[byte](v shr 24)
+    pp[5] = cast[byte](v shr 16)
+    pp[6] = cast[byte](v shr 8)
+    pp[7] = cast[byte](v)

@@ -1,3 +1,4 @@
+## Sysrand
 
 This module implements interface to operation system's random number generator.
 

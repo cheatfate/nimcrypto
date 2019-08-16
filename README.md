@@ -2,6 +2,8 @@
 
 # Nim cryptographic library
 
+See documentation at [Nimbus Libs](https://nimbus-libs.status.im).
+
 ## Introduction
 
 Nimcrypto is Nim's cryptographic library. It implements several popular cryptographic algorithms and their tests with some [examples](https://github.com/cheatfate/nimcrypto/tree/master/examples).

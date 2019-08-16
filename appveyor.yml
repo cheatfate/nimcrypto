@@ -3,6 +3,8 @@ version: '{build}'
 cache:
 - x86_64-4.9.2-release-win32-seh-rt_v4-rev4.7z
 - i686-4.9.2-release-win32-dwarf-rt_v4-rev4.7z
+- sqlite-dll-win64-x64-3290000.zip
+- sqlite-dll-win32-x86-3290000.zip
 
 matrix:
   fast_finish: true # set this flag to immediately finish build once one of the jobs fails.
@@ -12,17 +14,23 @@ environment:
     - MINGW_DIR: mingw64
       MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.9.2/threads-win32/seh/x86_64-4.9.2-release-win32-seh-rt_v4-rev4.7z/download
       MINGW_ARCHIVE: x86_64-4.9.2-release-win32-seh-rt_v4-rev4.7z
+      SQLITE_URL: https://www.sqlite.org/2019/sqlite-dll-win64-x64-3290000.zip
+      SQLITE_ARCHIVE: sqlite-dll-win64-x64-3290000.zip
       platform: x64
     - MINGW_DIR: mingw32
       MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.2/threads-win32/dwarf/i686-4.9.2-release-win32-dwarf-rt_v4-rev4.7z/download
       MINGW_ARCHIVE: i686-4.9.2-release-win32-dwarf-rt_v4-rev4.7z
+      SQLITE_URL: https://www.sqlite.org/2019/sqlite-dll-win32-x86-3290000.zip
+      SQLITE_ARCHIVE: sqlite-dll-win32-x86-3290000.zip
       platform: x86
 
 install:
   - IF not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
+  - IF not exist "%SQLITE_ARCHIVE%" appveyor DownloadFile "%SQLITE_URL%" -FileName "%SQLITE_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
   - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\Nim\bin;%PATH%
   - git clone https://github.com/nim-lang/Nim.git %CD%\Nim
+  - 7z x -y "%SQLITE_ARCHIVE%" -o"%CD%\Nim\bin" > nul
   - cd %CD%\Nim
   - git clone --depth 1 https://github.com/nim-lang/csources
   - cd csources

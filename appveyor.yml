@@ -33,7 +33,7 @@ install:
   - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\Nim\bin;%PATH%
   - git clone https://github.com/nim-lang/Nim.git %CD%\Nim
   - 7z x -y "%SQLITE_ARCHIVE%" -o"%CD%\Nim\bin" > nul
-  - RENAME "%CD%\Nim\bin\sqlite3.dll" "%CD%\Nim\bin\%SQLITE_NAME%"
+  - RENAME "%CD%\Nim\bin\sqlite3.dll" "%SQLITE_NAME%"
   - cd %CD%\Nim
   - git clone --depth 1 https://github.com/nim-lang/csources
   - cd csources

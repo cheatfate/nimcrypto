@@ -24,7 +24,7 @@ echo keccak_256.digest("Alice makes a hash")
 # outputs EF0CC652868DF797522FB1D5A39E58E069154D9E47E5D7DB288B7200DB6EDFEE
 ```
 
-## Docs
+## Documentation
 
 For usage examples of the below algorithm implementations see each module's individual page.
 

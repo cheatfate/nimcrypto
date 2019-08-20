@@ -2,8 +2,6 @@
 
 # Nim cryptographic library
 
-See documentation at [Nimbus Libs](https://nimbus-libs.status.im).
-
 ## Introduction
 
 Nimcrypto is Nim's cryptographic library. It implements several popular cryptographic algorithms and their tests with some [examples](https://github.com/cheatfate/nimcrypto/tree/master/examples).
@@ -26,7 +24,7 @@ echo keccak_256.digest("Alice makes a hash")
 
 ## Documentation
 
-For usage examples of the below algorithm implementations see each module's individual page.
+For usage examples of the below algorithm implementations see each module's individual page. In depth documentation also available at [Nimbus Libs](https://nimbus-libs.status.im).
 
 ### [nimcrypto/hash](docs/hash.md)
 

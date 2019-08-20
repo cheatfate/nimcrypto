@@ -6,7 +6,7 @@ See documentation at [Nimbus Libs](https://nimbus-libs.status.im).
 
 ## Introduction
 
-Nimcrypto is Nim's cryptographic library FOOBAR FOO FOO. It implements several popular cryptographic algorithms and their tests with some [examples](https://github.com/cheatfate/nimcrypto/tree/master/examples).
+Nimcrypto is Nim's cryptographic library. It implements several popular cryptographic algorithms and their tests with some [examples](https://github.com/cheatfate/nimcrypto/tree/master/examples).
   
 Most notably, this library has been used in the [Nimbus Ethereum client](https://our.status.im/nimbus-for-newbies/). To see the implementation, check out its [Github repository](https://github.com/status-im/nimbus).
 

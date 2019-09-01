@@ -17,4 +17,4 @@ before_script:
   - cd ..
 script:
   - nimble install -y --verbose
-  - nimble tests
+  - nimble test

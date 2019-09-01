@@ -46,6 +46,6 @@ build_script:
   - cd C:\projects\nimcrypto
   - nimble install -y --verbose
 test_script:
-  - nimble tests
+  - nimble test
 
 deploy: off

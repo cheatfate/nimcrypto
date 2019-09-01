@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.3.9"
+version       = "0.4.0"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"
@@ -12,49 +12,30 @@ requires "nim > 0.18.0"
 
 # Tests
 
-task tests, "Runs the test suite":
-  let testFiles = @[
-      "testkeccak",
-      "testsha1",
-      "testsha2",
-      "testripemd",
-      "testblake2",
-      "testhmac",
-      "testrijndael",
-      "testtwofish",
-      "testblowfish",
-      "testbcmode",
-      "testsysrand",
-      "testkdf",
-      "testapi",
-      "testutils",
-    ]
+task test, "Runs the test suite":
   let testCommands = @[
-      "nim c -f -r tests/",
-      "nim c -f -d:release -r tests/",
-      "nim c -f -d:release --threads:on -r tests/",
-    ]
+    "nim c -f -r tests/",
+    "nim c -f -d:release -r tests/",
+    "nim c -f -d:release --threads:on -r tests/",
+  ]
   let exampleFiles = @[
-      "ecb",
-      "cbc",
-      "ofb",
-      "cfb",
-      "ctr",
-      "gcm",
-    ]
+    "ecb", "cbc", "ofb", "cfb", "ctr", "gcm"
+  ]
   let exampleCommands = @[
-      "nim c -f -r examples/",
       "nim c -f -r --threads:on examples/",
-    ]
+  ]
 
-  for tfile in testFiles:
-    for cmd in testCommands:
-      echo "\n" & cmd & tfile
-      exec cmd & tfile
-      rmFile("tests/" & tfile.toExe())
+  for cmd in testCommands:
+    echo "\n" & cmd & "testall.nim"
+    exec cmd & "testall.nim"
+    rmFile("tests/testall.nim".toExe())
+
   for efile in exampleFiles:
     for cmd in exampleCommands:
       echo "\n" & cmd & efile
       exec cmd & efile
       rmFile("examples/" & efile.toExe())
 
+  exec("nim c -f -r -d:nimcryptoLowercase tests/testapi")
+  exec("nim c -f -r -d:nimcrypto0xPrefix tests/testapi")
+  exec("nim c -f -r -d:nimcrypto0xPrefix -d:nimcryptoLowercase tests/testapi")

@@ -2,40 +2,40 @@ import nimcrypto/hash, nimcrypto/keccak, nimcrypto/utils
 from strutils import parseInt
 import unittest
 
-type
-  TestVector = object
-    length: int
-    message: string
-    digest: string
-
-iterator testVectors(filename: string): TestVector =
-  var state = 0
-  var vector = TestVector()
-  var file = open(filename)
-  while not endOfFile(file):
-    var line = file.readLine()
-    if len(line) > 0:
-      if line[0..5] == "Len = ":
-        let lstr = line[6..(len(line) - 1)]
-        vector.length = parseInt(lstr)
-        inc(state)
-      elif line[0..5] == "Msg = ":
-        let mstr = line[6..(len(line) - 1)]
-        vector.message = mstr
-        inc(state)
-      elif line[0..4] == "MD = ":
-        let dstr = line[5..(len(line) - 1)]
-        vector.digest = dstr
-        inc(state)
-    if state == 3:
-      state = 0
-      yield vector
-      vector = TestVector()
-  close(file)
-
 suite "KECCAK/SHA3 Tests":
   ## KECCAK TESTS
   ## This tests performed only for full byte message value
+
+  type
+    TestVector = object
+      length: int
+      message: string
+      digest: string
+
+  iterator testVectors(filename: string): TestVector =
+    var state = 0
+    var vector = TestVector()
+    var file = open(filename)
+    while not endOfFile(file):
+      var line = file.readLine()
+      if len(line) > 0:
+        if line[0..5] == "Len = ":
+          let lstr = line[6..(len(line) - 1)]
+          vector.length = parseInt(lstr)
+          inc(state)
+        elif line[0..5] == "Msg = ":
+          let mstr = line[6..(len(line) - 1)]
+          vector.message = mstr
+          inc(state)
+        elif line[0..4] == "MD = ":
+          let dstr = line[5..(len(line) - 1)]
+          vector.digest = dstr
+          inc(state)
+      if state == 3:
+        state = 0
+        yield vector
+        vector = TestVector()
+    close(file)
 
   var kec224: keccak224
   var kec256: keccak256

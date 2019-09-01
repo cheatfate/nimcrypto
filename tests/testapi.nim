@@ -1,8 +1,7 @@
-import unittest
+import unittest, strutils
 import nimcrypto/[hash, keccak, sha2, ripemd, blake2]
 
 suite "Test API":
-
   proc hashProc(T: typedesc, input: string, output: var openArray[byte]) =
     var ctx: T
     ctx.init()
@@ -19,15 +18,15 @@ suite "Test API":
 
   test "Digests from strings":
     var h = keccak256.digest("")
-    
+
     check:
       h == "C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470".toDigest
       h == "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470".toDigest
       h == MDigest[256].fromHex("C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470")
-  
+
     template rejectDigest(x) =
       assert(not compiles(x.toDigest))
-      
+
       expect AssertionError:
         var h = MDigest[256].fromHex(x)
 
@@ -58,3 +57,25 @@ suite "Test API":
     h5.data[0] = 0x01'u8
     check:
       h5 != h6
+
+  test "Compile time options test":
+    when defined(nimcryptoLowercase) and defined(nimcrypto0xPrefix):
+      const vector = """
+        0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470
+      """
+    elif defined(nimcryptoLowercase):
+      const vector = """
+        c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470
+      """
+    elif defined(nimcrypto0xPrefix):
+      const vector = """
+        0xC5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470
+      """
+    else:
+      const vector = """
+        C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470
+      """
+    var h = keccak256.digest("")
+    echo $h
+    check $h == strip(vector)
+

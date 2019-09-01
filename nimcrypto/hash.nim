@@ -16,6 +16,12 @@ import utils
 const
   MaxMDigestLength* = 64
     ## Maximum size of generated digests by `nimcrypto` library is 64 octets.
+  NimcryptoHexLowercase* = defined(nimcryptoLowercase)
+    ## Compile your project with ``-d:nimcryptoLowercase`` to set all
+    ## hexadecimal output in lowercase digits.
+  Nimcrypto0xPrefix* = defined(nimcrypto0xPrefix)
+    ## Compile your project with ``-d:nimcrypto0xPrefix`` to set all
+    ## hexadecimal output to be prefixed with ``0x``.
 
 type
   MDigest*[bits: static[int]] = object
@@ -32,11 +38,32 @@ proc `$`*(digest: MDigest): string =
   ##
   ##    var digestHexString = $sha256.digest("Hello World!")
   ##    echo digestHexString
-  result = ""
-  var i = 0'u
-  while i < uint(len(digest.data)):
-    result &= hexChar(cast[byte](digest.data[i]))
-    inc(i)
+  when Nimcrypto0xPrefix:
+    result = newString(len(digest.data) * 2 + 2)
+    result[0] = '0'
+    result[1] = 'x'
+    let offset = 2
+  else:
+    result = newString(len(digest.data) * 2)
+    let offset = 0
+
+  when NimcryptoHexLowercase:
+    let alpha = ord('a')
+  else:
+    let alpha = ord('A')
+
+  for i in 0..<len(digest.data):
+    let c = digest.data[i]
+    let t1 = ord(c) shr 4
+    let t0 = ord(c) and 0x0F
+    let i0 = offset + i * 2
+    let i1 = offset + i * 2 + 1
+    case t1
+      of 0..9: result[i0] = chr(t1 + ord('0'))
+      else: result[i0] = chr(t1 - 10 + alpha)
+    case t0:
+      of 0..9: result[i1] = chr(t0 + ord('0'))
+      else: result[i1] = chr(t0 - 10 + alpha)
 
 proc digest*(HashType: typedesc, data: ptr byte,
              ulen: uint): MDigest[HashType.bits] =

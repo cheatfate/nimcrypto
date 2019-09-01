@@ -26,9 +26,9 @@ task test, "Runs the test suite":
   ]
 
   for cmd in testCommands:
-    echo "\n" & cmd & "testall.nim"
-    exec cmd & "testall.nim"
-    rmFile("tests/testall.nim".toExe())
+    echo "\n" & cmd & "testall"
+    exec cmd & "testall"
+    rmFile("tests/testall".toExe())
 
   for efile in exampleFiles:
     for cmd in exampleCommands:

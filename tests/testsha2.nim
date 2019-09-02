@@ -1,6 +1,8 @@
 import nimcrypto/hash, nimcrypto/sha2, nimcrypto/utils
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "SHA2 Tests":
   const
     code224 = [

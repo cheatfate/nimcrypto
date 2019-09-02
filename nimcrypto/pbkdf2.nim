@@ -9,7 +9,7 @@
 
 ## This module implements PBKDF2 (Password-Based Key Derivation Function 2)
 ## [https://tools.ietf.org/html/rfc2898#section-5.2]
-## 
+##
 ## Tests for PBKDF2-HMAC-SHA224/256/384/512 made according to
 ## [https://github.com/Anti-weakpasswords/PBKDF2-Test-Vectors/releases]
 
@@ -18,20 +18,20 @@ import hmac
 proc pbkdf2*[T](ctx: var HMAC[T], password: string, salt: string, c: int,
                 output: var openarray[byte], outlen: int = -1): int =
   ## Calculate PBKDF2 result using HMAC algorithm `ctx`.
-  ## 
+  ##
   ## ``ctx``      - HMAC[T] context
   ## ``password`` - password string
   ## ``salt``     - salt string
   ## ``c``        - number of iterations
   ## ``output``   - array of bytes where result will be stored.
   ## ``outlen``   - length of bytes to be stored (-1 default, whole `output`)
-  ## 
+  ##
   ## Returns number of bytes stored on success, or 0 on error.
   mixin init, update, finish
   var
     counter: array[4, byte]
-    work: array[ctx.sizeDigest, byte]
-    md: array[ctx.sizeDigest, byte]
+    work: array[int(ctx.sizeDigest), byte]
+    md: array[int(ctx.sizeDigest), byte]
     ctr: uint32
     glength: int
     olength: int

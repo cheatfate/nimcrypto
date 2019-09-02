@@ -1,6 +1,8 @@
 import nimcrypto/hash, nimcrypto/blake2, nimcrypto/utils
 import unittest, json
 
+when defined(nimHasUsed): {.used.}
+
 suite "BLAKE2B/BLAKE2S Tests":
 
   test "BLAKE2B/BLAKE2S 224/256/384/512 block sizes":

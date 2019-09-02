@@ -1,6 +1,8 @@
 import nimcrypto/utils, nimcrypto/bcmode, nimcrypto/rijndael
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "Block cipher modes Tests":
 
   const

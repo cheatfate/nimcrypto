@@ -1,6 +1,8 @@
 import unittest, strutils
 import nimcrypto/[hash, keccak, sha2, ripemd, blake2]
 
+when defined(nimHasUsed): {.used.}
+
 suite "Test API":
   proc hashProc(T: typedesc, input: string, output: var openArray[byte]) =
     var ctx: T

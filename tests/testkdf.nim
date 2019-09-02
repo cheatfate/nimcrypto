@@ -2,6 +2,8 @@ import nimcrypto/pbkdf2, nimcrypto/hmac, nimcrypto/sha2, nimcrypto/utils
 import nimcrypto/sha
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
 
   const

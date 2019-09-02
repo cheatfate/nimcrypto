@@ -1,6 +1,8 @@
 import nimcrypto/twofish, nimcrypto/utils
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 ## Tests made according to official test vectors
 ## [https://www.schneier.com/code/ecb_ival.txt].
 

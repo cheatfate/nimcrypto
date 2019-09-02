@@ -1,6 +1,8 @@
 import nimcrypto/rijndael, nimcrypto/utils
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 ## Tests made according to official test vectors (Appendix B and Appendix C)
 ## [http://csrc.nist.gov/groups/STM/cavp/documents/aes/AESAVS.pdf].
 

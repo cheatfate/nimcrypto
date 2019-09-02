@@ -1,6 +1,8 @@
 import nimcrypto/sysrand, nimcrypto/utils
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "OS random source Tests":
   test "Availability test":
     var buffer: array[1024, uint8]

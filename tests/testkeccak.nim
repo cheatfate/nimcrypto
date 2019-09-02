@@ -2,6 +2,8 @@ import nimcrypto/hash, nimcrypto/keccak, nimcrypto/utils
 from strutils import parseInt
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "KECCAK/SHA3 Tests":
   ## KECCAK TESTS
   ## This tests performed only for full byte message value

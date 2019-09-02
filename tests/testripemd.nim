@@ -1,6 +1,8 @@
 import nimcrypto/hash, nimcrypto/utils, nimcrypto/ripemd
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "RipeMD Tests":
 
   const vectors = [

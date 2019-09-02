@@ -3,6 +3,8 @@ import nimcrypto/sha2, nimcrypto/ripemd, nimcrypto/keccak
 import nimcrypto/sha
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "HMAC Tests":
   # SHA1 test vectors
   # https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/HMAC_SHA1.pdf

@@ -1,6 +1,8 @@
 import nimcrypto/hash, nimcrypto/sha, nimcrypto/utils
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 suite "SHA1 Tests":
 
   const

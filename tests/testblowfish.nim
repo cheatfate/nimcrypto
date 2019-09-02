@@ -1,6 +1,8 @@
 import nimcrypto/blowfish, nimcrypto/utils
 import unittest
 
+when defined(nimHasUsed): {.used.}
+
 ## Tests made according to official test vectors by Eric Young
 ## [https://www.schneier.com/code/vectors.txt] and adopted version by
 ## Randy L. Milbert [https://www.schneier.com/code/vectors2.txt], except

@@ -80,7 +80,7 @@ template sizeDigest*(r: typedesc[sha1]): int =
 template sizeBlock*(r: typedesc[sha1]): int =
   (512 div 8)
 
-proc init*(ctx: var Sha1Context) =
+proc init*(ctx: var Sha1Context) {.inline.} =
   ctx.size = 0'u64
   ctx.h[0] = 0x67452301'u32
   ctx.h[1] = 0xEFCDAB89'u32
@@ -192,6 +192,9 @@ proc sha1Transform(ctx: var Sha1Context, blk: ptr byte) {.noinit.} =
 
 proc clear*(ctx: var Sha1Context) {.inline.} =
   burnMem(ctx)
+
+proc reset*(ctx: var Sha1Context) {.inline.} =
+  init(ctx)
 
 proc update*(ctx: var Sha1Context, pBytes: ptr byte, nBytes: uint) =
   var lenw = ctx.size and 63

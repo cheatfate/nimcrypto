@@ -620,7 +620,7 @@ template sizeDigest*(r: typedesc[ripemd]): int =
 template sizeBlock*(r: typedesc[ripemd]): int =
   (64)
 
-proc init*(ctx: var RipemdContext) =
+proc init*(ctx: var RipemdContext) {.inline.} =
   ctx.count[0] = 0
   ctx.count[1] = 0
 
@@ -660,6 +660,9 @@ proc init*(ctx: var RipemdContext) =
 
 proc clear*(ctx: var RipemdContext) {.inline.} =
   burnMem(ctx)
+
+proc reset*(ctx: var RipemdContext) {.inline.} =
+  init(ctx)
 
 proc update*(ctx: var RipemdContext, data: ptr byte, ulen: uint) =
   var pos = 0'u

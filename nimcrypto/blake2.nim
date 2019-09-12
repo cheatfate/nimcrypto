@@ -25,12 +25,20 @@ type
     h: array[8, uint64]
     t: array[2, uint64]
     c: int
+    bb: array[128, byte]
+    hb: array[8, uint64]
+    tb: array[2, uint64]
+    cb: int
 
   Blake2sContext[bits: static[int]] = object
     b: array[64, byte]
     h: array[8, uint32]
     t: array[2, uint32]
     c: int
+    bb: array[64, byte]
+    hb: array[8, uint32]
+    tb: array[2, uint32]
+    cb: int
 
   Blake2Context* = Blake2sContext | Blake2bContext
 
@@ -330,7 +338,8 @@ proc finish*[T: bchar](ctx: var Blake2Context, data: var openarray[T]) =
   assert(cast[uint](len(data)) >= ctx.sizeDigest)
   discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
 
-proc init*(ctx: var Blake2Context, key: ptr byte = nil, keylen: uint = 0'u) =
+proc init*(ctx: var Blake2Context, key: ptr byte = nil,
+           keylen: uint = 0'u) {.inline.} =
   when ctx is Blake2sContext:
     zeroMem(addr ctx.b[0], sizeof(byte) * 64)
     ctx.h[0] = B2SIV[0]; ctx.h[1] = B2SIV[1]
@@ -357,6 +366,12 @@ proc init*(ctx: var Blake2Context, key: ptr byte = nil, keylen: uint = 0'u) =
     ctx.update(key, keylen)
     ctx.c = int(ctx.sizeBlock)
 
+  copyMem(addr ctx.bb, addr ctx.b, sizeof(ctx.b))
+  copyMem(addr ctx.hb, addr ctx.h, sizeof(ctx.h))
+  ctx.tb[0] = ctx.t[0]
+  ctx.tb[1] = ctx.t[1]
+  ctx.cb = ctx.c
+
 proc init*[T: bchar](ctx: var Blake2Context, key: openarray[T]) {.inline.} =
   if len(key) == 0:
     ctx.init()
@@ -365,3 +380,10 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openarray[T]) {.inline.} =
 
 proc clear*(ctx: var Blake2Context) {.inline.} =
   burnMem(ctx)
+
+proc reset*(ctx: var Blake2Context) {.inline.} =
+  copyMem(addr ctx.b, addr ctx.bb, sizeof(ctx.b))
+  copyMem(addr ctx.h, addr ctx.hb, sizeof(ctx.h))
+  ctx.t[0] = ctx.tb[0]
+  ctx.t[1] = ctx.tb[1]
+  ctx.c = ctx.cb

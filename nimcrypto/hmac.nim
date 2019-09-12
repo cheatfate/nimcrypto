@@ -69,6 +69,7 @@ type
     ## HMAC context object.
     mdctx: HashType
     opadctx: HashType
+    ipad: array[MaxHmacBlockSize, byte]
 
 template sizeBlock*(h: HMAC[Sha2Context]): uint =
   ## Size of processing block in octets (bytes), while perform HMAC
@@ -134,7 +135,6 @@ proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
   ## ``key`` can be ``nil``.
   mixin init, update, finish
   var k: array[MaxHmacBlockSize, byte]
-  var ipad: array[MaxHmacBlockSize, byte]
   var opad: array[MaxHmacBlockSize, byte]
   const sizeBlock = hmctx.sizeBlock
 
@@ -152,10 +152,10 @@ proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
 
   for i in 0..<int(sizeBlock):
     opad[i] = 0x5C'u8 xor k[i]
-    ipad[i] = 0x36'u8 xor k[i]
+    hmctx.ipad[i] = 0x36'u8 xor k[i]
 
   init(hmctx.mdctx)
-  update(hmctx.mdctx, addr ipad[0], sizeBlock)
+  update(hmctx.mdctx, addr hmctx.ipad[0], sizeBlock)
   update(hmctx.opadctx, addr opad[0], sizeBlock)
 
 proc init*[T](hmctx: var HMAC[T], key: openarray[byte]) {.inline.} =
@@ -179,6 +179,11 @@ proc init*[T](hmctx: var HMAC[T], key: openarray[char]) {.inline.} =
 proc clear*(hmctx: var HMAC) =
   ## Clear HMAC context ``hmctx``.
   burnMem(hmctx)
+
+proc reset*(hmctx: var HMAC) =
+  ## Reset HMAC context ``hmctx`` to initial state.
+  hmctx.mdctx.reset()
+  update(hmctx.mdctx, addr hmctx.ipad[0], hmctx.sizeBlock)
 
 proc update*(hmctx: var HMAC, data: ptr byte, ulen: uint) =
   ## Update HMAC context ``hmctx`` with data pointed by ``data`` and length

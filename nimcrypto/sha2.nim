@@ -134,7 +134,7 @@ template sizeBlock*(r: typedesc[sha2]): int =
   else:
     (128)
 
-proc init*(ctx: var Sha2Context) =
+proc init*(ctx: var Sha2Context) {.inline.} =
   ctx.count[0] = 0
   ctx.count[1] = 0
   when ctx.bits == 224 and ctx.bsize == 64:
@@ -194,6 +194,9 @@ proc init*(ctx: var Sha2Context) =
 
 proc clear*(ctx: var Sha2Context) {.inline.} =
   burnMem(ctx)
+
+proc reset*(ctx: var Sha2Context) {.inline.} =
+  init(ctx)
 
 when not smallCode:
   template ROUND256(a, b, c, d, e, f, g, h, z) =

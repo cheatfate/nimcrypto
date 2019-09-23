@@ -70,6 +70,7 @@ type
     mdctx: HashType
     opadctx: HashType
     ipad: array[MaxHmacBlockSize, byte]
+    opad: array[MaxHmacBlockSize, byte]
 
 template sizeBlock*(h: HMAC[Sha2Context]): uint =
   ## Size of processing block in octets (bytes), while perform HMAC
@@ -151,12 +152,12 @@ proc init*[T](hmctx: var HMAC[T], key: ptr byte, ulen: uint) =
       if ulen > 0'u: copyMem(addr k[0], key, ulen)
 
   for i in 0..<int(sizeBlock):
-    opad[i] = 0x5C'u8 xor k[i]
+    hmctx.opad[i] = 0x5C'u8 xor k[i]
     hmctx.ipad[i] = 0x36'u8 xor k[i]
 
   init(hmctx.mdctx)
   update(hmctx.mdctx, addr hmctx.ipad[0], sizeBlock)
-  update(hmctx.opadctx, addr opad[0], sizeBlock)
+  update(hmctx.opadctx, addr hmctx.opad[0], sizeBlock)
 
 proc init*[T](hmctx: var HMAC[T], key: openarray[byte]) {.inline.} =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` array.
@@ -183,7 +184,9 @@ proc clear*(hmctx: var HMAC) =
 proc reset*(hmctx: var HMAC) =
   ## Reset HMAC context ``hmctx`` to initial state.
   hmctx.mdctx.reset()
+  hmctx.opadctx.reset()
   update(hmctx.mdctx, addr hmctx.ipad[0], hmctx.sizeBlock)
+  update(hmctx.opadctx, addr hmctx.opad[0], hmctx.sizeBlock)
 
 proc update*(hmctx: var HMAC, data: ptr byte, ulen: uint) =
   ## Update HMAC context ``hmctx`` with data pointed by ``data`` and length

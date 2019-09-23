@@ -642,13 +642,27 @@ suite "HMAC Tests":
     hctx2.update(ptrToHmac, toHmacLen)
     var md1 = hctx1.finish()
     var md2 = hctx2.finish()
+    hctx1.reset()
+    hctx2.reset()
+    hctx1.update(stringToHmac)
+    hctx1.update(stringToHmac)
+    hctx2.update(ptrToHmac, toHmacLen)
+    hctx2.update(ptrToHmac, toHmacLen)
+    var md3 = hctx1.finish()
+    var md4 = hctx2.finish()
     hctx1.clear()
     hctx2.clear()
-    var md3 = sha256.hmac(stringHmacKey, stringToHmac & stringToHmac)
+    var md5 = sha256.hmac(stringHmacKey, stringToHmac & stringToHmac)
     check:
-     $md1 == $md2
-     $md1 == $md3
-     md1 == md2
-     md1 == md3
-     hctx1.isFullZero() == true
-     hctx2.isFullZero() == true
+      $md1 == $md1
+      $md1 == $md2
+      $md1 == $md3
+      $md1 == $md4
+      $md1 == $md5
+      md1 == md1
+      md1 == md2
+      md1 == md3
+      md1 == md4
+      md1 == md5
+      hctx1.isFullZero() == true
+      hctx2.isFullZero() == true

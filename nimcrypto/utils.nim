@@ -299,3 +299,99 @@ proc cpuToBig64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
     pp[5] = cast[byte](v shr 16)
     pp[6] = cast[byte](v shr 8)
     pp[7] = cast[byte](v)
+
+when defined(gcc) or defined(llvm_gcc) or defined(clang):
+  func swapBytesBuiltin(x: uint8): uint8 = x
+  func swapBytesBuiltin(x: uint16): uint16 {.
+      importc: "__builtin_bswap16", nodecl.}
+  func swapBytesBuiltin(x: uint32): uint32 {.
+      importc: "__builtin_bswap32", nodecl.}
+  func swapBytesBuiltin(x: uint64): uint64 {.
+      importc: "__builtin_bswap64", nodecl.}
+
+elif defined(icc):
+  func swapBytesBuiltin(x: uint8): uint8 = x
+  func swapBytesBuiltin(a: uint16): uint16 {.importc: "_bswap16", nodecl.}
+  func swapBytesBuiltin(a: uint32): uint32 {.importc: "_bswap", nodec.}
+  func swapBytesBuiltin(a: uint64): uint64 {.importc: "_bswap64", nodecl.}
+
+elif defined(vcc):
+  func swapBytesBuiltin(x: uint8): uint8 = x
+  proc swapBytesBuiltin(a: uint16): uint16 {.
+      importc: "_byteswap_ushort", cdecl, header: "<intrin.h>".}
+  proc swapBytesBuiltin(a: uint32): uint32 {.
+      importc: "_byteswap_ulong", cdecl, header: "<intrin.h>".}
+  proc swapBytesBuiltin(a: uint64): uint64 {.
+      importc: "_byteswap_uint64", cdecl, header: "<intrin.h>".}
+
+template leSwap32*(a: uint32): uint32 =
+  when system.cpuEndian == bigEndian:
+    a
+  else:
+    swapBytesBuiltin(a)
+
+template leSwap64*(a: uint64): uint64 =
+  when system.cpuEndian == bigEndian:
+    a
+  else:
+    swapBytesBuiltin(a)
+
+template beSwap32*(a: uint32): uint32 =
+  when system.cpuEndian == bigEndian:
+    swapBytesBuiltin(a)
+  else:
+    a
+
+proc leLoad32*(src: openarray[byte]): uint32 {.inline.} =
+  when defined(nimvm):
+    result = uint32(src[0] shl 24) or uint32(src[1] shl 16) or
+             uint32(src[2] shl 8) or uint32(src[3])
+  else:
+    result = leSwap32(cast[ptr uint32](unsafeAddr src[0])[])
+
+proc leLoad64*(src: openarray[byte]): uint64 {.inline.} =
+  when defined(nimvm):
+    result = uint64(src[0] shl 56) or uint64(src[1] shl 48) or
+             uint64(src[2] shl 40) or uint64(src[3] shl 32) or
+             uint64(src[4] shl 24) or uint64(src[5] shl 16) or
+             uint64(src[6] shl 8) or uint64(src[7])
+  else:
+    result = leSwap64(cast[ptr uint64](unsafeAddr src[0])[])
+
+# proc beLoad32*(src: openarray[byte]): uint32 {.inline.} =
+#   when defined(nimvm):
+#     result = uint32(src[3] shl 24) or uint32(src[2] shl 16) or
+#              uint32(src[1] shl 8) or uint32(src[0])
+#   else:
+#     let
+#     result = beSwap32(cast[ptr uint32](unsafeAddr src[0])[])
+
+proc leStore32*(dst: var openarray[byte], v: uint32) {.inline.} =
+  when defined(nimvm):
+    dst[0] = byte(v shr 24); dst[1] = byte(v shr 16)
+    dst[2] = byte(v shr 8); dst[3] = byte(v)
+  else:
+    cast[ptr uint32](addr dst[0])[] = leSwap32(v)
+
+proc leStore64*(dst: var openarray[byte], v: uint64) {.inline.} =
+  when defined(nimvm):
+    dst[0] = byte(v shr 56); dst[1] = byte(v shr 48)
+    dst[2] = byte(v shr 40); dst[3] = byte(v shr 32)
+    dst[4] = byte(v shr 24); dst[5] = byte(v shr 16)
+    dst[6] = byte(v shr 8); dst[7] = byte(v)
+  else:
+    cast[ptr uint64](addr dst[0])[] = leSwap64(v)
+
+proc beStore32*(dst: var openarray[byte], v: uint32) {.inline.} =
+  when defined(nimvm):
+    dst[0] = byte(v); dst[1] = byte(v shr 8)
+    dst[2] = byte(v shr 16); dst[3] = byte(v shr 24)
+  else:
+    cast[ptr uint32](addr dst[0])[] = beSwap32(v)
+
+proc transferMem*[A, B](dst: var openarray[A], src: openarray[B]) =
+  when defined(nimvm):
+    for i in 0 ..< len(dst):
+      dst[i] = A(src[i])
+  else:
+    copyMem(addr dst[0], unsafeAddr src[0], len(dst))

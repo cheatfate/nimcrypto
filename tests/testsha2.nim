@@ -237,3 +237,11 @@ suite "SHA2 Tests":
         check4 == digest
         ctx512_256.isFullZero() == true
       inc(i)
+
+  test "Compile-time test vectors":
+    const
+      digest256_1 = sha256.digest(code256[0])
+      digest256_2 = sha256.digest(code256[1])
+    echo digest256_1
+    echo digest256_2
+

@@ -84,7 +84,7 @@ proc digest*(HashType: typedesc, data: ptr byte,
   result = ctx.finish()
   ctx.clear()
 
-proc digest*[T](HashType: typedesc, data: openarray[T],
+proc digest*[T: bchar](HashType: typedesc, data: openarray[T],
                 ostart: int = 0, ofinish: int = -1): MDigest[HashType.bits] =
   ## Calculate and return digest using algorithm ``HashType`` of data ``data``
   ## in slice ``[ostart, ofinish]``, both ``ostart`` and ``ofinish`` are
@@ -113,7 +113,8 @@ proc digest*[T](HashType: typedesc, data: openarray[T],
   if length <= 0:
     result = ctx.finish()
   else:
-    ctx.update(cast[ptr byte](unsafeAddr data[so]), uint(length))
+    # ctx.update(cast[ptr byte](unsafeAddr data[so]), uint(length))
+    ctx.update(data.toOpenArray(so, eo))
     result = ctx.finish()
   ctx.clear()
 

@@ -211,17 +211,14 @@ when not smallCode:
     d = d + t0
     h = t0 + t1
 
-proc sha256Transform(state: var array[8, uint32], data: ptr byte) =
+proc sha256Transform(state: var array[8, uint32], data: openarray[byte]) =
   var t0, t1: uint32
   var W: array[64, uint32]
 
-  var i = 0
-  while i < 16:
-    W[i] = LSWAP(GET_DWORD(data, i))
-    inc(i)
-  while i < 64:
+  for i in 0 ..< 16:
+    W[i] = leLoad32(data.toOpenArray(i * 4, i * 4 + 3))
+  for i in 16 ..< 64:
     W[i] = SIG1(W[i - 2]) + W[i - 7] + SIG0(W[i - 15]) + W[i - 16]
-    inc(i)
 
   var s0 = state[0]
   var s1 = state[1]
@@ -232,88 +229,73 @@ proc sha256Transform(state: var array[8, uint32], data: ptr byte) =
   var s6 = state[6]
   var s7 = state[7]
 
-  when smallCode:
-    i = 0
-    while i < 64:
-      t0 = s7 + TAU1(s4) + CH0(s4, s5, s6) + K0[i] + W[i]
-      t1 = TAU0(s0) + MAJ0(s0, s1, s2)
-      s7 = s6
-      s6 = s5
-      s5 = s4
-      s4 = s3 + t0
-      s3 = s2
-      s2 = s1
-      s1 = s0
-      s0 = t0 + t1
-      inc(i)
-  else:
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 0)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 1)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 2)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 3)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 4)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 5)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 6)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 7)
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 8)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 9)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 10)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 11)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 12)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 13)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 14)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 15)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 0)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 1)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 2)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 3)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 4)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 5)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 6)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 7)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 8)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 9)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 10)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 11)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 12)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 13)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 14)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 15)
 
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 16)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 17)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 18)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 19)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 20)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 21)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 22)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 23)
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 24)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 25)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 26)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 27)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 28)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 29)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 30)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 31)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 16)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 17)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 18)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 19)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 20)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 21)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 22)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 23)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 24)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 25)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 26)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 27)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 28)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 29)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 30)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 31)
 
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 32)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 33)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 34)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 35)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 36)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 37)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 38)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 39)
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 40)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 41)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 42)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 43)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 44)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 45)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 46)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 47)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 32)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 33)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 34)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 35)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 36)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 37)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 38)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 39)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 40)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 41)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 42)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 43)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 44)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 45)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 46)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 47)
 
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 48)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 49)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 50)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 51)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 52)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 53)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 54)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 55)
-    ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 56)
-    ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 57)
-    ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 58)
-    ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 59)
-    ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 60)
-    ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 61)
-    ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 62)
-    ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 63)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 48)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 49)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 50)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 51)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 52)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 53)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 54)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 55)
+  ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 56)
+  ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 57)
+  ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 58)
+  ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 59)
+  ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 60)
+  ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 61)
+  ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 62)
+  ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 63)
 
   state[0] += s0
   state[1] += s1
@@ -324,17 +306,127 @@ proc sha256Transform(state: var array[8, uint32], data: ptr byte) =
   state[6] += s6
   state[7] += s7
 
-proc sha512Transform(state: var array[8, uint64], data: ptr byte) =
+# proc sha256Transform(state: var array[8, uint32], data: ptr byte) =
+#   var t0, t1: uint32
+#   var W: array[64, uint32]
+
+#   var i = 0
+#   while i < 16:
+#     W[i] = LSWAP(GET_DWORD(data, i))
+#     inc(i)
+#   while i < 64:
+#     W[i] = SIG1(W[i - 2]) + W[i - 7] + SIG0(W[i - 15]) + W[i - 16]
+#     inc(i)
+
+#   var s0 = state[0]
+#   var s1 = state[1]
+#   var s2 = state[2]
+#   var s3 = state[3]
+#   var s4 = state[4]
+#   var s5 = state[5]
+#   var s6 = state[6]
+#   var s7 = state[7]
+
+#   when smallCode:
+#     i = 0
+#     while i < 64:
+#       t0 = s7 + TAU1(s4) + CH0(s4, s5, s6) + K0[i] + W[i]
+#       t1 = TAU0(s0) + MAJ0(s0, s1, s2)
+#       s7 = s6
+#       s6 = s5
+#       s5 = s4
+#       s4 = s3 + t0
+#       s3 = s2
+#       s2 = s1
+#       s1 = s0
+#       s0 = t0 + t1
+#       inc(i)
+#   else:
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 0)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 1)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 2)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 3)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 4)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 5)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 6)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 7)
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 8)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 9)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 10)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 11)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 12)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 13)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 14)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 15)
+
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 16)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 17)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 18)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 19)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 20)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 21)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 22)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 23)
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 24)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 25)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 26)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 27)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 28)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 29)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 30)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 31)
+
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 32)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 33)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 34)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 35)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 36)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 37)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 38)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 39)
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 40)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 41)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 42)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 43)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 44)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 45)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 46)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 47)
+
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 48)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 49)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 50)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 51)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 52)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 53)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 54)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 55)
+#     ROUND256(s0, s1, s2, s3, s4, s5, s6, s7, 56)
+#     ROUND256(s7, s0, s1, s2, s3, s4, s5, s6, 57)
+#     ROUND256(s6, s7, s0, s1, s2, s3, s4, s5, 58)
+#     ROUND256(s5, s6, s7, s0, s1, s2, s3, s4, 59)
+#     ROUND256(s4, s5, s6, s7, s0, s1, s2, s3, 60)
+#     ROUND256(s3, s4, s5, s6, s7, s0, s1, s2, 61)
+#     ROUND256(s2, s3, s4, s5, s6, s7, s0, s1, 62)
+#     ROUND256(s1, s2, s3, s4, s5, s6, s7, s0, 63)
+
+#   state[0] += s0
+#   state[1] += s1
+#   state[2] += s2
+#   state[3] += s3
+#   state[4] += s4
+#   state[5] += s5
+#   state[6] += s6
+#   state[7] += s7
+
+proc sha512Transform(state: var array[8, uint64], data: openarray[byte]) =
   var t0, t1: uint64
   var W: array[80, uint64]
 
-  var i = 0
-  while i < 16:
-    W[i] = LSWAP(GET_QWORD(data, i))
-    inc(i)
-  while i < 80:
+  for i in 0 ..< 16:
+    W[i] = leLoad64(data.toOpenArray(i * 8, i * 8 + 7))
+  for i in 16 ..< 80:
     W[i] = RHO1(W[i - 2]) + W[i - 7] + RHO0(W[i - 15]) + W[i - 16]
-    inc(i)
 
   var s0 = state[0]
   var s1 = state[1]
@@ -345,105 +437,90 @@ proc sha512Transform(state: var array[8, uint64], data: ptr byte) =
   var s6 = state[6]
   var s7 = state[7]
 
-  when smallCode:
-    i = 0
-    while i < 80:
-      t0 = s7 + PHI1(s4) + CH1(s4, s5, s6) + K1[i] + W[i]
-      t1 = PHI0(s0) + MAJ1(s0, s1, s2)
-      s7 = s6
-      s6 = s5
-      s5 = s4
-      s4 = s3 + t0
-      s3 = s2
-      s2 = s1
-      s1 = s0
-      s0 = t0 + t1
-      inc(i)
-  else:
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 0)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 1)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 2)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 3)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 4)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 5)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 6)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 7)
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 8)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 9)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 10)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 11)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 12)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 13)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 14)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 15)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 0)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 1)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 2)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 3)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 4)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 5)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 6)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 7)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 8)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 9)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 10)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 11)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 12)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 13)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 14)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 15)
 
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 16)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 17)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 18)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 19)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 20)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 21)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 22)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 23)
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 24)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 25)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 26)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 27)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 28)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 29)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 30)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 31)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 16)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 17)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 18)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 19)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 20)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 21)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 22)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 23)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 24)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 25)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 26)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 27)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 28)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 29)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 30)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 31)
 
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 32)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 33)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 34)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 35)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 36)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 37)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 38)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 39)
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 40)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 41)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 42)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 43)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 44)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 45)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 46)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 47)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 32)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 33)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 34)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 35)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 36)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 37)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 38)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 39)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 40)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 41)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 42)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 43)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 44)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 45)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 46)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 47)
 
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 48)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 49)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 50)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 51)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 52)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 53)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 54)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 55)
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 56)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 57)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 58)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 59)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 60)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 61)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 62)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 63)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 48)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 49)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 50)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 51)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 52)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 53)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 54)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 55)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 56)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 57)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 58)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 59)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 60)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 61)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 62)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 63)
 
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 64)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 65)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 66)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 67)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 68)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 69)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 70)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 71)
-    ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 72)
-    ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 73)
-    ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 74)
-    ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 75)
-    ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 76)
-    ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 77)
-    ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 78)
-    ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 79)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 64)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 65)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 66)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 67)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 68)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 69)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 70)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 71)
+  ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 72)
+  ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 73)
+  ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 74)
+  ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 75)
+  ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 76)
+  ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 77)
+  ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 78)
+  ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 79)
 
   state[0] += s0
   state[1] += s1
@@ -454,122 +531,395 @@ proc sha512Transform(state: var array[8, uint64], data: ptr byte) =
   state[6] += s6
   state[7] += s7
 
-proc update*(ctx: var Sha2Context, data: ptr byte, inlen: uint) =
-  var pos = 0'u
-  var length = inlen
+# proc sha512Transform(state: var array[8, uint64], data: ptr byte) =
+#   var t0, t1: uint64
+#   var W: array[80, uint64]
 
-  when ctx.bsize == 64:
-    while length > 0'u:
-      let offset = cast[uint](ctx.count[0] and 0x3F)
-      let size = min(64'u - offset, length)
-      copyMem(addr(ctx.buffer[offset]),
-              cast[pointer](cast[uint](data) + pos), size)
-      pos = pos + size
-      length = length - size
-      ctx.count[0] += cast[uint32](size)
-      if ctx.count[0] < cast[uint32](size):
-        ctx.count[1] += 1'u32
-      if (ctx.count[0] and 0x3F) == 0:
-        sha256Transform(ctx.state, addr(ctx.buffer[0]))
-  elif ctx.bsize == 128:
-    while length > 0'u:
-      let offset = cast[uint](ctx.count[0] and 0x7F)
-      let size = min(128'u - offset, length)
-      copyMem(addr(ctx.buffer[offset]),
-              cast[pointer](cast[uint](data) + pos), size)
-      pos = pos + size
-      length = length - size
-      ctx.count[0] += cast[uint64](size)
-      if ctx.count[0] < cast[uint64](size):
-        ctx.count[1] += 1'u64
-      if (ctx.count[0] and 0x7F) == 0:
-        sha512Transform(ctx.state, addr(ctx.buffer[0]))
+#   var i = 0
+#   while i < 16:
+#     W[i] = LSWAP(GET_QWORD(data, i))
+#     inc(i)
+#   while i < 80:
+#     W[i] = RHO1(W[i - 2]) + W[i - 7] + RHO0(W[i - 15]) + W[i - 16]
+#     inc(i)
+
+#   var s0 = state[0]
+#   var s1 = state[1]
+#   var s2 = state[2]
+#   var s3 = state[3]
+#   var s4 = state[4]
+#   var s5 = state[5]
+#   var s6 = state[6]
+#   var s7 = state[7]
+
+#   when smallCode:
+#     i = 0
+#     while i < 80:
+#       t0 = s7 + PHI1(s4) + CH1(s4, s5, s6) + K1[i] + W[i]
+#       t1 = PHI0(s0) + MAJ1(s0, s1, s2)
+#       s7 = s6
+#       s6 = s5
+#       s5 = s4
+#       s4 = s3 + t0
+#       s3 = s2
+#       s2 = s1
+#       s1 = s0
+#       s0 = t0 + t1
+#       inc(i)
+#   else:
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 0)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 1)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 2)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 3)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 4)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 5)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 6)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 7)
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 8)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 9)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 10)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 11)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 12)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 13)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 14)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 15)
+
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 16)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 17)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 18)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 19)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 20)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 21)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 22)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 23)
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 24)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 25)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 26)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 27)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 28)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 29)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 30)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 31)
+
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 32)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 33)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 34)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 35)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 36)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 37)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 38)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 39)
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 40)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 41)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 42)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 43)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 44)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 45)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 46)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 47)
+
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 48)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 49)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 50)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 51)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 52)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 53)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 54)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 55)
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 56)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 57)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 58)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 59)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 60)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 61)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 62)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 63)
+
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 64)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 65)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 66)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 67)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 68)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 69)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 70)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 71)
+#     ROUND512(s0, s1, s2, s3, s4, s5, s6, s7, 72)
+#     ROUND512(s7, s0, s1, s2, s3, s4, s5, s6, 73)
+#     ROUND512(s6, s7, s0, s1, s2, s3, s4, s5, 74)
+#     ROUND512(s5, s6, s7, s0, s1, s2, s3, s4, 75)
+#     ROUND512(s4, s5, s6, s7, s0, s1, s2, s3, 76)
+#     ROUND512(s3, s4, s5, s6, s7, s0, s1, s2, 77)
+#     ROUND512(s2, s3, s4, s5, s6, s7, s0, s1, 78)
+#     ROUND512(s1, s2, s3, s4, s5, s6, s7, s0, 79)
+
+#   state[0] += s0
+#   state[1] += s1
+#   state[2] += s2
+#   state[3] += s3
+#   state[4] += s4
+#   state[5] += s5
+#   state[6] += s6
+#   state[7] += s7
 
 proc update*[T: bchar](ctx: var Sha2Context, data: openarray[T]) =
-  if len(data) == 0:
-    ctx.update(nil, 0)
-  else:
-    ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
+  var pos = 0
+  var length = len(data)
 
-proc finalize256(ctx: var Sha2Context) =
-  var buffer = addr(ctx.buffer[0])
-  var j = int(ctx.count[0] and 0x3F)
-  ctx.buffer[j] = 0x80
+  when ctx.bsize == 64:
+    while length > 0:
+      let offset = cast[int](ctx.count[0] and 0x3F)
+      let size = min(64 - offset, length)
+      transferMem(ctx.buffer.toOpenArray(offset, offset + size - 1),
+                  data.toOpenArray(pos, pos + size - 1))
+      pos = pos + size
+      length = length - size
+      ctx.count[0] = ctx.count[0] + cast[uint32](size)
+      if ctx.count[0] < cast[uint32](size):
+        ctx.count[1] = ctx.count[1] + 1'u32
+      if (ctx.count[0] and 0x3F'u32) == 0:
+        sha256Transform(ctx.state, ctx.buffer)
+  elif ctx.bsize == 128:
+    while length > 0:
+      let offset = cast[int](ctx.count[0] and 0x7F)
+      let size = min(128 - offset, length)
+      transferMem(ctx.buffer.toOpenArray(offset, offset + size - 1),
+                  data.toOpenArray(pos, pos + size - 1))
+      pos = pos + size
+      length = length - size
+      ctx.count[0] = ctx.count[0] + cast[uint64](size)
+      if ctx.count[0] < cast[uint64](size):
+        ctx.count[1] = ctx.count[1] + 1'u64
+      if (ctx.count[0] and 0x7F'u64) == 0:
+        sha512Transform(ctx.state, ctx.buffer)
+
+proc update*(ctx: var Sha2Context, pbytes: ptr byte, nbytes: uint) {.inline.} =
+  var p = cast[ptr array[0, byte]](pbytes)
+  ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
+
+# proc update*(ctx: var Sha2Context, data: ptr byte, inlen: uint) =
+#   var pos = 0'u
+#   var length = inlen
+
+#   when ctx.bsize == 64:
+#     while length > 0'u:
+#       let offset = cast[uint](ctx.count[0] and 0x3F)
+#       let size = min(64'u - offset, length)
+#       copyMem(addr(ctx.buffer[offset]),
+#               cast[pointer](cast[uint](data) + pos), size)
+#       pos = pos + size
+#       length = length - size
+#       ctx.count[0] += cast[uint32](size)
+#       if ctx.count[0] < cast[uint32](size):
+#         ctx.count[1] += 1'u32
+#       if (ctx.count[0] and 0x3F) == 0:
+#         sha256Transform(ctx.state, addr(ctx.buffer[0]))
+#   elif ctx.bsize == 128:
+#     while length > 0'u:
+#       let offset = cast[uint](ctx.count[0] and 0x7F)
+#       let size = min(128'u - offset, length)
+#       copyMem(addr(ctx.buffer[offset]),
+#               cast[pointer](cast[uint](data) + pos), size)
+#       pos = pos + size
+#       length = length - size
+#       ctx.count[0] += cast[uint64](size)
+#       if ctx.count[0] < cast[uint64](size):
+#         ctx.count[1] += 1'u64
+#       if (ctx.count[0] and 0x7F) == 0:
+#         sha512Transform(ctx.state, addr(ctx.buffer[0]))
+
+# proc update*[T: bchar](ctx: var Sha2Context, data: openarray[T]) =
+#   if len(data) == 0:
+#     ctx.update(nil, 0)
+#   else:
+#     ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
+
+# proc finalize256(ctx: var Sha2Context) =
+#   var buffer = addr(ctx.buffer[0])
+#   var j = int(ctx.count[0] and 0x3F)
+#   ctx.buffer[j] = 0x80
+#   inc(j)
+#   while j != 56:
+#     if j == 64:
+#       sha256Transform(ctx.state, buffer)
+#       j = 0
+#     ctx.buffer[j] = 0x00
+#     inc(j)
+#   ctx.count[1] = (ctx.count[1] shl 3) + (ctx.count[0] shr 29)
+#   ctx.count[0] = ctx.count[0] shl 3
+#   SET_DWORD(buffer, 14, LSWAP(ctx.count[1]))
+#   SET_DWORD(buffer, 15, LSWAP(ctx.count[0]))
+#   sha256Transform(ctx.state, buffer)
+
+proc finalize256(ctx: var Sha2Context) {.inline.} =
+  var j = cast[int](ctx.count[0] and 0x3F'u32)
+  ctx.buffer[j] = 0x80'u8
   inc(j)
   while j != 56:
     if j == 64:
-      sha256Transform(ctx.state, buffer)
+      sha256Transform(ctx.state, ctx.buffer)
       j = 0
-    ctx.buffer[j] = 0x00
+    ctx.buffer[j] = 0x00'u8
     inc(j)
   ctx.count[1] = (ctx.count[1] shl 3) + (ctx.count[0] shr 29)
   ctx.count[0] = ctx.count[0] shl 3
-  SET_DWORD(buffer, 14, LSWAP(ctx.count[1]))
-  SET_DWORD(buffer, 15, LSWAP(ctx.count[0]))
-  sha256Transform(ctx.state, buffer)
+  leStore32(ctx.buffer.toOpenArray(56, 59), ctx.count[1])
+  leStore32(ctx.buffer.toOpenArray(60, 63), ctx.count[0])
+  sha256Transform(ctx.state, ctx.buffer)
 
-proc finalize512(ctx: var Sha2Context) =
-  var buffer = addr(ctx.buffer[0])
-  var j = int(ctx.count[0] and 0x7F)
-  ctx.buffer[j] = 0x80
+proc finalize512(ctx: var Sha2Context) {.inline.} =
+  var j = cast[int](ctx.count[0] and 0x7F'u64)
+  ctx.buffer[j] = 0x80'u8
   inc(j)
   while j != 112:
     if j == 128:
-      sha512Transform(ctx.state, buffer)
+      sha512Transform(ctx.state, ctx.buffer)
       j = 0
-    ctx.buffer[j] = 0x00
+    ctx.buffer[j] = 0x00'u8
     inc(j)
   ctx.count[1] = (ctx.count[1] shl 3) + (ctx.count[0] shr 29)
   ctx.count[0] = ctx.count[0] shl 3
-  SET_QWORD(buffer, 14, LSWAP(ctx.count[1]))
-  SET_QWORD(buffer, 15, LSWAP(ctx.count[0]))
-  sha512Transform(ctx.state, buffer)
+  leStore64(ctx.buffer.toOpenArray(112, 119), ctx.count[1])
+  leStore64(ctx.buffer.toOpenArray(120, 127), ctx.count[0])
+  sha512Transform(ctx.state, ctx.buffer)
 
-proc finish*(ctx: var Sha2Context, pBytes: ptr byte, nBytes: uint): uint =
-  result = 0
+# proc finalize512(ctx: var Sha2Context) =
+#   var buffer = addr(ctx.buffer[0])
+#   var j = int(ctx.count[0] and 0x7F)
+#   ctx.buffer[j] = 0x80
+#   inc(j)
+#   while j != 112:
+#     if j == 128:
+#       sha512Transform(ctx.state, buffer)
+#       j = 0
+#     ctx.buffer[j] = 0x00
+#     inc(j)
+#   ctx.count[1] = (ctx.count[1] shl 3) + (ctx.count[0] shr 29)
+#   ctx.count[0] = ctx.count[0] shl 3
+#   SET_QWORD(buffer, 14, LSWAP(ctx.count[1]))
+#   SET_QWORD(buffer, 15, LSWAP(ctx.count[0]))
+#   sha512Transform(ctx.state, buffer)
+
+proc finish*(ctx: var Sha2Context, data: var openarray[byte]): uint =
+  result = 0'u
   when ctx.bits == 224 and ctx.bsize == 64:
-    finalize256(ctx)
-    if nBytes >= 28'u:
+    if len(data) >= 28:
+      finalize256(ctx)
       result = sizeDigest(ctx)
-      for i in 0..6:
-        SET_DWORD(pBytes, i, LSWAP(ctx.state[i]))
+      leStore32(data.toOpenArray(0, 3), ctx.state[0])
+      leStore32(data.toOpenArray(4, 7), ctx.state[1])
+      leStore32(data.toOpenArray(8, 11), ctx.state[2])
+      leStore32(data.toOpenArray(12, 15), ctx.state[3])
+      leStore32(data.toOpenArray(16, 19), ctx.state[4])
+      leStore32(data.toOpenArray(20, 23), ctx.state[5])
+      leStore32(data.toOpenArray(24, 27), ctx.state[6])
   elif ctx.bits == 256 and ctx.bsize == 64:
-    finalize256(ctx)
-    if nBytes >= 32'u:
+    if len(data) >= 32:
+      finalize256(ctx)
       result = sizeDigest(ctx)
-      for i in 0..7:
-        SET_DWORD(pBytes, i, LSWAP(ctx.state[i]))
+      leStore32(data.toOpenArray(0, 3), ctx.state[0])
+      leStore32(data.toOpenArray(4, 7), ctx.state[1])
+      leStore32(data.toOpenArray(8, 11), ctx.state[2])
+      leStore32(data.toOpenArray(12, 15), ctx.state[3])
+      leStore32(data.toOpenArray(16, 19), ctx.state[4])
+      leStore32(data.toOpenArray(20, 23), ctx.state[5])
+      leStore32(data.toOpenArray(24, 27), ctx.state[6])
+      leStore32(data.toOpenArray(28, 31), ctx.state[7])
   elif ctx.bits == 384 and ctx.bsize == 128:
-    finalize512(ctx)
-    if nBytes >= 48'u:
+    if len(data) >= 48:
+      finalize512(ctx)
       result = sizeDigest(ctx)
-      for i in 0..5:
-        SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
+      leStore64(data.toOpenArray(0, 7), ctx.state[0])
+      leStore64(data.toOpenArray(8, 15), ctx.state[1])
+      leStore64(data.toOpenArray(16, 23), ctx.state[2])
+      leStore64(data.toOpenArray(24, 31), ctx.state[3])
+      leStore64(data.toOpenArray(32, 39), ctx.state[4])
+      leStore64(data.toOpenArray(40, 47), ctx.state[5])
   elif ctx.bits == 512 and ctx.bsize == 128:
-    finalize512(ctx)
-    if nBytes >= 64'u:
+    if len(data) >= 64:
+      finalize512(ctx)
       result = sizeDigest(ctx)
-      for i in 0..7:
-        SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
+      leStore64(data.toOpenArray(0, 7), ctx.state[0])
+      leStore64(data.toOpenArray(8, 15), ctx.state[1])
+      leStore64(data.toOpenArray(16, 23), ctx.state[2])
+      leStore64(data.toOpenArray(24, 31), ctx.state[3])
+      leStore64(data.toOpenArray(32, 39), ctx.state[4])
+      leStore64(data.toOpenArray(40, 47), ctx.state[5])
+      leStore64(data.toOpenArray(48, 55), ctx.state[6])
+      leStore64(data.toOpenArray(56, 63), ctx.state[7])
   elif ctx.bits == 256 and ctx.bsize == 128:
-    finalize512(ctx)
-    if nBytes >= 32'u:
+    if len(data) >= 32:
+      finalize512(ctx)
       result = sizeDigest(ctx)
-      for i in 0..3:
-        SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
+      leStore64(data.toOpenArray(0, 7), ctx.state[0])
+      leStore64(data.toOpenArray(8, 15), ctx.state[1])
+      leStore64(data.toOpenArray(16, 23), ctx.state[2])
+      leStore64(data.toOpenArray(24, 31), ctx.state[3])
   elif ctx.bits == 224 and ctx.bsize == 128:
-    finalize512(ctx)
-    if nBytes >= 28'u:
+    if len(data) >= 28:
+      finalize512(ctx)
       result = sizeDigest(ctx)
-      SET_QWORD(pBytes, 0, LSWAP(ctx.state[0]))
-      SET_QWORD(pBytes, 1, LSWAP(ctx.state[1]))
-      SET_QWORD(pBytes, 2, LSWAP(ctx.state[2]))
-      SET_DWORD(pBytes, 6, cast[uint32](LSWAP(ctx.state[3])))
+      leStore64(data.toOpenArray(0, 7), ctx.state[0])
+      leStore64(data.toOpenArray(8, 15), ctx.state[1])
+      leStore64(data.toOpenArray(16, 23), ctx.state[2])
+      leStore32(data.toOpenArray(24, 27), cast[uint32](ctx.state[3] shr 32))
+
+proc finish*(ctx: var Sha2Context, pbytes: ptr byte,
+             nbytes: uint): uint {.inline.} =
+  var ptrarr = cast[ptr array[0, byte]](pbytes)
+  result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var Sha2Context): MDigest[ctx.bits] =
-  discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 cast[uint](len(result.data)))
+  discard finish(ctx, result.data)
 
-proc finish*[T: bchar](ctx: var Sha2Context, data: var openarray[T]) =
-  assert(cast[uint](len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
+# proc finish*[T: bchar](ctx: var Sha2Context, data: var openarray[T]) =
+#   assert(cast[uint](len(data)) >= ctx.sizeDigest)
+#   discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
+
+# proc finish*(ctx: var Sha2Context, pBytes: ptr byte, nBytes: uint): uint =
+#   result = 0
+#   when ctx.bits == 224 and ctx.bsize == 64:
+#     finalize256(ctx)
+#     if nBytes >= 28'u:
+#       result = sizeDigest(ctx)
+#       for i in 0..6:
+#         SET_DWORD(pBytes, i, LSWAP(ctx.state[i]))
+#   elif ctx.bits == 256 and ctx.bsize == 64:
+#     finalize256(ctx)
+#     if nBytes >= 32'u:
+#       result = sizeDigest(ctx)
+#       for i in 0..7:
+#         SET_DWORD(pBytes, i, LSWAP(ctx.state[i]))
+#   elif ctx.bits == 384 and ctx.bsize == 128:
+#     finalize512(ctx)
+#     if nBytes >= 48'u:
+#       result = sizeDigest(ctx)
+#       for i in 0..5:
+#         SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
+#   elif ctx.bits == 512 and ctx.bsize == 128:
+#     finalize512(ctx)
+#     if nBytes >= 64'u:
+#       result = sizeDigest(ctx)
+#       for i in 0..7:
+#         SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
+#   elif ctx.bits == 256 and ctx.bsize == 128:
+#     finalize512(ctx)
+#     if nBytes >= 32'u:
+#       result = sizeDigest(ctx)
+#       for i in 0..3:
+#         SET_QWORD(pBytes, i, LSWAP(ctx.state[i]))
+#   elif ctx.bits == 224 and ctx.bsize == 128:
+#     finalize512(ctx)
+#     if nBytes >= 28'u:
+#       result = sizeDigest(ctx)
+#       SET_QWORD(pBytes, 0, LSWAP(ctx.state[0]))
+#       SET_QWORD(pBytes, 1, LSWAP(ctx.state[1]))
+#       SET_QWORD(pBytes, 2, LSWAP(ctx.state[2]))
+#       SET_DWORD(pBytes, 6, cast[uint32](LSWAP(ctx.state[3])))
+
+# proc finish*(ctx: var Sha2Context): MDigest[ctx.bits] =
+#   discard finish(ctx, cast[ptr byte](addr result.data[0]),
+#                  cast[uint](len(result.data)))
+
+# proc finish*[T: bchar](ctx: var Sha2Context, data: var openarray[T]) =
+#   assert(cast[uint](len(data)) >= ctx.sizeDigest)
+#   discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))

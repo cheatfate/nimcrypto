@@ -667,27 +667,27 @@ proc update*[T: bchar](ctx: var Sha2Context, data: openarray[T]) =
 
   when ctx.bsize == 64:
     while length > 0:
-      let offset = cast[int](ctx.count[0] and 0x3F)
+      let offset = int(ctx.count[0] and 0x3F)
       let size = min(64 - offset, length)
       transferMem(ctx.buffer.toOpenArray(offset, offset + size - 1),
                   data.toOpenArray(pos, pos + size - 1))
       pos = pos + size
       length = length - size
-      ctx.count[0] = ctx.count[0] + cast[uint32](size)
-      if ctx.count[0] < cast[uint32](size):
+      ctx.count[0] = ctx.count[0] + uint32(size)
+      if ctx.count[0] < uint32(size):
         ctx.count[1] = ctx.count[1] + 1'u32
       if (ctx.count[0] and 0x3F'u32) == 0:
         sha256Transform(ctx.state, ctx.buffer)
   elif ctx.bsize == 128:
     while length > 0:
-      let offset = cast[int](ctx.count[0] and 0x7F)
+      let offset = int(ctx.count[0] and 0x7F)
       let size = min(128 - offset, length)
       transferMem(ctx.buffer.toOpenArray(offset, offset + size - 1),
                   data.toOpenArray(pos, pos + size - 1))
       pos = pos + size
       length = length - size
-      ctx.count[0] = ctx.count[0] + cast[uint64](size)
-      if ctx.count[0] < cast[uint64](size):
+      ctx.count[0] = ctx.count[0] + uint64(size)
+      if ctx.count[0] < uint64(size):
         ctx.count[1] = ctx.count[1] + 1'u64
       if (ctx.count[0] and 0x7F'u64) == 0:
         sha512Transform(ctx.state, ctx.buffer)

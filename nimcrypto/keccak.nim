@@ -19,6 +19,7 @@
 ## [https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values#aHashing]
 ## 0bit and 1600bit test vectors used.
 import hash, utils
+export hash
 
 {.deadCodeElim:on.}
 

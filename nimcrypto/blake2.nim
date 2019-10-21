@@ -15,6 +15,7 @@
 ## Tests for BLAKE2-224/256/384/512 made according to
 ## [https://github.com/BLAKE2/BLAKE2/tree/master/testvectors].
 import hash, utils
+export hash
 
 {.deadCodeElim: on.}
 

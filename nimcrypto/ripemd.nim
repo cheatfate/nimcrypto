@@ -20,6 +20,7 @@
 ## Tests made according to official test vectors
 ## [https://homes.esat.kuleuven.be/~bosselae/ripemd160.html].
 import hash, utils
+export hash
 
 {.deadCodeElim: on.}
 

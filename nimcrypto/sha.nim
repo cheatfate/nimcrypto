@@ -10,7 +10,7 @@
 ## This module implements SHA1 (Secure Hash Algorithm 1) designed by
 ## National Security Agency.
 import hash, utils
-import strutils
+export hash
 
 {.deadCodeElim:on.}
 

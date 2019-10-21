@@ -13,8 +13,8 @@
 ##
 ## Tests made according to official test vectors
 ## [http://csrc.nist.gov/groups/ST/toolkit/documents/Examples/SHA_All.pdf].
-
 import hash, utils
+export hash
 
 {.deadCodeElim:on.}
 

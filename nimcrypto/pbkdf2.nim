@@ -13,6 +13,7 @@
 ## Tests for PBKDF2-HMAC-SHA224/256/384/512 made according to
 ## [https://github.com/Anti-weakpasswords/PBKDF2-Test-Vectors/releases]
 import hmac, utils
+export hmac
 
 proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
                       salt: openarray[N], c: int,

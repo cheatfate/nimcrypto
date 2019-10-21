@@ -479,14 +479,31 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
     var ctx: HMAC[sha1]
     var output: array[128, byte]
     for i in 0..<len(lengths1):
-      let p = cast[string](fromHex(stripSpaces(passwords1[i])))
-      let s = cast[string](fromHex(stripSpaces(salts1[i])))
+      let p = fromHex(stripSpaces(passwords1[i]))
+      let s = fromHex(stripSpaces(salts1[i]))
       let e = fromHex(stripSpaces(expects1[i]))
       let length = lengths1[i]
       check:
-        pbkdf2(ctx, p, s, runs1[i], output, length) == length
+        pbkdf2(ctx, p, s, runs1[i], output.toOpenArray(0, length - 1)) == length
         compare(toOpenArray(e, 0, length - 1),
                 toOpenArray(output, 0, length - 1)) == true
+
+  test "PBKDF2-HMAC-SHA1 compile-time (1 iteration)":
+    const
+      check0 = pbkdf2(sha1, fromHex(stripSpaces(passwords1[0])),
+                      fromHex(stripSpaces(salts1[0])), runs1[0],
+                      lengths1[0])
+      check1 = pbkdf2(sha1, fromHex(stripSpaces(passwords1[1])),
+                      fromHex(stripSpaces(salts1[1])), runs1[1],
+                      lengths1[1])
+    let expect0 = fromHex(stripSpaces(expects1[0]))
+    let expect1 = fromHex(stripSpaces(expects1[1]))
+    check:
+      compare(toOpenArray(expect0, 0, lengths1[0] - 1),
+              toOpenArray(check0, 0, lengths1[0] - 1)) == true
+      compare(toOpenArray(expect1, 0, lengths1[1] - 1),
+              toOpenArray(check1, 0, lengths1[1] - 1)) == true
+
   test "PBKDF2-HMAC-SHA224 (1 iteration)":
     var ctx: HMAC[sha224]
     var output: array[128, byte]
@@ -497,10 +514,20 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
       let e = fromHex(stripSpaces(expects224_1[index]))
       let length = lengths224[i]
       check:
-        pbkdf2(ctx, p, s, 1, output, length) == length
+        pbkdf2(ctx, p, s, 1, output.toOpenArray(0, length - 1)) == length
         compare(toOpenArray(e, 0, length - 1),
                 toOpenArray(output, 0, length - 1)) == true
       burnMem(output)
+
+  test "PBKDF2-HMAC-SHA224 compile-time (1 iteration)":
+    const
+      check0 = pbkdf2(sha224, passwords224[0], salts224[0], 1, lengths224[0])
+
+    let expect0 = fromHex(stripSpaces(expects224_1[0]))
+    check:
+      compare(toOpenArray(expect0, 0, lengths224[0] - 1),
+              toOpenArray(check0, 0, lengths224[0] - 1)) == true
+
   when defined(release):
     test "PBKDF2-HMAC-SHA224 (100,000 iterations)":
       var ctx: HMAC[sha224]
@@ -512,10 +539,11 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
         let e = fromHex(stripSpaces(expects224_100k[index]))
         let length = lengths224[i]
         check:
-          pbkdf2(ctx, p, s, 100000, output, length) == length
+          pbkdf2(ctx, p, s, 100000, output.toOpenArray(0, length - 1)) == length
           compare(toOpenArray(e, 0, length - 1),
                   toOpenArray(output, 0, length - 1)) == true
         burnMem(output)
+
   test "PBKDF2-HMAC-SHA256 (1 iteration)":
     var ctx: HMAC[sha256]
     var output: array[128, byte]
@@ -526,10 +554,20 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
       let e = fromHex(stripSpaces(expects256_1[index]))
       let length = lengths256[i]
       check:
-        pbkdf2(ctx, p, s, 1, output, length) == length
+        pbkdf2(ctx, p, s, 1, output.toOpenArray(0, length - 1)) == length
         compare(toOpenArray(e, 0, length - 1),
                 toOpenArray(output, 0, length - 1)) == true
       burnMem(output)
+
+  test "PBKDF2-HMAC-SHA256 compile-time (1 iteration)":
+    const
+      check0 = pbkdf2(sha256, passwords256[0], salts256[0], 1, lengths256[0])
+
+    let expect0 = fromHex(stripSpaces(expects256_1[0]))
+    check:
+      compare(toOpenArray(expect0, 0, lengths256[0] - 1),
+              toOpenArray(check0, 0, lengths256[0] - 1)) == true
+
   when defined(release):
     test "PBKDF2-HMAC-SHA256 (100,000 iterations)":
       var ctx: HMAC[sha256]
@@ -541,10 +579,11 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
         let e = fromHex(stripSpaces(expects256_100k[index]))
         let length = lengths256[i]
         check:
-          pbkdf2(ctx, p, s, 100000, output, length) == length
+          pbkdf2(ctx, p, s, 100000, output.toOpenArray(0, length - 1)) == length
           compare(toOpenArray(e, 0, length - 1),
                   toOpenArray(output, 0, length - 1)) == true
         burnMem(output)
+
   test "PBKDF2-HMAC-SHA384 (1 iteration)":
     var ctx: HMAC[sha384]
     var output: array[128, byte]
@@ -554,11 +593,21 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
       let s = stripSpaces(salts384[index])
       let e = fromHex(stripSpaces(expects384_1[index]))
       let length = lengths384[i]
-      check pbkdf2(ctx, p, s, 1, output, length) == length
+      check pbkdf2(ctx, p, s, 1, output.toOpenArray(0, length - 1)) == length
       check:
         compare(toOpenArray(e, 0, length - 1),
                 toOpenArray(output, 0, length - 1)) == true
       burnMem(output)
+
+  test "PBKDF2-HMAC-SHA384 compile-time (1 iteration)":
+    const
+      check0 = pbkdf2(sha384, passwords384[0], salts384[0], 1, lengths384[0])
+
+    let expect0 = fromHex(stripSpaces(expects384_1[0]))
+    check:
+      compare(toOpenArray(expect0, 0, lengths384[0] - 1),
+              toOpenArray(check0, 0, lengths384[0] - 1)) == true
+
   when defined(release):
     test "PBKDF2-HMAC-SHA384 (100,000 iterations)":
       var ctx: HMAC[sha384]
@@ -569,11 +618,13 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
         let s = stripSpaces(salts384[index])
         let e = fromHex(stripSpaces(expects384_100k[index]))
         let length = lengths384[i]
-        check pbkdf2(ctx, p, s, 100000, output, length) == length
+        check pbkdf2(ctx, p, s, 100000,
+              output.toOpenArray(0, length - 1)) == length
         check:
           compare(toOpenArray(e, 0, length - 1),
                   toOpenArray(output, 0, length - 1)) == true
         burnMem(output)
+
   test "PBKDF2-HMAC-SHA512 (1 iteration)":
     var ctx: HMAC[sha512]
     var output: array[128, byte]
@@ -583,11 +634,21 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
       let s = stripSpaces(salts512[index])
       let e = fromHex(stripSpaces(expects512_1[index]))
       let length = lengths512[i]
-      check pbkdf2(ctx, p, s, 1, output, length) == length
+      check pbkdf2(ctx, p, s, 1, output.toOpenArray(0, length - 1)) == length
       check:
         compare(toOpenArray(e, 0, length - 1),
                 toOpenArray(output, 0, length - 1)) == true
       burnMem(output)
+
+  test "PBKDF2-HMAC-SHA512 compile-time (1 iteration)":
+    const
+      check0 = pbkdf2(sha512, passwords512[0], salts512[0], 1, lengths512[0])
+
+    let expect0 = fromHex(stripSpaces(expects512_1[0]))
+    check:
+      compare(toOpenArray(expect0, 0, lengths512[0] - 1),
+              toOpenArray(check0, 0, lengths512[0] - 1)) == true
+
   when defined(release):
     test "PBKDF2-HMAC-SHA512 (100,000 iterations)":
       var ctx: HMAC[sha512]
@@ -598,7 +659,8 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
         let s = stripSpaces(salts512[index])
         let e = fromHex(stripSpaces(expects512_100k[index]))
         let length = lengths512[i]
-        check pbkdf2(ctx, p, s, 100000, output, length) == length
+        check pbkdf2(ctx, p, s, 100000,
+                     output.toOpenArray(0, length - 1)) == length
         check:
           compare(toOpenArray(e, 0, length - 1),
                   toOpenArray(output, 0, length - 1)) == true

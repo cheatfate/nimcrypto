@@ -8,7 +8,7 @@ suite "Test API":
     var ctx: T
     ctx.init()
     ctx.update(cast[ptr byte](input[0].unsafeAddr), uint(input.len))
-    ctx.finish(output)
+    discard ctx.finish(output)
     ctx.clear()
 
   test "Finish API":
@@ -78,6 +78,5 @@ suite "Test API":
         C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470
       """
     var h = keccak256.digest("")
-    echo $h
     check $h == strip(vector)
 

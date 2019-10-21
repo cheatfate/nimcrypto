@@ -7,7 +7,8 @@
 #    distribution, for details about the copyright.
 #
 
-## This module provides utility functions common to all other submodules of nimcrypto.
+## This module provides utility functions common to all other submodules of
+## nimcrypto.
 
 {.deadCodeElim:on.}
 
@@ -236,7 +237,7 @@ proc isFullZero*[T](a: openarray[T]): bool {.inline.} =
 proc isFullZero*[T](a: T): bool {.inline.} =
   result = isFullZero(unsafeAddr a, sizeof(T))
 
-proc lit64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
+proc lit64ToCpu*(p: ptr byte, offset: int): uint64 {.deprecated, inline.} =
   ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
   ## stored in little-endian order.
   when cpuEndian == bigEndian:
@@ -252,7 +253,7 @@ proc lit64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
   elif cpuEndian == littleEndian:
     result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
 
-proc big64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
+proc big64ToCpu*(p: ptr byte, offset: int): uint64 {.deprecated, inline.} =
   ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
   ## stored in big-endian order.
   when cpuEndian == bigEndian:
@@ -268,7 +269,7 @@ proc big64ToCpu*(p: ptr byte, offset: int): uint64 {.inline.} =
              cast[uint64](pp[offset + 6] shl 8) or
              cast[uint64](pp[offset + 7])
 
-proc cpuToLit64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
+proc cpuToLit64*(p: ptr byte, offset: int, v: uint64) {.deprecated, inline.} =
   ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
   ## little-endian order.
   when cpuEndian == bigEndian:
@@ -284,7 +285,7 @@ proc cpuToLit64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
   elif cpuEndian == littleEndian:
     cast[ptr uint64](cast[uint](p) + cast[uint](offset))[] = v
 
-proc cpuToBig64*(p: ptr byte, offset: int, v: uint64) {.inline.} =
+proc cpuToBig64*(p: ptr byte, offset: int, v: uint64) {.deprecated, inline.} =
   ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
   ## big-endian order.
   when cpuEndian == bigEndian:
@@ -326,13 +327,13 @@ elif defined(vcc):
 
 template leSwap32*(a: uint32): uint32 =
   when system.cpuEndian == bigEndian:
-    a
+    (a)
   else:
     swapBytesBuiltin(a)
 
 template leSwap64*(a: uint64): uint64 =
   when system.cpuEndian == bigEndian:
-    a
+    (a)
   else:
     swapBytesBuiltin(a)
 
@@ -340,58 +341,99 @@ template beSwap32*(a: uint32): uint32 =
   when system.cpuEndian == bigEndian:
     swapBytesBuiltin(a)
   else:
-    a
+    (a)
 
-proc leLoad32*(src: openarray[byte]): uint32 {.inline.} =
-  when defined(nimvm):
-    result = uint32(src[0] shl 24) or uint32(src[1] shl 16) or
-             uint32(src[2] shl 8) or uint32(src[3])
+template beSwap64*(a: uint64): uint64 =
+  when system.cpuEndian == bigEndian:
+    swapBytesBuiltin(a)
   else:
-    result = leSwap32(cast[ptr uint32](unsafeAddr src[0])[])
+    (a)
 
-proc leLoad64*(src: openarray[byte]): uint64 {.inline.} =
-  when defined(nimvm):
-    result = uint64(src[0] shl 56) or uint64(src[1] shl 48) or
-             uint64(src[2] shl 40) or uint64(src[3] shl 32) or
-             uint64(src[4] shl 24) or uint64(src[5] shl 16) or
-             uint64(src[6] shl 8) or uint64(src[7])
+template beLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
+  when nimvm:
+    (uint32(src[srco + 0]) shl 24) or (uint32(src[srco + 1]) shl 16) or
+      (uint32(src[srco + 2]) shl 8) or uint32(src[srco + 3])
   else:
-    result = leSwap64(cast[ptr uint64](unsafeAddr src[0])[])
+    let p = cast[ptr uint32](unsafeAddr src[srco])[]
+    leSwap32(p)
 
-# proc beLoad32*(src: openarray[byte]): uint32 {.inline.} =
-#   when defined(nimvm):
-#     result = uint32(src[3] shl 24) or uint32(src[2] shl 16) or
-#              uint32(src[1] shl 8) or uint32(src[0])
-#   else:
-#     let
-#     result = beSwap32(cast[ptr uint32](unsafeAddr src[0])[])
-
-proc leStore32*(dst: var openarray[byte], v: uint32) {.inline.} =
-  when defined(nimvm):
-    dst[0] = byte(v shr 24); dst[1] = byte(v shr 16)
-    dst[2] = byte(v shr 8); dst[3] = byte(v)
+template leLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
+  when nimvm:
+    (uint32(src[srco + 3]) shl 24) or (uint32(src[srco + 2]) shl 16) or
+      (uint32(src[srco + 1]) shl 8) or uint32(src[srco + 0])
   else:
-    cast[ptr uint32](addr dst[0])[] = leSwap32(v)
+    let p = cast[ptr uint32](unsafeAddr src[srco])[]
+    beSwap32(p)
 
-proc leStore64*(dst: var openarray[byte], v: uint64) {.inline.} =
-  when defined(nimvm):
-    dst[0] = byte(v shr 56); dst[1] = byte(v shr 48)
-    dst[2] = byte(v shr 40); dst[3] = byte(v shr 32)
-    dst[4] = byte(v shr 24); dst[5] = byte(v shr 16)
-    dst[6] = byte(v shr 8); dst[7] = byte(v)
+template beLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
+  when nimvm:
+    (uint64(src[srco + 0]) shl 56) or (uint64(src[srco + 1]) shl 48) or
+      (uint64(src[srco + 2]) shl 40) or (uint64(src[srco + 3]) shl 32) or
+      (uint64(src[srco + 4]) shl 24) or (uint64(src[srco + 5]) shl 16) or
+      (uint64(src[srco + 6]) shl 8) or uint64(src[srco + 7])
   else:
-    cast[ptr uint64](addr dst[0])[] = leSwap64(v)
+    let p = cast[ptr uint64](unsafeAddr src[srco])[]
+    leSwap64(p)
 
-proc beStore32*(dst: var openarray[byte], v: uint32) {.inline.} =
-  when defined(nimvm):
-    dst[0] = byte(v); dst[1] = byte(v shr 8)
-    dst[2] = byte(v shr 16); dst[3] = byte(v shr 24)
+template leLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
+  when nimvm:
+    (uint64(src[srco + 7]) shl 56) or (uint64(src[srco + 6]) shl 48) or
+      (uint64(src[srco + 5]) shl 40) or (uint64(src[srco + 4]) shl 32) or
+      (uint64(src[srco + 3]) shl 24) or (uint64(src[srco + 2]) shl 16) or
+      (uint64(src[srco + 1]) shl 8) or uint64(src[srco + 0])
   else:
-    cast[ptr uint32](addr dst[0])[] = beSwap32(v)
+    let p = cast[ptr uint64](unsafeAddr src[srco])[]
+    beSwap64(p)
 
-proc transferMem*[A, B](dst: var openarray[A], src: openarray[B]) =
-  when defined(nimvm):
-    for i in 0 ..< len(dst):
-      dst[i] = A(src[i])
+template beStore32*(dst: var openarray[byte], so: int, v: uint32) =
+  when nimvm:
+    dst[so + 0] = byte((v shr 24) and 0xFF'u32)
+    dst[so + 1] = byte((v shr 16) and 0xFF'u32)
+    dst[so + 2] = byte((v shr 8) and 0xFF'u32)
+    dst[so + 3] = byte(v and 0xFF'u32)
   else:
-    copyMem(addr dst[0], unsafeAddr src[0], len(dst))
+    cast[ptr uint32](addr dst[so])[] = leSwap32(v)
+
+template beStore64*(dst: var openarray[byte], so: int, v: uint64) =
+  when nimvm:
+    dst[so + 0] = byte((v shr 56) and 0xFF'u64)
+    dst[so + 1] = byte((v shr 48) and 0xFF'u64)
+    dst[so + 2] = byte((v shr 40) and 0xFF'u64)
+    dst[so + 3] = byte((v shr 32) and 0xFF'u64)
+    dst[so + 4] = byte((v shr 24) and 0xFF'u64)
+    dst[so + 5] = byte((v shr 16) and 0xFF'u64)
+    dst[so + 6] = byte((v shr 8) and 0xFF'u64)
+    dst[so + 7] = byte(v and 0xFF'u64)
+  else:
+    cast[ptr uint64](addr dst[so])[] = leSwap64(v)
+
+template leStore32*(dst: var openarray[byte], so: int, v: uint32) =
+  when nimvm:
+    dst[so + 0] = byte(v and 0xFF'u32)
+    dst[so + 1] = byte((v shr 8) and 0xFF'u32)
+    dst[so + 2] = byte((v shr 16) and 0xFF'u32)
+    dst[so + 3] = byte((v shr 24) and 0xFF'u32)
+  else:
+    cast[ptr uint32](addr dst[so])[] = beSwap32(v)
+
+template leStore64*(dst: var openarray[byte], so: int, v: uint64) =
+  when nimvm:
+    dst[so + 0] = byte(v and 0xFF'u64)
+    dst[so + 1] = byte((v shr 8) and 0xFF'u64)
+    dst[so + 2] = byte((v shr 16) and 0xFF'u64)
+    dst[so + 3] = byte((v shr 24) and 0xFF'u64)
+    dst[so + 4] = byte((v shr 32) and 0xFF'u64)
+    dst[so + 5] = byte((v shr 40) and 0xFF'u64)
+    dst[so + 6] = byte((v shr 48) and 0xFF'u64)
+    dst[so + 7] = byte((v shr 56) and 0xFF'u64)
+  else:
+    cast[ptr uint64](addr dst[so])[] = beSwap64(v)
+
+template copyMem*[A, B](dst: var openarray[A], dsto: int,
+                        src: openarray[B], srco: int,
+                        length: int) =
+  when nimvm:
+    for i in 0 ..< length:
+      dst[dsto + i] = A(src[srco + i])
+  else:
+    copyMem(addr dst[dsto], unsafeAddr src[srco], length * sizeof(B))

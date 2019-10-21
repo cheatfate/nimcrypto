@@ -19,8 +19,9 @@
 ##
 ## Tests made according to official test vectors
 ## [https://homes.esat.kuleuven.be/~bosselae/ripemd160.html].
-
 import hash, utils
+
+{.deadCodeElim: on.}
 
 type
   RipemdContext*[bits: static[int]] = object
@@ -463,7 +464,7 @@ template RROUND160N5(a, b, c, d, e, x): void =
   FFF160(c, d, e, a, b, x[ 9] , 11)
   FFF160(b, c, d, e, a, x[11] , 11)
 
-proc ripemd128Transform(state: var array[4, uint32], data: ptr byte) =
+proc ripemd128Transform(state: var array[4, uint32], data: openarray[byte]) =
   var
     aa = state[0]
     bb = state[1]
@@ -473,7 +474,16 @@ proc ripemd128Transform(state: var array[4, uint32], data: ptr byte) =
     bbb = state[1]
     ccc = state[2]
     ddd = state[3]
-    X = cast[ptr UncheckedArray[uint32]](data)
+    X: array[16, uint32]
+
+  X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
+  X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)
+  X[4] = leLoad32(data, 16); X[5] = leLoad32(data, 20)
+  X[6] = leLoad32(data, 24); X[7] = leLoad32(data, 28)
+  X[8] = leLoad32(data, 32); X[9] = leLoad32(data, 36)
+  X[10] = leLoad32(data, 40); X[11] = leLoad32(data, 44)
+  X[12] = leLoad32(data, 48); X[13] = leLoad32(data, 52)
+  X[14] = leLoad32(data, 56); X[15] = leLoad32(data, 60)
 
   LROUND128N1(aa, bb, cc, dd, X)
   LROUND128N2(aa, bb, cc, dd, X)
@@ -491,7 +501,7 @@ proc ripemd128Transform(state: var array[4, uint32], data: ptr byte) =
   state[3] = state[0] + bb + ccc
   state[0] = ddd
 
-proc ripemd256Transform(state: var array[8, uint32], data: ptr byte) =
+proc ripemd256Transform(state: var array[8, uint32], data: openarray[byte]) =
   var
     aa = state[0]
     bb = state[1]
@@ -501,7 +511,16 @@ proc ripemd256Transform(state: var array[8, uint32], data: ptr byte) =
     bbb = state[5]
     ccc = state[6]
     ddd = state[7]
-    X = cast[ptr UncheckedArray[uint32]](data)
+    X: array[16, uint32]
+
+  X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
+  X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)
+  X[4] = leLoad32(data, 16); X[5] = leLoad32(data, 20)
+  X[6] = leLoad32(data, 24); X[7] = leLoad32(data, 28)
+  X[8] = leLoad32(data, 32); X[9] = leLoad32(data, 36)
+  X[10] = leLoad32(data, 40); X[11] = leLoad32(data, 44)
+  X[12] = leLoad32(data, 48); X[13] = leLoad32(data, 52)
+  X[14] = leLoad32(data, 56); X[15] = leLoad32(data, 60)
 
   LROUND128N1(aa, bb, cc, dd, X)
   RROUND128N1(aaa, bbb, ccc, ddd, X)
@@ -526,7 +545,8 @@ proc ripemd256Transform(state: var array[8, uint32], data: ptr byte) =
   state[6] = state[6] + ccc
   state[7] = state[7] + ddd
 
-proc ripemd160Transform(state: var array[5, uint32], data: ptr byte) =
+proc ripemd160Transform(state: var array[5, uint32],
+                        data: openarray[byte]) {.inline.} =
   var
     aa = state[0]
     bb = state[1]
@@ -538,7 +558,16 @@ proc ripemd160Transform(state: var array[5, uint32], data: ptr byte) =
     ccc = state[2]
     ddd = state[3]
     eee = state[4]
-    X = cast[ptr UncheckedArray[uint32]](data)
+    X: array[16, uint32]
+
+  X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
+  X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)
+  X[4] = leLoad32(data, 16); X[5] = leLoad32(data, 20)
+  X[6] = leLoad32(data, 24); X[7] = leLoad32(data, 28)
+  X[8] = leLoad32(data, 32); X[9] = leLoad32(data, 36)
+  X[10] = leLoad32(data, 40); X[11] = leLoad32(data, 44)
+  X[12] = leLoad32(data, 48); X[13] = leLoad32(data, 52)
+  X[14] = leLoad32(data, 56); X[15] = leLoad32(data, 60)
 
   LROUND160N1(aa, bb, cc, dd, ee, X)
   LROUND160N2(aa, bb, cc, dd, ee, X)
@@ -559,7 +588,8 @@ proc ripemd160Transform(state: var array[5, uint32], data: ptr byte) =
   state[4] = state[0] + bb + ccc
   state[0] = ddd
 
-proc ripemd320Transform(state: var array[10, uint32], data: ptr byte) =
+proc ripemd320Transform(state: var array[10, uint32],
+                        data: openarray[byte]) {.inline.} =
   var
     aa = state[0]
     bb = state[1]
@@ -571,7 +601,16 @@ proc ripemd320Transform(state: var array[10, uint32], data: ptr byte) =
     ccc = state[7]
     ddd = state[8]
     eee = state[9]
-    X = cast[ptr UncheckedArray[uint32]](data)
+    X: array[16, uint32]
+
+  X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
+  X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)
+  X[4] = leLoad32(data, 16); X[5] = leLoad32(data, 20)
+  X[6] = leLoad32(data, 24); X[7] = leLoad32(data, 28)
+  X[8] = leLoad32(data, 32); X[9] = leLoad32(data, 36)
+  X[10] = leLoad32(data, 40); X[11] = leLoad32(data, 44)
+  X[12] = leLoad32(data, 48); X[13] = leLoad32(data, 52)
+  X[14] = leLoad32(data, 56); X[15] = leLoad32(data, 60)
 
   LROUND160N1(aa, bb, cc, dd, ee, X)
   RROUND160N1(aaa, bbb, ccc, ddd, eee, X)
@@ -624,7 +663,11 @@ proc init*(ctx: var RipemdContext) {.inline.} =
   ctx.count[0] = 0
   ctx.count[1] = 0
 
-  zeroMem(addr ctx.buffer[0], sizeof(byte) * 64)
+  when nimvm:
+    for i in 0 ..< len(ctx.buffer):
+      ctx.buffer[i] = 0'u8
+  else:
+    zeroMem(addr ctx.buffer[0], sizeof(byte) * 64)
 
   when ctx.bits == 128:
     ctx.state[0] = 0x67452301'u32
@@ -659,95 +702,160 @@ proc init*(ctx: var RipemdContext) {.inline.} =
     ctx.state[9] = 0x3C2D1E0F'u32
 
 proc clear*(ctx: var RipemdContext) {.inline.} =
-  burnMem(ctx)
+  when nimvm:
+    ctx.count[0] = 0x00'u32
+    ctx.count[1] = 0x00'u32
+    when ctx.bits == 128:
+      ctx.state[0] = 0x00'u32
+      ctx.state[1] = 0x00'u32
+      ctx.state[2] = 0x00'u32
+      ctx.state[3] = 0x00'u32
+    elif ctx.bits == 160:
+      ctx.state[0] = 0x00'u32
+      ctx.state[1] = 0x00'u32
+      ctx.state[2] = 0x00'u32
+      ctx.state[3] = 0x00'u32
+      ctx.state[4] = 0x00'u32
+    elif ctx.bits == 256:
+      ctx.state[0] = 0x00'u32
+      ctx.state[1] = 0x00'u32
+      ctx.state[2] = 0x00'u32
+      ctx.state[3] = 0x00'u32
+      ctx.state[4] = 0x00'u32
+      ctx.state[5] = 0x00'u32
+      ctx.state[6] = 0x00'u32
+      ctx.state[7] = 0x00'u32
+    elif ctx.bits == 320:
+      ctx.state[0] = 0x00'u32
+      ctx.state[1] = 0x00'u32
+      ctx.state[2] = 0x00'u32
+      ctx.state[3] = 0x00'u32
+      ctx.state[4] = 0x00'u32
+      ctx.state[5] = 0x00'u32
+      ctx.state[6] = 0x00'u32
+      ctx.state[7] = 0x00'u32
+      ctx.state[8] = 0x00'u32
+      ctx.state[9] = 0x00'u32
+    for i in 0 ..< 64:
+      ctx.buffer[i] = 0x00'u8
+  else:
+    burnMem(ctx)
 
 proc reset*(ctx: var RipemdContext) {.inline.} =
   init(ctx)
 
-proc update*(ctx: var RipemdContext, data: ptr byte, ulen: uint) =
-  var pos = 0'u
-  var length = ulen
+proc update*[T: bchar](ctx: var RipemdContext, data: openarray[T]) {.inline.} =
+  var pos = 0
+  var length = len(data)
 
-  while length > 0'u:
-    let offset = cast[uint](ctx.count[0] and 0x3F)
-    let size = min(64'u - offset, length)
-    copyMem(addr(ctx.buffer[offset]),
-            cast[pointer](cast[uint](data) + pos), size)
+  while length > 0:
+    let offset = int(ctx.count[0] and 0x3F)
+    let size = min(64 - offset, length)
+    copyMem(ctx.buffer, offset, data, pos, size)
     pos = pos + size
     length = length - size
-    ctx.count[0] += cast[uint32](size)
-    if ctx.count[0] < cast[uint32](size):
-      ctx.count[1] += 1'u32
-    if (ctx.count[0] and 0x3F) == 0:
+    ctx.count[0] = ctx.count[0] + uint32(size)
+    if ctx.count[0] < uint32(size):
+      ctx.count[1] = ctx.count[1] + 1'u32
+    if (ctx.count[0] and 0x3F'u32) == 0:
       when ctx.bits == 128:
-        ripemd128Transform(ctx.state, addr(ctx.buffer[0]))
+        ripemd128Transform(ctx.state, ctx.buffer)
       elif ctx.bits == 160:
-        ripemd160Transform(ctx.state, addr(ctx.buffer[0]))
+        ripemd160Transform(ctx.state, ctx.buffer)
       elif ctx.bits == 256:
-        ripemd256Transform(ctx.state, addr(ctx.buffer[0]))
+        ripemd256Transform(ctx.state, ctx.buffer)
       elif ctx.bits == 320:
-        ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
+        ripemd320Transform(ctx.state, ctx.buffer)
 
-proc update*[T: bchar](ctx: var RipemdContext, data: openarray[T]) =
-  if len(data) == 0:
-    ctx.update(nil, 0)
+proc update*(ctx: var RipemdContext, pbytes: ptr byte,
+             nbytes: uint) {.inline.} =
+  var p = cast[ptr array[0, byte]](pbytes)
+  ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
+
+proc finalize(ctx: var RipemdContext) {.inline.} =
+  let size = int(ctx.count[0] and 0x3F'u32)
+  when nimvm:
+    for i in size ..< 64:
+      ctx.buffer[i] = 0x00'u8
   else:
-    ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
+    zeroMem(addr(ctx.buffer[size]), 64 - size)
 
-proc finalize(ctx: var RipemdContext) =
-  let size = (ctx.count[0] and 0x3F)
-  var buffer = addr(ctx.buffer[0])
-  zeroMem(addr(ctx.buffer[size]), 0x40'u - size)
   ctx.buffer[size] = 0x80
-  if size > 55'u32:
+  if size > 55:
     when ctx.bits == 128:
-      ripemd128Transform(ctx.state, addr(ctx.buffer[0]))
+      ripemd128Transform(ctx.state, ctx.buffer)
     elif ctx.bits == 160:
-      ripemd160Transform(ctx.state, addr(ctx.buffer[0]))
+      ripemd160Transform(ctx.state, ctx.buffer)
     elif ctx.bits == 256:
-      ripemd256Transform(ctx.state, addr(ctx.buffer[0]))
+      ripemd256Transform(ctx.state, ctx.buffer)
     elif ctx.bits == 320:
-      ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
-    zeroMem(addr(ctx.buffer[0]), 0x40)
-  SET_DWORD(buffer, 14, (ctx.count[0]) shl 3)
-  SET_DWORD(buffer, 15, (ctx.count[0] shr 29) or (ctx.count[1] shl 3))
-  when ctx.bits == 128:
-    ripemd128Transform(ctx.state, addr(ctx.buffer[0]))
-  elif ctx.bits == 160:
-    ripemd160Transform(ctx.state, addr(ctx.buffer[0]))
-  elif ctx.bits == 256:
-    ripemd256Transform(ctx.state, addr(ctx.buffer[0]))
-  elif ctx.bits == 320:
-    ripemd320Transform(ctx.state, addr(ctx.buffer[0]))
+      ripemd320Transform(ctx.state, ctx.buffer)
+    when nimvm:
+      for i in 0 ..< 64:
+        ctx.buffer[i] = 0x00'u8
+    else:
+      zeroMem(addr(ctx.buffer[0]), 64)
 
-proc finish*(ctx: var RipemdContext, data: ptr byte, ulen: uint): uint =
+  leStore32(ctx.buffer, 56, (ctx.count[0]) shl 3)
+  leStore32(ctx.buffer, 60, ((ctx.count[0]) shr 29) or (ctx.count[1] shl 3))
+
+  when ctx.bits == 128:
+    ripemd128Transform(ctx.state, ctx.buffer)
+  elif ctx.bits == 160:
+    ripemd160Transform(ctx.state, ctx.buffer)
+  elif ctx.bits == 256:
+    ripemd256Transform(ctx.state, ctx.buffer)
+  elif ctx.bits == 320:
+    ripemd320Transform(ctx.state, ctx.buffer)
+
+proc finish*(ctx: var RipemdContext,
+             data: var openarray[byte]): uint {.inline.} =
   result = 0
   finalize(ctx)
   when ctx.bits == 128:
-    if ulen >= 16'u:
+    if len(data) >= 16:
       result = sizeDigest(ctx)
-      for i in 0..3:
-        SET_DWORD(data, i, BSWAP(ctx.state[i]))
+      leStore32(data, 0, ctx.state[0])
+      leStore32(data, 4, ctx.state[1])
+      leStore32(data, 8, ctx.state[2])
+      leStore32(data, 12, ctx.state[3])
   elif ctx.bits == 160:
-    if ulen >= 20'u:
+    if len(data) >= 20:
       result = sizeDigest(ctx)
-      for i in 0..4:
-        SET_DWORD(data, i, BSWAP(ctx.state[i]))
+      leStore32(data, 0, ctx.state[0])
+      leStore32(data, 4, ctx.state[1])
+      leStore32(data, 8, ctx.state[2])
+      leStore32(data, 12, ctx.state[3])
+      leStore32(data, 16, ctx.state[4])
   elif ctx.bits == 256:
-    if ulen >= 32'u:
+    if len(data) >= 32:
       result = sizeDigest(ctx)
-      for i in 0..7:
-        SET_DWORD(data, i, BSWAP(ctx.state[i]))
+      leStore32(data, 0, ctx.state[0])
+      leStore32(data, 4, ctx.state[1])
+      leStore32(data, 8, ctx.state[2])
+      leStore32(data, 12, ctx.state[3])
+      leStore32(data, 16, ctx.state[4])
+      leStore32(data, 20, ctx.state[5])
+      leStore32(data, 24, ctx.state[6])
+      leStore32(data, 28, ctx.state[7])
   elif ctx.bits == 320:
-    if ulen >= 40'u:
+    if len(data) >= 40:
       result = sizeDigest(ctx)
-      for i in 0..9:
-        SET_DWORD(data, i, BSWAP(ctx.state[i]))
+      leStore32(data, 0, ctx.state[0])
+      leStore32(data, 4, ctx.state[1])
+      leStore32(data, 8, ctx.state[2])
+      leStore32(data, 12, ctx.state[3])
+      leStore32(data, 16, ctx.state[4])
+      leStore32(data, 20, ctx.state[5])
+      leStore32(data, 24, ctx.state[6])
+      leStore32(data, 28, ctx.state[7])
+      leStore32(data, 32, ctx.state[8])
+      leStore32(data, 36, ctx.state[9])
+
+proc finish*(ctx: var RipemdContext, pbytes: ptr byte,
+             nbytes: uint): uint {.inline.} =
+  var ptrarr = cast[ptr array[0, byte]](pbytes)
+  result = ctx.finish(ptrarr[].toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
-  discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 cast[uint](len(result.data)))
-
-proc finish*[T: bchar](ctx: var RipemdContext, data: var openarray[T]) =
-  assert(uint(len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
+  discard finish(ctx, result.data)

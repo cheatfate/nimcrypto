@@ -185,6 +185,138 @@ suite "SHA1 Tests":
       sha1.sizeDigest == 20
       ctx.sizeDigest == 20
 
+  test "SHA1 compile-time test vectors":
+    const
+      check0 = sha1.digest(fromHex(stripSpaces(Messages[0])))
+      check1 = sha1.digest(fromHex(stripSpaces(Messages[1])))
+      check2 = sha1.digest(fromHex(stripSpaces(Messages[2])))
+      check3 = sha1.digest(fromHex(stripSpaces(Messages[3])))
+      check4 = sha1.digest(fromHex(stripSpaces(Messages[4])))
+      check5 = sha1.digest(fromHex(stripSpaces(Messages[5])))
+      check6 = sha1.digest(fromHex(stripSpaces(Messages[6])))
+      check7 = sha1.digest(fromHex(stripSpaces(Messages[7])))
+      check8 = sha1.digest(fromHex(stripSpaces(Messages[8])))
+      check9 = sha1.digest(fromHex(stripSpaces(Messages[9])))
+      check10 = sha1.digest(fromHex(stripSpaces(Messages[10])))
+      check11 = sha1.digest(fromHex(stripSpaces(Messages[11])))
+      check12 = sha1.digest(fromHex(stripSpaces(Messages[12])))
+      check13 = sha1.digest(fromHex(stripSpaces(Messages[13])))
+      check14 = sha1.digest(fromHex(stripSpaces(Messages[14])))
+      check15 = sha1.digest(fromHex(stripSpaces(Messages[15])))
+      check16 = sha1.digest(fromHex(stripSpaces(Messages[16])))
+      check17 = sha1.digest(fromHex(stripSpaces(Messages[17])))
+      check18 = sha1.digest(fromHex(stripSpaces(Messages[18])))
+      check19 = sha1.digest(fromHex(stripSpaces(Messages[19])))
+      check20 = sha1.digest(fromHex(stripSpaces(Messages[20])))
+      check21 = sha1.digest(fromHex(stripSpaces(Messages[21])))
+      check22 = sha1.digest(fromHex(stripSpaces(Messages[22])))
+      check23 = sha1.digest(fromHex(stripSpaces(Messages[23])))
+      check24 = sha1.digest(fromHex(stripSpaces(Messages[24])))
+      check25 = sha1.digest(fromHex(stripSpaces(Messages[25])))
+      check26 = sha1.digest(fromHex(stripSpaces(Messages[26])))
+      check27 = sha1.digest(fromHex(stripSpaces(Messages[27])))
+      check28 = sha1.digest(fromHex(stripSpaces(Messages[28])))
+      check29 = sha1.digest(fromHex(stripSpaces(Messages[29])))
+      check30 = sha1.digest(fromHex(stripSpaces(Messages[30])))
+      check31 = sha1.digest(fromHex(stripSpaces(Messages[31])))
+      check32 = sha1.digest(fromHex(stripSpaces(Messages[32])))
+      check33 = sha1.digest(fromHex(stripSpaces(Messages[33])))
+      check34 = sha1.digest(fromHex(stripSpaces(Messages[34])))
+      check35 = sha1.digest(fromHex(stripSpaces(Messages[35])))
+      check36 = sha1.digest(fromHex(stripSpaces(Messages[36])))
+      check37 = sha1.digest(fromHex(stripSpaces(Messages[37])))
+      check38 = sha1.digest(fromHex(stripSpaces(Messages[38])))
+      check39 = sha1.digest(fromHex(stripSpaces(Messages[39])))
+      check40 = sha1.digest(fromHex(stripSpaces(Messages[40])))
+      check41 = sha1.digest(fromHex(stripSpaces(Messages[41])))
+      check42 = sha1.digest(fromHex(stripSpaces(Messages[42])))
+      check43 = sha1.digest(fromHex(stripSpaces(Messages[43])))
+      check44 = sha1.digest(fromHex(stripSpaces(Messages[44])))
+      check45 = sha1.digest(fromHex(stripSpaces(Messages[45])))
+      check46 = sha1.digest(fromHex(stripSpaces(Messages[46])))
+      check47 = sha1.digest(fromHex(stripSpaces(Messages[47])))
+      check48 = sha1.digest(fromHex(stripSpaces(Messages[48])))
+      check49 = sha1.digest(fromHex(stripSpaces(Messages[49])))
+      check50 = sha1.digest(fromHex(stripSpaces(Messages[50])))
+      check51 = sha1.digest(fromHex(stripSpaces(Messages[51])))
+      check52 = sha1.digest(fromHex(stripSpaces(Messages[52])))
+      check53 = sha1.digest(fromHex(stripSpaces(Messages[53])))
+      check54 = sha1.digest(fromHex(stripSpaces(Messages[54])))
+      check55 = sha1.digest(fromHex(stripSpaces(Messages[55])))
+      check56 = sha1.digest(fromHex(stripSpaces(Messages[56])))
+      check57 = sha1.digest(fromHex(stripSpaces(Messages[57])))
+      check58 = sha1.digest(fromHex(stripSpaces(Messages[58])))
+      check59 = sha1.digest(fromHex(stripSpaces(Messages[59])))
+      check60 = sha1.digest(fromHex(stripSpaces(Messages[60])))
+      check61 = sha1.digest(fromHex(stripSpaces(Messages[61])))
+      check62 = sha1.digest(fromHex(stripSpaces(Messages[62])))
+      check63 = sha1.digest(fromHex(stripSpaces(Messages[63])))
+    check:
+      $check0 == Digests[0]
+      $check1 == Digests[1]
+      $check2 == Digests[2]
+      $check3 == Digests[3]
+      $check4 == Digests[4]
+      $check5 == Digests[5]
+      $check6 == Digests[6]
+      $check7 == Digests[7]
+      $check8 == Digests[8]
+      $check9 == Digests[9]
+      $check10 == Digests[10]
+      $check11 == Digests[11]
+      $check12 == Digests[12]
+      $check13 == Digests[13]
+      $check14 == Digests[14]
+      $check15 == Digests[15]
+      $check16 == Digests[16]
+      $check17 == Digests[17]
+      $check18 == Digests[18]
+      $check19 == Digests[19]
+      $check20 == Digests[20]
+      $check21 == Digests[21]
+      $check22 == Digests[22]
+      $check23 == Digests[23]
+      $check24 == Digests[24]
+      $check25 == Digests[25]
+      $check26 == Digests[26]
+      $check27 == Digests[27]
+      $check28 == Digests[28]
+      $check29 == Digests[29]
+      $check30 == Digests[30]
+      $check31 == Digests[31]
+      $check32 == Digests[32]
+      $check33 == Digests[33]
+      $check34 == Digests[34]
+      $check35 == Digests[35]
+      $check36 == Digests[36]
+      $check37 == Digests[37]
+      $check38 == Digests[38]
+      $check39 == Digests[39]
+      $check40 == Digests[40]
+      $check41 == Digests[41]
+      $check42 == Digests[42]
+      $check43 == Digests[43]
+      $check44 == Digests[44]
+      $check45 == Digests[45]
+      $check46 == Digests[46]
+      $check47 == Digests[47]
+      $check48 == Digests[48]
+      $check49 == Digests[49]
+      $check50 == Digests[50]
+      $check51 == Digests[51]
+      $check52 == Digests[52]
+      $check53 == Digests[53]
+      $check54 == Digests[54]
+      $check55 == Digests[55]
+      $check56 == Digests[56]
+      $check57 == Digests[57]
+      $check58 == Digests[58]
+      $check59 == Digests[59]
+      $check60 == Digests[60]
+      $check61 == Digests[61]
+      $check62 == Digests[62]
+      $check63 == Digests[63]
+
   test "SHA1 test vectors":
     for i in 0..<len(Messages):
       var msg: seq[byte]
@@ -202,13 +334,19 @@ suite "SHA1 Tests":
         ctx2.update(nil, 0)
       var cdigest1 = ctx1.finish()
       var cdigest2 = sha1.digest(msg)
-      ctx2.finish(cdigest3)
+      var cdigest4: string
+      if len(msg) > 0:
+        cdigest4 = $sha1.digest(addr msg[0], uint(len(msg)))
+      else:
+        cdigest4 = $sha1.digest(nil, 0)
+      discard ctx2.finish(cdigest3)
       ctx1.clear()
       ctx2.clear()
       check:
         edigest == cdigest1.data
         edigest == cdigest2.data
         edigest == cdigest3
+        edigest == fromHex(cdigest4)
         isFullZero(ctx1) == true
         isFullZero(ctx2) == true
 

@@ -276,14 +276,14 @@ elif defined(windows):
       if cryptReleaseContext(srng.hIntel, 0) == 0:
         raiseOsError(osLastError())
 else:
-  import posix, os
+  import posix
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
     result = urandomRead(pbytes, nbytes)
 
 proc randomBytes*[T](bytes: var openarray[T]): int =
-  assert(len(bytes) > 0)
   let length = len(bytes) * sizeof(T)
-  result = randomBytes(addr bytes[0], length)
-  if result != -1:
-    result = result div sizeof(T)
+  if length > 0:
+    result = randomBytes(addr bytes[0], length)
+    if result != -1:
+      result = result div sizeof(T)

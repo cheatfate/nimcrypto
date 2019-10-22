@@ -10,39 +10,28 @@
 ## This module implements SHA1 (Secure Hash Algorithm 1) designed by
 ## National Security Agency.
 import hash, utils
+export hash
 
 {.deadCodeElim:on.}
 
-template SHA_ROT(x, m, r: uint32): uint32 =
-  ((x shl m) or (x shr r))
-
-template SHA_ROL(x, n: uint32): uint32 =
-  SHA_ROT(x, n, 32 - n)
-
-template SHA_ROR(x, n: uint32): uint32 =
-  SHA_ROT(x, 32 - n, n)
-
-template SHA_SRC(t: int): uint32 =
-  GETU32(blk, t * 4)
-
 template SHA_MIX(t: int): uint32 =
-  SHA_ROL(arr[(t + 13) and 15] xor arr[(t + 8) and 15] xor
-          arr[(t + 2)  and 15] xor arr[t and 15], 1)
+  ROL(arr[(t + 13) and 15] xor arr[(t + 8) and 15] xor
+      arr[(t + 2)  and 15] xor arr[t and 15], 1)
 
-template SHA_ROUND1(t, fn, constant, A, B, C, D, E) =
-  var tmp = GETU32(blk, t * 4)
+template SHA_ROUND1(o, t, fn, constant, A, B, C, D, E) =
+  var tmp = beLoad32(blk, o + t * 4)
   arr[t and 15] = tmp
-  E = E + tmp + SHA_ROL(A, 5) + fn + constant
-  B = SHA_ROR(B, 2)
+  E = E + tmp + ROL(A, 5) + fn + constant
+  B = ROR(B, 2)
 
 template SHA_ROUND2(t, fn, constant, A, B, C, D, E) =
   var tmp = SHA_MIX(t)
   arr[t and 15] = tmp
-  E = E + tmp + SHA_ROL(A, 5) + fn + constant
-  B = SHA_ROR(B, 2)
+  E = E + tmp + ROL(A, 5) + fn + constant
+  B = ROR(B, 2)
 
-template T_0_15(t, A, B, C, D, E) =
-  SHA_ROUND1(t, (((C xor D) and B) xor D), 0x5A827999'u32,
+template T_0_15(o, t, A, B, C, D, E) =
+  SHA_ROUND1(o, t, (((C xor D) and B) xor D), 0x5A827999'u32,
              A, B, C, D, E)
 
 template T_16_19(t, A, B, C, D, E) =
@@ -64,7 +53,7 @@ type
   Sha1Context*[bits: static[uint]] = object
     size: uint64
     h: array[5, uint32]
-    w: array[16, uint32]
+    w: array[64, byte]
 
   sha1* = Sha1Context[160]
 
@@ -88,7 +77,9 @@ proc init*(ctx: var Sha1Context) {.inline.} =
   ctx.h[3] = 0x10325476'u32
   ctx.h[4] = 0xC3D2E1F0'u32
 
-proc sha1Transform(ctx: var Sha1Context, blk: ptr byte) {.noinit.} =
+proc sha1Transform[T: bchar](ctx: var Sha1Context,
+                             blk: openarray[T],
+                             offset: int) {.noinit, inline.} =
   var
     A, B, C, D, E: uint32
     arr: array[16, uint32]
@@ -99,22 +90,22 @@ proc sha1Transform(ctx: var Sha1Context, blk: ptr byte) {.noinit.} =
   D = ctx.h[3]
   E = ctx.h[4]
 
-  T_0_15(0, A, B, C, D, E)
-  T_0_15(1, E, A, B, C, D)
-  T_0_15(2, D, E, A, B, C)
-  T_0_15(3, C, D, E, A, B)
-  T_0_15(4, B, C, D, E, A)
-  T_0_15(5, A, B, C, D, E)
-  T_0_15(6, E, A, B, C, D)
-  T_0_15(7, D, E, A, B, C)
-  T_0_15(8, C, D, E, A, B)
-  T_0_15(9, B, C, D, E, A)
-  T_0_15(10, A, B, C, D, E)
-  T_0_15(11, E, A, B, C, D)
-  T_0_15(12, D, E, A, B, C)
-  T_0_15(13, C, D, E, A, B)
-  T_0_15(14, B, C, D, E, A)
-  T_0_15(15, A, B, C, D, E)
+  T_0_15(offset, 0, A, B, C, D, E)
+  T_0_15(offset, 1, E, A, B, C, D)
+  T_0_15(offset, 2, D, E, A, B, C)
+  T_0_15(offset, 3, C, D, E, A, B)
+  T_0_15(offset, 4, B, C, D, E, A)
+  T_0_15(offset, 5, A, B, C, D, E)
+  T_0_15(offset, 6, E, A, B, C, D)
+  T_0_15(offset, 7, D, E, A, B, C)
+  T_0_15(offset, 8, C, D, E, A, B)
+  T_0_15(offset, 9, B, C, D, E, A)
+  T_0_15(offset, 10, A, B, C, D, E)
+  T_0_15(offset, 11, E, A, B, C, D)
+  T_0_15(offset, 12, D, E, A, B, C)
+  T_0_15(offset, 13, C, D, E, A, B)
+  T_0_15(offset, 14, B, C, D, E, A)
+  T_0_15(offset, 15, A, B, C, D, E)
 
   T_16_19(16, E, A, B, C, D)
   T_16_19(17, D, E, A, B, C)
@@ -191,68 +182,70 @@ proc sha1Transform(ctx: var Sha1Context, blk: ptr byte) {.noinit.} =
   ctx.h[4] += E
 
 proc clear*(ctx: var Sha1Context) {.inline.} =
-  burnMem(ctx)
+  when nimvm:
+    for i in 0 ..< len(ctx.h):
+      ctx.h[i] = 0x00'u32
+      ctx.w[i] = 0x00'u8
+    for i in len(ctx.h) ..< len(ctx.w):
+      ctx.w[i] = 0x00'u8
+    ctx.size = 0x00'u64
+  else:
+    burnMem(ctx)
 
 proc reset*(ctx: var Sha1Context) {.inline.} =
   init(ctx)
 
-proc update*(ctx: var Sha1Context, pBytes: ptr byte, nBytes: uint) =
-  var lenw = ctx.size and 63
-  var length = cast[uint64](nBytes)
-  var slider = pBytes
-  ctx.size += length
+proc update*[T: bchar](ctx: var Sha1Context, data: openarray[T]) {.inline.} =
+  var length = len(data)
+  var lenw = int(ctx.size and 63'u64) # ctx.size mod 64
+  var offset = 0
 
-  if lenw > 0'u64:
-    var left = 64'u64 - lenw
-    if length < left:
-      left = length
-    copyMem(cast[ptr byte](cast[uint64](addr ctx.w[0]) + lenw), slider, left)
+  ctx.size = ctx.size + uint64(length)
+  if lenw > 0:
+    let left = min(64 - lenw, length)
+    copyMem(ctx.w, lenw, data, offset, left)
     lenw = (lenw + left) and 63
     length = length - left
-    slider = cast[ptr byte](cast[uint64](slider) + left)
+    offset = offset + left
     if lenw != 0:
       return
-    sha1Transform(ctx, cast[ptr byte](addr ctx.w[0]))
+    sha1Transform(ctx, ctx.w, 0)
 
-  while length >= 64'u64:
-    sha1Transform(ctx, slider)
-    slider = cast[ptr byte](cast[uint64](slider) + 64)
+  while length >= 64:
+    sha1Transform(ctx, data, offset)
+    offset = offset + 64
     length = length - 64
 
-  if length > 0'u64:
-    copyMem(addr ctx.w[0], slider, length)
+  if length > 0:
+    copyMem(ctx.w, 0, data, offset, length)
 
-proc update*[T: bchar](ctx: var Sha1Context, data: openarray[T]) =
-  if len(data) == 0:
-    ctx.update(nil, 0)
-  else:
-    ctx.update(cast[ptr byte](unsafeAddr data[0]), cast[uint](len(data)))
+proc update*(ctx: var Sha1Context, pbytes: ptr byte,
+             nbytes: uint) {.inline.} =
+  var p = cast[ptr array[0, byte]](pbytes)
+  ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
 
-proc finish*(ctx: var Sha1Context, pBytes: ptr byte,
-             nBytes: uint): uint =
-  result = 0
-  var pad: array[64, byte]
-  var padlen: array[2, uint32]
-  pad[0] = 0x80'u8
-  let s0 = ctx.size shr 39
-  let s1 = ctx.size shl 3
-  EPUTU32(addr padlen[0], 0, s0)
-  EPUTU32(addr padlen[0], 4, s1)
-  var i = cast[int](ctx.size and 63'u64)
-  update(ctx, addr pad[0], cast[uint](1 + (63 and (55 - i))))
-  update(ctx, cast[ptr byte](addr padlen[0]), 8'u)
-  if nBytes >= ctx.sizeDigest:
+proc finish*(ctx: var Sha1Context, data: var openarray[byte]): uint =
+  var onebyte: array[1, byte]
+  var pad: array[8, byte]
+  beStore64(pad, 0, uint64(ctx.size shl 3))
+  onebyte[0] = 0x80'u8
+  update(ctx, onebyte)
+  onebyte[0] = 0x00'u8
+  while (ctx.size and 63'u64) != (64 - 8):
+    update(ctx, onebyte)
+  update(ctx, pad)
+  if len(data) >= int(ctx.sizeDigest):
     result = ctx.sizeDigest
-    PUTU32(pBytes, 0, ctx.h[0])
-    PUTU32(pBytes, 4, ctx.h[1])
-    PUTU32(pBytes, 8, ctx.h[2])
-    PUTU32(pBytes, 12, ctx.h[3])
-    PUTU32(pBytes, 16, ctx.h[4])
+    beStore32(data, 0, ctx.h[0])
+    beStore32(data, 4, ctx.h[1])
+    beStore32(data, 8, ctx.h[2])
+    beStore32(data, 12, ctx.h[3])
+    beStore32(data, 16, ctx.h[4])
 
-proc finish*(ctx: var Sha1Context): MDigest[160] =
-  discard finish(ctx, cast[ptr byte](addr result.data[0]),
-                 cast[uint](len(result.data)))
+proc finish*(ctx: var Sha1Context, pbytes: ptr byte,
+             nbytes: uint): uint {.inline.} =
+  var ptrarr = cast[ptr array[0, byte]](pbytes)
+  result = ctx.finish(ptrarr[].toOpenArray(0, int(nbytes) - 1))
 
-proc finish*[T: bchar](ctx: var Sha1Context, data: var openarray[T]) =
-  assert(cast[uint](len(data)) >= ctx.sizeDigest)
-  discard ctx.finish(cast[ptr byte](addr data[0]), cast[uint](len(data)))
+proc finish*(ctx: var Sha1Context): MDigest[ctx.bits] =
+  discard finish(ctx, result.data)

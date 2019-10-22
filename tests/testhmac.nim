@@ -348,15 +348,26 @@ suite "HMAC Tests":
         cast[ptr byte](addr data[0]), uint(len(data))
       )
       var digest3 = $sha1.hmac(key, data)
-      var digest4 = $sha1.hmac(key, data, 0, len(data) - 1)
       ctx.clear()
       check:
         digest1 == sha1digests[i]
         digest2 == sha1digests[i]
         digest3 == sha1digests[i]
-        digest4 == sha1digests[i]
         digest5 == sha1digests[i]
         ctx.isFullZero() == true
+
+  test "HMAC-SHA1 compile-time test vectors":
+    const
+      check0 = sha1.hmac(fromHex(stripSpaces(sha1keys[0])),
+                         fromHex(stripSpaces(sha1data[0])))
+      check1 = sha1.hmac(fromHex(stripSpaces(sha1keys[1])),
+                         fromHex(stripSpaces(sha1data[1])))
+      check2 = sha1.hmac(fromHex(stripSpaces(sha1keys[2])),
+                         fromHex(stripSpaces(sha1data[2])))
+    check:
+      $check0 == sha1digests[0]
+      $check1 == sha1digests[1]
+      $check2 == sha1digests[2]
 
   test "HMAC-RIPEMD-128 test vectors":
     for i in 0..(len(ripemd128digests) - 1):
@@ -374,15 +385,38 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var digest3 = $ripemd128.hmac(key, data)
-      var digest4 = $ripemd128.hmac(key, data, 0, len(data) - 1)
       ctx.clear()
       check:
         digest1 == ripemd128digests[i]
         digest2 == ripemd128digests[i]
         digest3 == ripemd128digests[i]
-        digest4 == ripemd128digests[i]
         digest5 == ripemd128digests[i]
         ctx.isFullZero() == true
+
+  test "HMAC-RIPEMD-128 compile-time test vectors":
+    const
+      check0 = ripemd128.hmac(fromHex(stripSpaces(ripemd128keys[0])),
+                         fromHex(stripSpaces(ripemddata[0])))
+      check1 = ripemd128.hmac(fromHex(stripSpaces(ripemd128keys[1])),
+                         fromHex(stripSpaces(ripemddata[1])))
+      check2 = ripemd128.hmac(fromHex(stripSpaces(ripemd128keys[2])),
+                         fromHex(stripSpaces(ripemddata[2])))
+      check3 = ripemd128.hmac(fromHex(stripSpaces(ripemd128keys[3])),
+                         fromHex(stripSpaces(ripemddata[3])))
+      check4 = ripemd128.hmac(fromHex(stripSpaces(ripemd128keys[4])),
+                         fromHex(stripSpaces(ripemddata[4])))
+      check5 = ripemd128.hmac(fromHex(stripSpaces(ripemd128keys[5])),
+                         fromHex(stripSpaces(ripemddata[5])))
+      check6 = ripemd128.hmac(fromHex(stripSpaces(ripemd128keys[6])),
+                         fromHex(stripSpaces(ripemddata[6])))
+    check:
+      $check0 == ripemd128digests[0]
+      $check1 == ripemd128digests[1]
+      $check2 == ripemd128digests[2]
+      $check3 == ripemd128digests[3]
+      $check4 == ripemd128digests[4]
+      $check5 == ripemd128digests[5]
+      $check6 == ripemd128digests[6]
 
   test "HMAC-RIPEMD-160 test vectors":
     for i in 0..(len(ripemd160digests) - 1):
@@ -400,15 +434,38 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var digest3 = $ripemd160.hmac(key, data)
-      var digest4 = $ripemd160.hmac(key, data, 0, len(data) - 1)
       ctx.clear()
       check:
         digest1 == ripemd160digests[i]
         digest2 == ripemd160digests[i]
         digest3 == ripemd160digests[i]
-        digest4 == ripemd160digests[i]
         digest5 == ripemd160digests[i]
         ctx.isFullZero() == true
+
+  test "HMAC-RIPEMD-160 compile-time test vectors":
+    const
+      check0 = ripemd160.hmac(fromHex(stripSpaces(ripemd160keys[0])),
+                         fromHex(stripSpaces(ripemddata[0])))
+      check1 = ripemd160.hmac(fromHex(stripSpaces(ripemd160keys[1])),
+                         fromHex(stripSpaces(ripemddata[1])))
+      check2 = ripemd160.hmac(fromHex(stripSpaces(ripemd160keys[2])),
+                         fromHex(stripSpaces(ripemddata[2])))
+      check3 = ripemd160.hmac(fromHex(stripSpaces(ripemd160keys[3])),
+                         fromHex(stripSpaces(ripemddata[3])))
+      check4 = ripemd160.hmac(fromHex(stripSpaces(ripemd160keys[4])),
+                         fromHex(stripSpaces(ripemddata[4])))
+      check5 = ripemd160.hmac(fromHex(stripSpaces(ripemd160keys[5])),
+                         fromHex(stripSpaces(ripemddata[5])))
+      check6 = ripemd160.hmac(fromHex(stripSpaces(ripemd160keys[6])),
+                         fromHex(stripSpaces(ripemddata[6])))
+    check:
+      $check0 == ripemd160digests[0]
+      $check1 == ripemd160digests[1]
+      $check2 == ripemd160digests[2]
+      $check3 == ripemd160digests[3]
+      $check4 == ripemd160digests[4]
+      $check5 == ripemd160digests[5]
+      $check6 == ripemd160digests[6]
 
   test "HMAC-SHA2-224 test vectors":
     var ctx224: HMAC[sha224]
@@ -427,15 +484,32 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha224.hmac(key, data)
-      var check4 = $sha224.hmac(key, data, 0, len(data) - 1)
       ctx224.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx224.isFullZero() == true
+
+  test "HMAC-SHA2-224 compile-time test vectors":
+    const
+      check0 = sha224.hmac(fromHex(stripSpaces(sha2keys[0])),
+                           fromHex(stripSpaces(sha2data[0])))
+      check1 = sha224.hmac(fromHex(stripSpaces(sha2keys[1])),
+                           fromHex(stripSpaces(sha2data[1])))
+      check2 = sha224.hmac(fromHex(stripSpaces(sha2keys[2])),
+                           fromHex(stripSpaces(sha2data[2])))
+      check3 = sha224.hmac(fromHex(stripSpaces(sha2keys[3])),
+                           fromHex(stripSpaces(sha2data[3])))
+      check4 = sha224.hmac(fromHex(stripSpaces(sha2keys[4])),
+                           fromHex(stripSpaces(sha2data[4])))
+    check:
+      $check0 == sha224digests[0]
+      $check1 == sha224digests[1]
+      $check2 == sha224digests[2]
+      $check3 == sha224digests[3]
+      $check4 == sha224digests[4]
 
   test "HMAC-SHA2-256 test vectors":
     var ctx256: HMAC[sha256]
@@ -454,15 +528,32 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha256.hmac(key, data)
-      var check4 = $sha256.hmac(key, data, 0, len(data) - 1)
       ctx256.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx256.isFullZero() == true
+
+  test "HMAC-SHA2-256 compile-time test vectors":
+    const
+      check0 = sha256.hmac(fromHex(stripSpaces(sha2keys[0])),
+                           fromHex(stripSpaces(sha2data[0])))
+      check1 = sha256.hmac(fromHex(stripSpaces(sha2keys[1])),
+                           fromHex(stripSpaces(sha2data[1])))
+      check2 = sha256.hmac(fromHex(stripSpaces(sha2keys[2])),
+                           fromHex(stripSpaces(sha2data[2])))
+      check3 = sha256.hmac(fromHex(stripSpaces(sha2keys[3])),
+                           fromHex(stripSpaces(sha2data[3])))
+      check4 = sha256.hmac(fromHex(stripSpaces(sha2keys[4])),
+                           fromHex(stripSpaces(sha2data[4])))
+    check:
+      $check0 == sha256digests[0]
+      $check1 == sha256digests[1]
+      $check2 == sha256digests[2]
+      $check3 == sha256digests[3]
+      $check4 == sha256digests[4]
 
   test "HMAC-SHA2-384 test vectors":
     var ctx384: HMAC[sha384]
@@ -481,15 +572,32 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha384.hmac(key, data)
-      var check4 = $sha384.hmac(key, data, 0, len(data) - 1)
       ctx384.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx384.isFullZero() == true
+
+  test "HMAC-SHA2-384 compile-time test vectors":
+    const
+      check0 = sha384.hmac(fromHex(stripSpaces(sha2keys[0])),
+                           fromHex(stripSpaces(sha2data[0])))
+      check1 = sha384.hmac(fromHex(stripSpaces(sha2keys[1])),
+                           fromHex(stripSpaces(sha2data[1])))
+      check2 = sha384.hmac(fromHex(stripSpaces(sha2keys[2])),
+                           fromHex(stripSpaces(sha2data[2])))
+      check3 = sha384.hmac(fromHex(stripSpaces(sha2keys[3])),
+                           fromHex(stripSpaces(sha2data[3])))
+      check4 = sha384.hmac(fromHex(stripSpaces(sha2keys[4])),
+                           fromHex(stripSpaces(sha2data[4])))
+    check:
+      $check0 == stripSpaces(sha384digests[0])
+      $check1 == stripSpaces(sha384digests[1])
+      $check2 == stripSpaces(sha384digests[2])
+      $check3 == stripSpaces(sha384digests[3])
+      $check4 == stripSpaces(sha384digests[4])
 
   test "HMAC-SHA2-512 test vectors":
     var ctx512: HMAC[sha512]
@@ -508,15 +616,32 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha512.hmac(key, data)
-      var check4 = $sha512.hmac(key, data, 0, len(data) - 1)
       ctx512.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx512.isFullZero() == true
+
+  test "HMAC-SHA2-512 compile-time test vectors":
+    const
+      check0 = sha512.hmac(fromHex(stripSpaces(sha2keys[0])),
+                           fromHex(stripSpaces(sha2data[0])))
+      check1 = sha512.hmac(fromHex(stripSpaces(sha2keys[1])),
+                           fromHex(stripSpaces(sha2data[1])))
+      check2 = sha512.hmac(fromHex(stripSpaces(sha2keys[2])),
+                           fromHex(stripSpaces(sha2data[2])))
+      check3 = sha512.hmac(fromHex(stripSpaces(sha2keys[3])),
+                           fromHex(stripSpaces(sha2data[3])))
+      check4 = sha512.hmac(fromHex(stripSpaces(sha2keys[4])),
+                           fromHex(stripSpaces(sha2data[4])))
+    check:
+      $check0 == stripSpaces(sha512digests[0])
+      $check1 == stripSpaces(sha512digests[1])
+      $check2 == stripSpaces(sha512digests[2])
+      $check3 == stripSpaces(sha512digests[3])
+      $check4 == stripSpaces(sha512digests[4])
 
   test "HMAC-SHA3-224 test vectors":
     var ctx: HMAC[sha3_224]
@@ -535,15 +660,29 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_224.hmac(key, data)
-      var check4 = $sha3_224.hmac(key, data, 0, len(data) - 1)
       ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx.isFullZero() == true
+
+  test "HMAC-SHA3-224 compile-time test vectors":
+    const
+      check0 = sha3_224.hmac(fromHex(stripSpaces(sha3_224keys[0])),
+                             fromHex(stripSpaces(sha3texts[0])))
+      check1 = sha3_224.hmac(fromHex(stripSpaces(sha3_224keys[1])),
+                             fromHex(stripSpaces(sha3texts[1])))
+      check2 = sha3_224.hmac(fromHex(stripSpaces(sha3_224keys[2])),
+                             fromHex(stripSpaces(sha3texts[2])))
+      check3 = sha3_224.hmac(fromHex(stripSpaces(sha3_224keys[3])),
+                             fromHex(stripSpaces(sha3texts[3])))
+    check:
+      $check0 == stripSpaces(sha3_224digests[0])
+      $check1 == stripSpaces(sha3_224digests[1])
+      $check2 == stripSpaces(sha3_224digests[2])
+      $check3 == stripSpaces(sha3_224digests[3])
 
   test "HMAC-SHA3-256 test vectors":
     var ctx: HMAC[sha3_256]
@@ -562,15 +701,29 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_256.hmac(key, data)
-      var check4 = $sha3_256.hmac(key, data, 0, len(data) - 1)
       ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx.isFullZero() == true
+
+  test "HMAC-SHA3-256 compile-time test vectors":
+    const
+      check0 = sha3_256.hmac(fromHex(stripSpaces(sha3_256keys[0])),
+                             fromHex(stripSpaces(sha3texts[0])))
+      check1 = sha3_256.hmac(fromHex(stripSpaces(sha3_256keys[1])),
+                             fromHex(stripSpaces(sha3texts[1])))
+      check2 = sha3_256.hmac(fromHex(stripSpaces(sha3_256keys[2])),
+                             fromHex(stripSpaces(sha3texts[2])))
+      check3 = sha3_256.hmac(fromHex(stripSpaces(sha3_256keys[3])),
+                             fromHex(stripSpaces(sha3texts[3])))
+    check:
+      $check0 == stripSpaces(sha3_256digests[0])
+      $check1 == stripSpaces(sha3_256digests[1])
+      $check2 == stripSpaces(sha3_256digests[2])
+      $check3 == stripSpaces(sha3_256digests[3])
 
   test "HMAC-SHA3-384 test vectors":
     var ctx: HMAC[sha3_384]
@@ -589,15 +742,29 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_384.hmac(key, data)
-      var check4 = $sha3_384.hmac(key, data, 0, len(data) - 1)
       ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx.isFullZero() == true
+
+  test "HMAC-SHA3-384 compile-time test vectors":
+    const
+      check0 = sha3_384.hmac(fromHex(stripSpaces(sha3_384keys[0])),
+                             fromHex(stripSpaces(sha3texts[0])))
+      check1 = sha3_384.hmac(fromHex(stripSpaces(sha3_384keys[1])),
+                             fromHex(stripSpaces(sha3texts[1])))
+      check2 = sha3_384.hmac(fromHex(stripSpaces(sha3_384keys[2])),
+                             fromHex(stripSpaces(sha3texts[2])))
+      check3 = sha3_384.hmac(fromHex(stripSpaces(sha3_384keys[3])),
+                             fromHex(stripSpaces(sha3texts[3])))
+    check:
+      $check0 == stripSpaces(sha3_384digests[0])
+      $check1 == stripSpaces(sha3_384digests[1])
+      $check2 == stripSpaces(sha3_384digests[2])
+      $check3 == stripSpaces(sha3_384digests[3])
 
   test "HMAC-SHA3-512 test vectors":
     var ctx: HMAC[sha3_512]
@@ -616,15 +783,29 @@ suite "HMAC Tests":
         cast[ptr uint8](addr data[0]), uint(len(data))
       )
       var check3 = $sha3_512.hmac(key, data)
-      var check4 = $sha3_512.hmac(key, data, 0, len(data) - 1)
       ctx.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
-        check4 == digest
         check5 == digest
         ctx.isFullZero() == true
+
+  test "HMAC-SHA3-512 compile-time test vectors":
+    const
+      check0 = sha3_512.hmac(fromHex(stripSpaces(sha3_512keys[0])),
+                             fromHex(stripSpaces(sha3texts[0])))
+      check1 = sha3_512.hmac(fromHex(stripSpaces(sha3_512keys[1])),
+                             fromHex(stripSpaces(sha3texts[1])))
+      check2 = sha3_512.hmac(fromHex(stripSpaces(sha3_512keys[2])),
+                             fromHex(stripSpaces(sha3texts[2])))
+      check3 = sha3_512.hmac(fromHex(stripSpaces(sha3_512keys[3])),
+                             fromHex(stripSpaces(sha3texts[3])))
+    check:
+      $check0 == stripSpaces(sha3_512digests[0])
+      $check1 == stripSpaces(sha3_512digests[1])
+      $check2 == stripSpaces(sha3_512digests[2])
+      $check3 == stripSpaces(sha3_512digests[3])
 
   test "HMAC API test":
     var stringToHmac = "Hello World!"

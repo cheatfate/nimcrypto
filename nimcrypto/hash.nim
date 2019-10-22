@@ -84,8 +84,8 @@ proc digest*(HashType: typedesc, data: ptr byte,
   result = ctx.finish()
   ctx.clear()
 
-proc digest*[T](HashType: typedesc, data: openarray[T],
-                ostart: int = 0, ofinish: int = -1): MDigest[HashType.bits] =
+proc digest*[T: bchar](HashType: typedesc,
+                       data: openarray[T]): MDigest[HashType.bits] =
   ## Calculate and return digest using algorithm ``HashType`` of data ``data``
   ## in slice ``[ostart, ofinish]``, both ``ostart`` and ``ofinish`` are
   ## inclusive.
@@ -106,15 +106,9 @@ proc digest*[T](HashType: typedesc, data: openarray[T],
   ##    echo sha256.digest("World!")
   mixin init, update, finish, clear
   var ctx: HashType
-  let so = if ostart < 0: (len(data) + ostart) else: ostart
-  let eo = if ofinish < 0: (len(data) + ofinish) else: ofinish
-  let length = (eo - so + 1) * sizeof(T)
   ctx.init()
-  if length <= 0:
-    result = ctx.finish()
-  else:
-    ctx.update(cast[ptr byte](unsafeAddr data[so]), uint(length))
-    result = ctx.finish()
+  ctx.update(data)
+  result = ctx.finish()
   ctx.clear()
 
 proc fromHex*(T: typedesc[MDigest], s: string): T =

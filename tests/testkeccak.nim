@@ -8,6 +8,91 @@ suite "KECCAK/SHA3 Tests":
   ## KECCAK TESTS
   ## This tests performed only for full byte message value
 
+  const
+    codes = [
+      "abc",
+      "",
+      "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+      """abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn
+         hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"""
+    ]
+    sdigest224 = [
+      "E642824C3F8CF24AD09234EE7D3C766FC9A3A5168D0C94AD73B46FDF",
+      "6B4E03423667DBB73B6E15454F0EB1ABD4597F9A1B078E3F5B5A6BC7",
+      "8A24108B154ADA21C9FD5574494479BA5C7E7AB76EF264EAD0FCCE33",
+      "543E6868E1666C1A643630DF77367AE5A62A85070A51C14CBF665CBC",
+      "D69335B93325192E516A912E6D19A15CB51C6ED5C15243E7A7FD653C",
+      "C6D66E77AE289566AFB2CE39277752D6DA2A3C46010F1E0A0970FF60"
+    ]
+    kdigest224 = [
+      "C30411768506EBE1C2871B1EE2E87D38DF342317300A9B97A95EC6A8",
+      "F71837502BA8E10837BDD8D365ADB85591895602FC552B48B7390ABD",
+      "E51FAA2B4655150B931EE8D700DC202F763CA5F962C529EAE55012B6",
+      "344298994B1B06873EAE2CE739C425C47291A2E24189E01B524F88DC"
+    ]
+    sdigest256 = [
+      "3A985DA74FE225B2045C172D6BD390BD855F086E3E9D525B46BFE24511431532",
+      "A7FFC6F8BF1ED76651C14756A061D662F580FF4DE43B49FA82D80A4B80F8434A",
+      "41C0DBA2A9D6240849100376A8235E2C82E1B9998A999E21DB32DD97496D3376",
+      "916F6061FE879741CA6469B43971DFDB28B1A32DC36CB3254E812BE27AAD1D18",
+      "5C8875AE474A3634BA4FD55EC85BFFD661F32ACA75C6D699D0CDCB6C115891C1",
+      "ECBBC42CBF296603ACB2C6BC0410EF4378BAFB24B710357F12DF607758B33E2B"
+    ]
+    kdigest256 = [
+      "4E03657AEA45A94FC7D47BA826C8D667C0D1E6E33A64A036EC44F58FA12D6C45",
+      "C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470",
+      "45D3B367A6904E6E8D502EE04999A7C27647F91FA845D456525FD352AE3D7371",
+      "F519747ED599024F3882238E5AB43960132572B7345FBEB9A90769DAFD21AD67"
+    ]
+    sdigest384 = [
+      """EC01498288516FC926459F58E2C6AD8DF9B473CB0FC08C25
+         96DA7CF0E49BE4B298D88CEA927AC7F539F1EDF228376D25""",
+      """0C63A75B845E4F7D01107D852E4C2485C51A50AAAA94FC61
+         995E71BBEE983A2AC3713831264ADB47FB6BD1E058D5F004""",
+      """991C665755EB3A4B6BBDFB75C78A492E8C56A22C5C4D7E42
+         9BFDBC32B9D4AD5AA04A1F076E62FEA19EEF51ACD0657C22""",
+      """79407D3B5916B59C3E30B09822974791C313FB9ECC849E40
+         6F23592D04F625DC8C709B98B43B3852B337216179AA7FC7""",
+      """EEE9E24D78C1855337983451DF97C8AD9EEDF256C6334F8E
+         948D252D5E0E76847AA0774DDB90A842190D2C558B4B8340""",
+      """A04296F4FCAAE14871BB5AD33E28DCF69238B04204D9941B
+         8782E816D014BCB7540E4AF54F30D578F1A1CA2930847A12"""
+    ]
+    kdigest384 = [
+      """F7DF1165F033337BE098E7D288AD6A2F74409D7A60B49C36
+         642218DE161B1F99F8C681E4AFAF31A34DB29FB763E3C28E""",
+      """2C23146A63A29ACF99E73B88F8C24EAA7DC60AA771780CCC
+         006AFBFA8FE2479B2DD2B21362337441AC12B515911957FF""",
+      """B41E8896428F1BCBB51E17ABD6ACC98052A3502E0D5BF7FA
+         1AF949B4D3C855E7C4DC2C390326B3F3E74C7B1E2B9A3657""",
+      """CC063F34685135368B34F7449108F6D10FA727B09D696EC5
+         331771DA46A923B6C34DBD1D4F77E595689C1F3800681C28"""
+    ]
+    sdigest512 = [
+      """B751850B1A57168A5693CD924B6B096E08F621827444F70D884F5D0240D2712E
+         10E116E9192AF3C91A7EC57647E3934057340B4CF408D5A56592F8274EEC53F0""",
+      """A69F73CCA23A9AC5C8B567DC185A756E97C982164FE25859E0D1DCC1475C80A6
+         15B2123AF1F5F94C11E3E9402C3AC558F500199D95B6D3E301758586281DCD26""",
+      """04A371E84ECFB5B8B77CB48610FCA8182DD457CE6F326A0FD3D7EC2F1E91636D
+         EE691FBE0C985302BA1B0D8DC78C086346B533B49C030D99A27DAF1139D6E75E""",
+      """AFEBB2EF542E6579C50CAD06D2E578F9F8DD6881D7DC824D26360FEEBF18A4FA
+         73E3261122948EFCFD492E74E82E2189ED0FB440D187F382270CB455F21DD185""",
+      """3C3A876DA14034AB60627C077BB98F7E120A2A5370212DFFB3385A18D4F38859
+         ED311D0A9D5141CE9CC5C66EE689B266A8AA18ACE8282A0E0DB596C90B0A7B87""",
+      """235FFD53504EF836A1342B488F483B396EABBFE642CF78EE0D31FEEC788B23D0
+         D18D5C339550DD5958A500D4B95363DA1B5FA18AFFC1BAB2292DC63B7D85097C"""
+    ]
+    kdigest512 = [
+      """18587DC2EA106B9A1563E32B3312421CA164C7F1F07BC922A9C83D77CEA3A1E5
+         D0C69910739025372DC14AC9642629379540C17E2A65B19D77AA511A9D00BB96""",
+      """0EAB42DE4C3CEB9235FC91ACFFE746B29C29A8C366B7C60E4E67C466F36A4304
+         C00FA9CAF9D87976BA469BCBE06713B435F091EF2769FB160CDAB33D3670680E""",
+      """6AA6D3669597DF6D5A007B00D09C20795B5C4218234E1698A944757A488ECDC0
+         9965435D97CA32C3CFED7201FF30E070CD947F1FC12B9D9214C467D342BCBA5D""",
+      """AC2FB35251825D3AA48468A9948C0A91B8256F6D97D8FA4160FAFF2DD9DFCC24
+         F3F1DB7A983DAD13D53439CCAC0B37E24037E7B95F80F59F37A2F683C4BA4682"""
+    ]
+
   type
     TestVector = object
       length: int
@@ -116,6 +201,48 @@ suite "KECCAK/SHA3 Tests":
       shake128.sizeDigest == 16
       shake256.sizeDigest == 32
 
+  test "KECCAK-224/256/384/512 compile-time test vectors":
+    const
+      check2240 = keccak224.digest(stripSpaces(codes[0]))
+      check2241 = keccak224.digest(stripSpaces(codes[1]))
+      check2242 = keccak224.digest(stripSpaces(codes[2]))
+      check2243 = keccak224.digest(stripSpaces(codes[3]))
+
+      check2560 = keccak256.digest(stripSpaces(codes[0]))
+      check2561 = keccak256.digest(stripSpaces(codes[1]))
+      check2562 = keccak256.digest(stripSpaces(codes[2]))
+      check2563 = keccak256.digest(stripSpaces(codes[3]))
+
+      check3840 = keccak384.digest(stripSpaces(codes[0]))
+      check3841 = keccak384.digest(stripSpaces(codes[1]))
+      check3842 = keccak384.digest(stripSpaces(codes[2]))
+      check3843 = keccak384.digest(stripSpaces(codes[3]))
+
+      check5120 = keccak512.digest(stripSpaces(codes[0]))
+      check5121 = keccak512.digest(stripSpaces(codes[1]))
+      check5122 = keccak512.digest(stripSpaces(codes[2]))
+      check5123 = keccak512.digest(stripSpaces(codes[3]))
+    check:
+      $check2240 == stripSpaces(kdigest224[0])
+      $check2241 == stripSpaces(kdigest224[1])
+      $check2242 == stripSpaces(kdigest224[2])
+      $check2243 == stripSpaces(kdigest224[3])
+
+      $check2560 == stripSpaces(kdigest256[0])
+      $check2561 == stripSpaces(kdigest256[1])
+      $check2562 == stripSpaces(kdigest256[2])
+      $check2563 == stripSpaces(kdigest256[3])
+
+      $check3840 == stripSpaces(kdigest384[0])
+      $check3841 == stripSpaces(kdigest384[1])
+      $check3842 == stripSpaces(kdigest384[2])
+      $check3843 == stripSpaces(kdigest384[3])
+
+      $check5120 == stripSpaces(kdigest512[0])
+      $check5121 == stripSpaces(kdigest512[1])
+      $check5122 == stripSpaces(kdigest512[2])
+      $check5123 == stripSpaces(kdigest512[3])
+
   test "KECCAK-224 test vectors":
     ## KECCAK-224
     for item in testVectors("tests/ShortMsgKAT_224.txt"):
@@ -148,7 +275,7 @@ suite "KECCAK/SHA3 Tests":
             item.digest == check2
             kec224.isFullZero() == true
 
-        var check3 = $keccak224.digest(data, 0, length - 1)
+        var check3 = $keccak224.digest(data)
         check item.digest == check3
 
   test "KECCAK-256 test vectors":
@@ -182,7 +309,7 @@ suite "KECCAK/SHA3 Tests":
             item.digest == check1
             item.digest == check2
             kec256.isFullZero() == true
-        var check3 = $keccak256.digest(data, 0, length - 1)
+        var check3 = $keccak256.digest(data)
         check item.digest == check3
 
   test "KECCAK-384 test vectors":
@@ -216,7 +343,7 @@ suite "KECCAK/SHA3 Tests":
             item.digest == check1
             item.digest == check2
             kec384.isFullZero() == true
-        var check3 = $keccak384.digest(data, 0, length - 1)
+        var check3 = $keccak384.digest(data)
         check item.digest == check3
 
   test "KECCAK-512 test vectors":
@@ -250,7 +377,7 @@ suite "KECCAK/SHA3 Tests":
             item.digest == check1
             item.digest == check2
             kec512.isFullZero() == true
-        var check3 = $keccak512.digest(data, 0, length - 1)
+        var check3 = $keccak512.digest(data)
         check item.digest == check3
 
   ## SHA3 TESTS
@@ -262,57 +389,47 @@ suite "KECCAK/SHA3 Tests":
   #     ctx.update(cast[ptr uint8](addr msg[0]), uint(len(msg)))
   #   result = $ctx.finish()
 
-  const codes = [
-    "abc",
-    "",
-    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-    """abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn
-       hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"""
-  ]
-  const digest224 = [
-    "E642824C3F8CF24AD09234EE7D3C766FC9A3A5168D0C94AD73B46FDF",
-    "6B4E03423667DBB73B6E15454F0EB1ABD4597F9A1B078E3F5B5A6BC7",
-    "8A24108B154ADA21C9FD5574494479BA5C7E7AB76EF264EAD0FCCE33",
-    "543E6868E1666C1A643630DF77367AE5A62A85070A51C14CBF665CBC",
-    "D69335B93325192E516A912E6D19A15CB51C6ED5C15243E7A7FD653C",
-    "C6D66E77AE289566AFB2CE39277752D6DA2A3C46010F1E0A0970FF60"
-  ]
-  const digest256 = [
-    "3A985DA74FE225B2045C172D6BD390BD855F086E3E9D525B46BFE24511431532",
-    "A7FFC6F8BF1ED76651C14756A061D662F580FF4DE43B49FA82D80A4B80F8434A",
-    "41C0DBA2A9D6240849100376A8235E2C82E1B9998A999E21DB32DD97496D3376",
-    "916F6061FE879741CA6469B43971DFDB28B1A32DC36CB3254E812BE27AAD1D18",
-    "5C8875AE474A3634BA4FD55EC85BFFD661F32ACA75C6D699D0CDCB6C115891C1",
-    "ECBBC42CBF296603ACB2C6BC0410EF4378BAFB24B710357F12DF607758B33E2B"
-  ]
-  const digest384 = [
-    """EC01498288516FC926459F58E2C6AD8DF9B473CB0FC08C25
-       96DA7CF0E49BE4B298D88CEA927AC7F539F1EDF228376D25""",
-    """0C63A75B845E4F7D01107D852E4C2485C51A50AAAA94FC61
-       995E71BBEE983A2AC3713831264ADB47FB6BD1E058D5F004""",
-    """991C665755EB3A4B6BBDFB75C78A492E8C56A22C5C4D7E42
-       9BFDBC32B9D4AD5AA04A1F076E62FEA19EEF51ACD0657C22""",
-    """79407D3B5916B59C3E30B09822974791C313FB9ECC849E40
-       6F23592D04F625DC8C709B98B43B3852B337216179AA7FC7""",
-    """EEE9E24D78C1855337983451DF97C8AD9EEDF256C6334F8E
-       948D252D5E0E76847AA0774DDB90A842190D2C558B4B8340""",
-    """A04296F4FCAAE14871BB5AD33E28DCF69238B04204D9941B
-       8782E816D014BCB7540E4AF54F30D578F1A1CA2930847A12"""
-  ]
-  const digest512 = [
-    """B751850B1A57168A5693CD924B6B096E08F621827444F70D884F5D0240D2712E
-       10E116E9192AF3C91A7EC57647E3934057340B4CF408D5A56592F8274EEC53F0""",
-    """A69F73CCA23A9AC5C8B567DC185A756E97C982164FE25859E0D1DCC1475C80A6
-       15B2123AF1F5F94C11E3E9402C3AC558F500199D95B6D3E301758586281DCD26""",
-    """04A371E84ECFB5B8B77CB48610FCA8182DD457CE6F326A0FD3D7EC2F1E91636D
-       EE691FBE0C985302BA1B0D8DC78C086346B533B49C030D99A27DAF1139D6E75E""",
-    """AFEBB2EF542E6579C50CAD06D2E578F9F8DD6881D7DC824D26360FEEBF18A4FA
-       73E3261122948EFCFD492E74E82E2189ED0FB440D187F382270CB455F21DD185""",
-    """3C3A876DA14034AB60627C077BB98F7E120A2A5370212DFFB3385A18D4F38859
-       ED311D0A9D5141CE9CC5C66EE689B266A8AA18ACE8282A0E0DB596C90B0A7B87""",
-    """235FFD53504EF836A1342B488F483B396EABBFE642CF78EE0D31FEEC788B23D0
-       D18D5C339550DD5958A500D4B95363DA1B5FA18AFFC1BAB2292DC63B7D85097C"""
-  ]
+  test "SHA3 224/256/384/512 compile-time test vectors":
+    const
+      check2240 = sha3_224.digest(stripSpaces(codes[0]))
+      check2241 = sha3_224.digest(stripSpaces(codes[1]))
+      check2242 = sha3_224.digest(stripSpaces(codes[2]))
+      check2243 = sha3_224.digest(stripSpaces(codes[3]))
+
+      check2560 = sha3_256.digest(stripSpaces(codes[0]))
+      check2561 = sha3_256.digest(stripSpaces(codes[1]))
+      check2562 = sha3_256.digest(stripSpaces(codes[2]))
+      check2563 = sha3_256.digest(stripSpaces(codes[3]))
+
+      check3840 = sha3_384.digest(stripSpaces(codes[0]))
+      check3841 = sha3_384.digest(stripSpaces(codes[1]))
+      check3842 = sha3_384.digest(stripSpaces(codes[2]))
+      check3843 = sha3_384.digest(stripSpaces(codes[3]))
+
+      check5120 = sha3_512.digest(stripSpaces(codes[0]))
+      check5121 = sha3_512.digest(stripSpaces(codes[1]))
+      check5122 = sha3_512.digest(stripSpaces(codes[2]))
+      check5123 = sha3_512.digest(stripSpaces(codes[3]))
+    check:
+      $check2240 == stripSpaces(sdigest224[0])
+      $check2241 == stripSpaces(sdigest224[1])
+      $check2242 == stripSpaces(sdigest224[2])
+      $check2243 == stripSpaces(sdigest224[3])
+
+      $check2560 == stripSpaces(sdigest256[0])
+      $check2561 == stripSpaces(sdigest256[1])
+      $check2562 == stripSpaces(sdigest256[2])
+      $check2563 == stripSpaces(sdigest256[3])
+
+      $check3840 == stripSpaces(sdigest384[0])
+      $check3841 == stripSpaces(sdigest384[1])
+      $check3842 == stripSpaces(sdigest384[2])
+      $check3843 == stripSpaces(sdigest384[3])
+
+      $check5120 == stripSpaces(sdigest512[0])
+      $check5121 == stripSpaces(sdigest512[1])
+      $check5122 == stripSpaces(sdigest512[2])
+      $check5123 == stripSpaces(sdigest512[3])
 
   var sha224, osha224: sha3_224
   var sha256, osha256: sha3_256
@@ -345,14 +462,14 @@ suite "KECCAK/SHA3 Tests":
       osha384.update(msg)
       osha512.update(msg)
       check:
-        $sha224.finish() == stripSpaces(digest224[i])
-        $sha256.finish() == stripSpaces(digest256[i])
-        $sha384.finish() == stripSpaces(digest384[i])
-        $sha512.finish() == stripSpaces(digest512[i])
-        $osha224.finish() == stripSpaces(digest224[i])
-        $osha256.finish() == stripSpaces(digest256[i])
-        $osha384.finish() == stripSpaces(digest384[i])
-        $osha512.finish() == stripSpaces(digest512[i])
+        $sha224.finish() == stripSpaces(sdigest224[i])
+        $sha256.finish() == stripSpaces(sdigest256[i])
+        $sha384.finish() == stripSpaces(sdigest384[i])
+        $sha512.finish() == stripSpaces(sdigest512[i])
+        $osha224.finish() == stripSpaces(sdigest224[i])
+        $osha256.finish() == stripSpaces(sdigest256[i])
+        $osha384.finish() == stripSpaces(sdigest384[i])
+        $osha512.finish() == stripSpaces(sdigest512[i])
       sha224.clear()
       sha256.clear()
       sha384.clear()
@@ -381,26 +498,26 @@ suite "KECCAK/SHA3 Tests":
         var dcheck512 = $sha3_512.digest(cast[ptr uint8](addr msg[0]),
                                          uint(len(msg)))
         check:
-          dcheck224 == stripSpaces(digest224[i])
-          dcheck256 == stripSpaces(digest256[i])
-          dcheck384 == stripSpaces(digest384[i])
-          dcheck512 == stripSpaces(digest512[i])
+          dcheck224 == stripSpaces(sdigest224[i])
+          dcheck256 == stripSpaces(sdigest256[i])
+          dcheck384 == stripSpaces(sdigest384[i])
+          dcheck512 == stripSpaces(sdigest512[i])
       else:
         var dcheck224 = $sha3_224.digest(nil, 0'u)
         var dcheck256 = $sha3_256.digest(nil, 0'u)
         var dcheck384 = $sha3_384.digest(nil, 0'u)
         var dcheck512 = $sha3_512.digest(nil, 0'u)
         check:
-          dcheck224 == stripSpaces(digest224[i])
-          dcheck256 == stripSpaces(digest256[i])
-          dcheck384 == stripSpaces(digest384[i])
-          dcheck512 == stripSpaces(digest512[i])
+          dcheck224 == stripSpaces(sdigest224[i])
+          dcheck256 == stripSpaces(sdigest256[i])
+          dcheck384 == stripSpaces(sdigest384[i])
+          dcheck512 == stripSpaces(sdigest512[i])
       # openarray[T] test
       check:
-        $sha3_224.digest(msg) == stripSpaces(digest224[i])
-        $sha3_256.digest(msg) == stripSpaces(digest256[i])
-        $sha3_384.digest(msg) == stripSpaces(digest384[i])
-        $sha3_512.digest(msg) == stripSpaces(digest512[i])
+        $sha3_224.digest(msg) == stripSpaces(sdigest224[i])
+        $sha3_256.digest(msg) == stripSpaces(sdigest256[i])
+        $sha3_384.digest(msg) == stripSpaces(sdigest384[i])
+        $sha3_512.digest(msg) == stripSpaces(sdigest512[i])
 
   test "SHA3 224/256/384/512 million test":
     # Million 'a' test
@@ -423,14 +540,14 @@ suite "KECCAK/SHA3 Tests":
       osha384.update(msg)
       osha512.update(msg)
     check:
-      $sha224.finish() == stripSpaces(digest224[4])
-      $sha256.finish() == stripSpaces(digest256[4])
-      $sha384.finish() == stripSpaces(digest384[4])
-      $sha512.finish() == stripSpaces(digest512[4])
-      $osha224.finish() == stripSpaces(digest224[4])
-      $osha256.finish() == stripSpaces(digest256[4])
-      $osha384.finish() == stripSpaces(digest384[4])
-      $osha512.finish() == stripSpaces(digest512[4])
+      $sha224.finish() == stripSpaces(sdigest224[4])
+      $sha256.finish() == stripSpaces(sdigest256[4])
+      $sha384.finish() == stripSpaces(sdigest384[4])
+      $sha512.finish() == stripSpaces(sdigest512[4])
+      $osha224.finish() == stripSpaces(sdigest224[4])
+      $osha256.finish() == stripSpaces(sdigest256[4])
+      $osha384.finish() == stripSpaces(sdigest384[4])
+      $osha512.finish() == stripSpaces(sdigest512[4])
     sha224.clear()
     sha256.clear()
     sha384.clear()

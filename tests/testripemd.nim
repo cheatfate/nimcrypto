@@ -182,6 +182,81 @@ suite "RipeMD Tests":
 
       inc(i)
 
+  test "RIPEMD 128/160/256/320 compile-time test":
+    const
+      check1281 = $ripemd128.digest(stripSpaces(vectors[0]))
+      check1282 = $ripemd128.digest(stripSpaces(vectors[1]))
+      check1283 = $ripemd128.digest(stripSpaces(vectors[2]))
+      check1284 = $ripemd128.digest(vectors[3])
+      check1285 = $ripemd128.digest(stripSpaces(vectors[4]))
+      check1286 = $ripemd128.digest(stripSpaces(vectors[5]))
+      check1287 = $ripemd128.digest(stripSpaces(vectors[6]))
+      check1288 = $ripemd128.digest(stripSpaces(vectors[7]))
+
+      check2561 = $ripemd256.digest(stripSpaces(vectors[0]))
+      check2562 = $ripemd256.digest(stripSpaces(vectors[1]))
+      check2563 = $ripemd256.digest(stripSpaces(vectors[2]))
+      check2564 = $ripemd256.digest(vectors[3])
+      check2565 = $ripemd256.digest(stripSpaces(vectors[4]))
+      check2566 = $ripemd256.digest(stripSpaces(vectors[5]))
+      check2567 = $ripemd256.digest(stripSpaces(vectors[6]))
+      check2568 = $ripemd256.digest(stripSpaces(vectors[7]))
+
+      check1601 = $ripemd160.digest(stripSpaces(vectors[0]))
+      check1602 = $ripemd160.digest(stripSpaces(vectors[1]))
+      check1603 = $ripemd160.digest(stripSpaces(vectors[2]))
+      check1604 = $ripemd160.digest(vectors[3])
+      check1605 = $ripemd160.digest(stripSpaces(vectors[4]))
+      check1606 = $ripemd160.digest(stripSpaces(vectors[5]))
+      check1607 = $ripemd160.digest(stripSpaces(vectors[6]))
+      check1608 = $ripemd160.digest(stripSpaces(vectors[7]))
+
+      check3201 = $ripemd320.digest(stripSpaces(vectors[0]))
+      check3202 = $ripemd320.digest(stripSpaces(vectors[1]))
+      check3203 = $ripemd320.digest(stripSpaces(vectors[2]))
+      check3204 = $ripemd320.digest(vectors[3])
+      check3205 = $ripemd320.digest(stripSpaces(vectors[4]))
+      check3206 = $ripemd320.digest(stripSpaces(vectors[5]))
+      check3207 = $ripemd320.digest(stripSpaces(vectors[6]))
+      check3208 = $ripemd320.digest(stripSpaces(vectors[7]))
+
+    check:
+      check1281 == Ripemd128C[0]
+      check1282 == Ripemd128C[1]
+      check1283 == Ripemd128C[2]
+      check1284 == Ripemd128C[3]
+      check1285 == Ripemd128C[4]
+      check1286 == Ripemd128C[5]
+      check1287 == Ripemd128C[6]
+      check1288 == Ripemd128C[7]
+
+      check2561 == Ripemd256C[0]
+      check2562 == Ripemd256C[1]
+      check2563 == Ripemd256C[2]
+      check2564 == Ripemd256C[3]
+      check2565 == Ripemd256C[4]
+      check2566 == Ripemd256C[5]
+      check2567 == Ripemd256C[6]
+      check2568 == Ripemd256C[7]
+
+      check1601 == Ripemd160C[0]
+      check1602 == Ripemd160C[1]
+      check1603 == Ripemd160C[2]
+      check1604 == Ripemd160C[3]
+      check1605 == Ripemd160C[4]
+      check1606 == Ripemd160C[5]
+      check1607 == Ripemd160C[6]
+      check1608 == Ripemd160C[7]
+
+      check3201 == stripSpaces(Ripemd320C[0])
+      check3202 == stripSpaces(Ripemd320C[1])
+      check3203 == stripSpaces(Ripemd320C[2])
+      check3204 == stripSpaces(Ripemd320C[3])
+      check3205 == stripSpaces(Ripemd320C[4])
+      check3206 == stripSpaces(Ripemd320C[5])
+      check3207 == stripSpaces(Ripemd320C[6])
+      check3208 == stripSpaces(Ripemd320C[7])
+
   test "RIPEMD 128/160/256/320 million test":
     ctx128.init()
     ctx160.init()

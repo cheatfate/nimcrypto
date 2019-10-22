@@ -87,8 +87,6 @@ proc digest*(HashType: typedesc, data: ptr byte,
 proc digest*[T: bchar](HashType: typedesc,
                        data: openarray[T]): MDigest[HashType.bits] =
   ## Calculate and return digest using algorithm ``HashType`` of data ``data``
-  ## in slice ``[ostart, ofinish]``, both ``ostart`` and ``ofinish`` are
-  ## inclusive.
   ##
   ##  .. code-block::nim
   ##    import nimcrypto
@@ -110,6 +108,14 @@ proc digest*[T: bchar](HashType: typedesc,
   ctx.update(data)
   result = ctx.finish()
   ctx.clear()
+
+proc digest*[T](HashType: typedesc, data: openarray[T],
+                ostart: int, ofinish = -1): MDigest[HashType.bits] {.
+     deprecated: "Use digest(data.toOpenArray()) instead", inline.} =
+  if ofinish < 0:
+    result = digest(HashType, data.toOpenArray(ostart, len(data) - 1))
+  else:
+    result = digest(HashType, data.toOpenArray(ostart, ofinish))
 
 proc fromHex*(T: typedesc[MDigest], s: string): T =
   ## Create ``MDigest`` object from hexadecimal string representation.

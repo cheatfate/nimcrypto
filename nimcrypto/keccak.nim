@@ -412,7 +412,7 @@ proc output*(ctx: var KeccakContext, pbytes: ptr byte,
   result = ctx.output(ptrarr[].toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var KeccakContext,
-             data: var openarray[byte]): uint {.inline.} =
+             data: var openarray[byte]): uint {.inline, discardable.} =
   when ctx.kind == Sha3:
     ctx.q[ctx.pt] = ctx.q[ctx.pt] xor 0x06'u8
   else:

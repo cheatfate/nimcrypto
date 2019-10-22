@@ -224,7 +224,8 @@ proc update*(ctx: var Sha1Context, pbytes: ptr byte,
   var p = cast[ptr array[0, byte]](pbytes)
   ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
 
-proc finish*(ctx: var Sha1Context, data: var openarray[byte]): uint =
+proc finish*(ctx: var Sha1Context,
+             data: var openarray[byte]): uint {.inline, discardable.} =
   var onebyte: array[1, byte]
   var pad: array[8, byte]
   beStore64(pad, 0, uint64(ctx.size shl 3))

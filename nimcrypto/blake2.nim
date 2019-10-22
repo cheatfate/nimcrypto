@@ -410,7 +410,8 @@ proc update*(ctx: var Blake2Context, pbytes: ptr byte,
   var p = cast[ptr array[0, byte]](pbytes)
   ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
 
-proc finish*(ctx: var Blake2sContext, data: var openarray[byte]): uint =
+proc finish*(ctx: var Blake2sContext,
+             data: var openarray[byte]): uint {.inline, discardable.} =
   ctx.t[0] = ctx.t[0] + uint32(ctx.c)
   if ctx.t[0] < uint32(ctx.c):
     ctx.t[1] = ctx.t[1] + 1
@@ -423,7 +424,8 @@ proc finish*(ctx: var Blake2sContext, data: var openarray[byte]): uint =
   for i in 0 ..< length:
     data[i] = byte((ctx.h[i shr 2] shr (8 * (i and 3))) and 0xFF'u32)
 
-proc finish*(ctx: var Blake2bContext, data: var openarray[byte]): uint =
+proc finish*(ctx: var Blake2bContext,
+             data: var openarray[byte]): uint {.inline, discardable.} =
   ctx.t[0] = ctx.t[0] + uint64(ctx.c)
   if ctx.t[0] < uint64(ctx.c):
     ctx.t[1] = ctx.t[1] + 1'u64

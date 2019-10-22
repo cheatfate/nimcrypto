@@ -519,7 +519,8 @@ proc finalize512(ctx: var Sha2Context) {.inline.} =
   beStore64(ctx.buffer, 120, ctx.count[0])
   sha512Transform(ctx.state, ctx.buffer)
 
-proc finish*(ctx: var Sha2Context, data: var openarray[byte]): uint =
+proc finish*(ctx: var Sha2Context,
+             data: var openarray[byte]): uint {.inline, discardable.} =
   result = 0'u
   when ctx.bits == 224 and ctx.bsize == 64:
     if len(data) >= 28:

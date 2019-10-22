@@ -810,7 +810,7 @@ proc finalize(ctx: var RipemdContext) {.inline.} =
     ripemd320Transform(ctx.state, ctx.buffer)
 
 proc finish*(ctx: var RipemdContext,
-             data: var openarray[byte]): uint {.inline.} =
+             data: var openarray[byte]): uint {.inline, discardable.} =
   result = 0
   finalize(ctx)
   when ctx.bits == 128:

@@ -30,7 +30,7 @@ suite "Test API":
       assert(not compiles(x.toDigest))
 
       expect AssertionError:
-        var h = MDigest[256].fromHex(x)
+        discard MDigest[256].fromHex(x)
 
     rejectDigest ""
     rejectDigest "a"

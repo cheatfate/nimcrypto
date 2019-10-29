@@ -202,7 +202,7 @@ proc finish*[T: bchar](hmctx: var HMAC,
   mixin update, finish
   if len(data) >= int(hmctx.sizeDigest):
     var buffer: array[hmctx.sizeDigest, byte]
-    let size = finish(hmctx.mdctx, buffer)
+    discard finish(hmctx.mdctx, buffer)
     hmctx.opadctx.update(buffer)
     result = hmctx.opadctx.finish(data)
 

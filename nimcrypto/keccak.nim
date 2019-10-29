@@ -94,8 +94,8 @@ when nimvm:
     b[c + 4] = b[c + 4] xor (not(a[0]) and a[1])
 
 
-  proc KECCAKROUND(a: var openarray[uint64], b: var openarray[uint64],
-                   c: var uint64, r: int) {.inline.} =
+  proc KECCAKROUNDP(a: var openarray[uint64], b: var openarray[uint64],
+                    c: var uint64, r: int) {.inline.} =
     THETA1(b, a, 0)
     THETA1(b, a, 1)
     THETA1(b, a, 2)
@@ -267,7 +267,7 @@ proc keccakTransform(data: var array[200, byte]) {.inline.} =
 
   when nimvm:
     for i in 0..23:
-      KECCAKROUND(st, bc, t, i)
+      KECCAKROUNDP(st, bc, t, i)
   else:
     KECCAKROUND(st, bc, t, 0)
     KECCAKROUND(st, bc, t, 1)
@@ -385,7 +385,6 @@ proc update*(ctx: var KeccakContext, pbytes: ptr byte,
 proc xof*(ctx: var KeccakContext) {.inline.} =
   when ctx.kind != Shake:
     {.error: "Only `Shake128` and `Shake256` types are supported".}
-  var d = cast[ptr UncheckedArray[byte]](addr ctx.q[0])
   ctx.q[ctx.pt] = ctx.q[ctx.pt] xor 0x1F'u8
   ctx.q[ctx.rsize - 1] = ctx.q[ctx.rsize - 1] xor 0x80'u8
   keccakTransform(ctx.q)

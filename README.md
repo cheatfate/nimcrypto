@@ -18,7 +18,7 @@ nimble install nimcrypto # installation
 import nimcrypto
 
 echo keccak_256.digest("Alice makes a hash") 
-# outputs EF0CC652868DF797522FB1D5A39E58E069154D9E47E5D7DB288B7200DB6EDFEE
+# outputs F8AE86DA35CF3D9F0816BAA6015A6AFFD20BA5D6A533FEA94D89D6164264326F
 ```
 
 See full documentation [here](https://cheatfate.github.io/nimcrypto).

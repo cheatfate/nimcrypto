@@ -12,17 +12,17 @@
 
 {.deadCodeElim:on.}
 
-proc ROL*[T: uint32|uint64](x: T, n: int): T {.inline.} =
-  when T is uint32:
-    result = (x shl T(n and 0x1F)) or (x shr T(8 * sizeof(T) - (n and 0x1F)))
-  else:
-    result = (x shl T(n and 0x3F)) or (x shr T(8 * sizeof(T) - (n and 0x3F)))
+template ROL*(x: uint32, n: int): uint32 =
+  (x shl uint32(n and 0x1F)) or (x shr uint32(32 - (n and 0x1F)))
 
-proc ROR*[T: uint32|uint64](x: T, n: int): T {.inline.} =
-  when T is uint32:
-    result = (x shr T(n and 0x1F)) or (x shl T(8 * sizeof(T) - (n and 0x1F)))
-  else:
-    result = (x shr T(n and 0x3F)) or (x shl T(8 * sizeof(T) - (n and 0x3F)))
+template ROL*(x: uint64, n: int): uint64 =
+  (x shl uint64(n and 0x3F)) or (x shr uint64(64 - (n and 0x3F)))
+
+template ROR*(x: uint32, n: int): uint32 =
+  (x shr uint32(n and 0x1F)) or (x shl uint32(32 - (n and 0x1F)))
+
+template ROR*(x: uint64, n: int): uint64 =
+  (x shr uint64(n and 0x3F)) or (x shl uint64(64 - (n and 0x3F)))
 
 template GETU32*(p, o): uint32 =
   (cast[uint32](cast[ptr byte](cast[uint](p) + o)[]) shl 24) xor

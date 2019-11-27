@@ -182,12 +182,12 @@ elif defined(windows):
     HCRYPTPROV = uint
 
     BCGRMPROC = proc(hAlgorithm: pointer, pBuffer: pointer, cBuffer: ULONG,
-                     dwFlags: ULONG): LONG {.stdcall, gcsafe.}
+                     dwFlags: ULONG): LONG {.stdcall, gcsafe, raises:[].}
     QPCPROC = proc(hProcess: Handle, cycleTime: var uint64): WINBOOL {.
-              stdcall, gcsafe.}
-    QUITPROC = proc(itime: var uint64) {.stdcall, gcsafe.}
+              stdcall, gcsafe, raises:[].}
+    QUITPROC = proc(itime: var uint64) {.stdcall, gcsafe, raises:[].}
     QIPCPROC = proc(bufferLength: var uint32, idleTime: ptr uint64): WINBOOL {.
-               stdcall, gcsafe.}
+               stdcall, gcsafe, raises:[].}
 
     SystemRng = ref object of RootRef
       bCryptGenRandom: BCGRMPROC

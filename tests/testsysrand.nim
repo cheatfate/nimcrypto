@@ -34,3 +34,10 @@ suite "OS random source Tests":
       equalMem(addr buffer2[0], addr buffer4[0], 256) != true
       equalMem(addr buffer2[0], addr buffer8[0], 256) != true
       equalMem(addr buffer4[0], addr buffer8[0], 256) != true
+  test "Issue #33 test":
+    proc test(): bool {.raises:[].} =
+      var test: array[8, byte]
+      if randomBytes(test) == 8:
+        result = true
+
+    check test() == true

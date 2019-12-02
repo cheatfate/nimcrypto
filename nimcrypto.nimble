@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.4.8"
+version       = "0.4.9"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"

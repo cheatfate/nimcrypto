@@ -197,27 +197,28 @@ proc reset*(ctx: var Sha1Context) {.inline.} =
 
 proc update*[T: bchar](ctx: var Sha1Context, data: openarray[T]) {.inline.} =
   var length = len(data)
-  var lenw = int(ctx.size and 63'u64) # ctx.size mod 64
-  var offset = 0
-
-  ctx.size = ctx.size + uint64(length)
-  if lenw > 0:
-    let left = min(64 - lenw, length)
-    copyMem(ctx.w, lenw, data, offset, left)
-    lenw = (lenw + left) and 63
-    length = length - left
-    offset = offset + left
-    if lenw != 0:
-      return
-    sha1Transform(ctx, ctx.w, 0)
-
-  while length >= 64:
-    sha1Transform(ctx, data, offset)
-    offset = offset + 64
-    length = length - 64
-
   if length > 0:
-    copyMem(ctx.w, 0, data, offset, length)
+    var lenw = int(ctx.size and 63'u64) # ctx.size mod 64
+    var offset = 0
+
+    ctx.size = ctx.size + uint64(length)
+    if lenw > 0:
+      let left = min(64 - lenw, length)
+      copyMem(ctx.w, lenw, data, offset, left)
+      lenw = (lenw + left) and 63
+      length = length - left
+      offset = offset + left
+      if lenw != 0:
+        return
+      sha1Transform(ctx, ctx.w, 0)
+
+    while length >= 64:
+      sha1Transform(ctx, data, offset)
+      offset = offset + 64
+      length = length - 64
+
+    if length > 0:
+      copyMem(ctx.w, 0, data, offset, length)
 
 proc update*(ctx: var Sha1Context, pbytes: ptr byte,
              nbytes: uint) {.inline.} =

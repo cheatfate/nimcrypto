@@ -182,6 +182,47 @@ suite "RipeMD Tests":
 
       inc(i)
 
+  test "RIPEMD 128/160/256/320 empty update test":
+    var msg = cast[seq[byte]](vectors[2])
+    var emsg: seq[byte]
+    var edigest128 = fromHex(stripSpaces(RipeMD128C[2]))
+    var edigest160 = fromHex(stripSpaces(RipeMD160C[2]))
+    var edigest256 = fromHex(stripSpaces(RipeMD256C[2]))
+    var edigest320 = fromHex(stripSpaces(RipeMD320C[2]))
+    ctx128.init()
+    octx128.init()
+    ctx160.init()
+    octx160.init()
+    ctx256.init()
+    octx256.init()
+    ctx320.init()
+    octx320.init()
+    ctx128.update(msg)
+    octx128.update(addr msg[0], uint(len(msg)))
+    ctx160.update(msg)
+    octx160.update(addr msg[0], uint(len(msg)))
+    ctx256.update(msg)
+    octx256.update(addr msg[0], uint(len(msg)))
+    ctx320.update(msg)
+    octx320.update(addr msg[0], uint(len(msg)))
+    ctx128.update(emsg)
+    octx128.update(nil, 0)
+    ctx160.update(emsg)
+    octx160.update(nil, 0)
+    ctx256.update(emsg)
+    octx256.update(nil, 0)
+    ctx320.update(emsg)
+    octx320.update(nil, 0)
+    check:
+      ctx128.finish().data == edigest128
+      octx128.finish().data == edigest128
+      ctx160.finish().data == edigest160
+      octx160.finish().data == edigest160
+      ctx256.finish().data == edigest256
+      octx256.finish().data == edigest256
+      ctx320.finish().data == edigest320
+      octx320.finish().data == edigest320
+
   test "RIPEMD 128/160/256/320 compile-time test":
     const
       check1281 = $ripemd128.digest(stripSpaces(vectors[0]))

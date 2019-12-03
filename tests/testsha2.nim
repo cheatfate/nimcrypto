@@ -160,6 +160,21 @@ suite "SHA2 Tests":
         ctx224.isFullZero() == true
       inc(i)
 
+  test "SHA2-224 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha224
+    var msg = cast[seq[byte]](stripSpaces(code224[1]))
+    var edigest = fromHex(stripSpaces(digest224[1]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "SHA2-256 compile-time test vectors":
     const
       check2560 = sha256.digest(code256[0])
@@ -199,6 +214,21 @@ suite "SHA2 Tests":
         check4 == digest
         ctx256.isFullZero() == true
       inc(i)
+
+  test "SHA2-256 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha256
+    var msg = cast[seq[byte]](stripSpaces(code256[1]))
+    var edigest = fromHex(stripSpaces(digest256[1]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
 
   test "SHA2-384 compile-time test vectors":
     const
@@ -241,6 +271,21 @@ suite "SHA2 Tests":
         ctx384.isFullZero() == true
       inc(i)
 
+  test "SHA2-384 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha384
+    var msg = cast[seq[byte]](stripSpaces(code384[1]))
+    var edigest = fromHex(stripSpaces(digest384[1]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "SHA2-512 compile-time test vectors":
     const
       check5120 = sha512.digest(stripSpaces(code512[0]))
@@ -281,6 +326,21 @@ suite "SHA2 Tests":
         ctx512.isFullZero() == true
       inc(i)
 
+  test "SHA2-512 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha512
+    var msg = cast[seq[byte]](stripSpaces(code512[1]))
+    var edigest = fromHex(stripSpaces(digest512[1]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "SHA2-512/224 compile-time test vectors":
     const
       check5122240 = sha512_224.digest(stripSpaces(code512_224[0]))
@@ -313,6 +373,21 @@ suite "SHA2 Tests":
         ctx512_224.isFullZero() == true
       inc(i)
 
+  test "SHA2-512/224 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha512_224
+    var msg = cast[seq[byte]](stripSpaces(code512_224[1]))
+    var edigest = fromHex(stripSpaces(digest512_224[1]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "SHA2-512/256 compile-time test vectors":
     const
       check5122560 = sha512_256.digest(stripSpaces(code512_256[0]))
@@ -344,6 +419,21 @@ suite "SHA2 Tests":
         check4 == digest
         ctx512_256.isFullZero() == true
       inc(i)
+
+  test "SHA2-512/256 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha512_256
+    var msg = cast[seq[byte]](stripSpaces(code512_256[1]))
+    var edigest = fromHex(stripSpaces(digest512_256[1]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
 
   proc millionAtest(t: typedesc): string =
     var ctx: t

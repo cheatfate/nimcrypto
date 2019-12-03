@@ -278,6 +278,21 @@ suite "KECCAK/SHA3 Tests":
         var check3 = $keccak224.digest(data)
         check item.digest == check3
 
+  test "KECCAK-224 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: keccak224
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(kdigest224[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "KECCAK-256 test vectors":
     ## KECCAK-256
     for item in testVectors("tests/ShortMsgKAT_256.txt"):
@@ -311,6 +326,21 @@ suite "KECCAK/SHA3 Tests":
             kec256.isFullZero() == true
         var check3 = $keccak256.digest(data)
         check item.digest == check3
+
+  test "KECCAK-256 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: keccak256
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(kdigest256[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
 
   test "KECCAK-384 test vectors":
     ## KECCAK-384
@@ -346,6 +376,21 @@ suite "KECCAK/SHA3 Tests":
         var check3 = $keccak384.digest(data)
         check item.digest == check3
 
+  test "KECCAK-384 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: keccak384
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(kdigest384[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "KECCAK-512 test vectors":
     ## KECCAK-512
     for item in testVectors("tests/ShortMsgKAT_512.txt"):
@@ -379,6 +424,21 @@ suite "KECCAK/SHA3 Tests":
             kec512.isFullZero() == true
         var check3 = $keccak512.digest(data)
         check item.digest == check3
+
+  test "KECCAK-512 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: keccak512
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(kdigest512[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
 
   ## SHA3 TESTS
 
@@ -518,6 +578,66 @@ suite "KECCAK/SHA3 Tests":
         $sha3_256.digest(msg) == stripSpaces(sdigest256[i])
         $sha3_384.digest(msg) == stripSpaces(sdigest384[i])
         $sha3_512.digest(msg) == stripSpaces(sdigest512[i])
+
+  test "SHA3-224 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha3_224
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(sdigest224[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
+  test "SHA3-256 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha3_256
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(sdigest256[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
+  test "SHA3-384 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha3_384
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(sdigest384[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
+  test "SHA3-512 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha3_512
+    var msg = cast[seq[byte]](stripSpaces(codes[0]))
+    var edigest = fromHex(stripSpaces(sdigest512[0]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
 
   test "SHA3 224/256/384/512 million test":
     # Million 'a' test

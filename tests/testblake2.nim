@@ -132,6 +132,47 @@ suite "BLAKE2B/BLAKE2S Tests":
         check:
           check0 == expect
 
+  test "BLAKE2S-256 empty update() test":
+    const
+      msg = "616263"
+      digest = """
+        508C5E8C327C14E2E1A72BA34EEB452F37458B209ED63A294D999B4C86675982
+      """
+    var emptymsg: seq[byte]
+    var datamsg = fromHex(stripSpaces(msg))
+    var edigest = fromHex(stripSpaces(digest))
+    var ctx1, ctx2: blake2_256
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(datamsg)
+    ctx2.update(addr datamsg[0], uint(len(datamsg)))
+    ctx1.update(emptymsg)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
+  test "BLAKE2B-512 empty update() test":
+    const
+      msg = "616263"
+      digest = """
+        BA80A53F981C4D0D6A2797B69F12F6E94C212F14685AC4B74B12BB6FDBFFA2D1
+        7D87C5392AAB792DC252D5DE4533CC9518D38AA8DBF1925AB92386EDD4009923
+      """
+    var emptymsg: seq[byte]
+    var datamsg = fromHex(stripSpaces(msg))
+    var edigest = fromHex(stripSpaces(digest))
+    var ctx1, ctx2: blake2_512
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(datamsg)
+    ctx2.update(addr datamsg[0], uint(len(datamsg)))
+    ctx1.update(emptymsg)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "BLAKE2S-256 compile-time test":
     const
       vectors = [

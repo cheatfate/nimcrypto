@@ -350,6 +350,21 @@ suite "SHA1 Tests":
         isFullZero(ctx1) == true
         isFullZero(ctx2) == true
 
+  test "SHA1 empty update() test":
+    var data: seq[byte]
+    var ctx1, ctx2: sha1
+    var msg = fromHex(stripSpaces(Messages[1]))
+    var edigest = fromHex(stripSpaces(Digests[1]))
+    ctx1.init()
+    ctx2.init()
+    ctx1.update(msg)
+    ctx2.update(addr msg[0], uint(len(msg)))
+    ctx1.update(data)
+    ctx2.update(nil, 0)
+    check:
+      ctx1.finish().data == edigest
+      ctx2.finish().data == edigest
+
   test "SHA1 million test":
     var ctx: sha1
     var edigest = fromHex(stripSpaces(Digest1MillionA))

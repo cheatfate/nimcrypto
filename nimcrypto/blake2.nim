@@ -20,7 +20,7 @@ export hash
 {.deadCodeElim: on.}
 
 type
-  Blake2bContext[bits: static[int]] = object
+  Blake2bContext*[bits: static[int]] = object
     b: array[128, byte]
     h: array[8, uint64]
     t: array[2, uint64]
@@ -30,7 +30,7 @@ type
     tb: array[2, uint64]
     cb: int
 
-  Blake2sContext[bits: static[int]] = object
+  Blake2sContext*[bits: static[int]] = object
     b: array[64, byte]
     h: array[8, uint32]
     t: array[2, uint32]

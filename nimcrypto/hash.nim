@@ -136,11 +136,10 @@ proc `==`*[A, B](d1: MDigest[A], d2: MDigest[B]): bool =
   if d1.bits != d2.bits:
     return false
   var n = len(d1.data)
-  var res, diff: int
+  var res = 0
   while n > 0:
     dec(n)
-    diff = int(d1.data[n]) - int(d2.data[n])
-    res = (res and -not(diff)) or diff
+    res = res or int(d1.data[n] xor d2.data[n])
   result = (res == 0)
 
 when true:

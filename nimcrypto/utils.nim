@@ -128,10 +128,11 @@ template skip0xPrefix(hexStr: string): int =
   elif hexStr[0] == '0' and hexStr[1] in {'x', 'X'}: 2
   else: 0
 
-proc hexToBytes*(a: string, result: var openarray[byte]) =
+proc hexToBytes*(a: string, output: var openarray[byte]) =
   let offset = skip0xPrefix(a)
   let length = len(a) - offset
-  doAssert(length == 2 * len(result))
+  if length > 2 * len(output):
+    raise newException(ValueError, "Output buffer is too small")
   var i = offset
   var k = 0
   var r = 0
@@ -139,7 +140,7 @@ proc hexToBytes*(a: string, result: var openarray[byte]) =
     while i < len(a):
       let c = a[i]
       if i != offset and i %% 2 == 0:
-        result[k] = r.byte
+        output[k] = byte(r)
         r = 0
         inc(k)
       else:
@@ -152,12 +153,14 @@ proc hexToBytes*(a: string, result: var openarray[byte]) =
       of '0'..'9':
         r = r or (ord(c) - ord('0'))
       else:
-        doAssert(false, "Unexpected non-hex character \"" & $c & "\"")
+        raise newException(ValueError,
+                           "Unexpected non-hex character \"" & $c & "\"")
       inc(i)
-    result[k] = r.byte
+    output[k] = byte(r)
 
 proc fromHex*(a: string): seq[byte] =
-  doAssert(len(a) %% 2 == 0)
+  if (len(a) mod 2) != 0:
+    raise newException(ValueError, "Invalid hexadecimal string")
   if len(a) == 0:
     result = newSeq[byte]()
   else:

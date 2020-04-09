@@ -129,10 +129,12 @@ template skip0xPrefix(hexStr: string): int =
   else: 0
 
 proc hexToBytes*(a: string, output: var openarray[byte]) =
+  if (len(a) mod 2) != 0:
+    raise newException(ValueError, "Invalid hexadecimal string")
   let offset = skip0xPrefix(a)
   let length = len(a) - offset
   if length != 2 * len(output):
-    raise newException(ValueError, "Output buffer is too small")
+    raise newException(ValueError, "Incorrect output buffer size")
   var i = offset
   var k = 0
   var r = 0

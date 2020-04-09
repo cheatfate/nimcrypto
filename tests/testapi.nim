@@ -29,7 +29,7 @@ suite "Test API":
     template rejectDigest(x) =
       assert(not compiles(x.toDigest))
 
-      expect AssertionError:
+      expect ValueError:
         discard MDigest[256].fromHex(x)
 
     rejectDigest ""

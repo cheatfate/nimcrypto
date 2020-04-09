@@ -32,7 +32,6 @@ suite "Test API":
       expect ValueError:
         discard MDigest[256].fromHex(x)
 
-    assert(not compiles("".toDigest))
     rejectDigest ""
     rejectDigest "a"
     rejectDigest "238V"

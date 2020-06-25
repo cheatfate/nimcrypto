@@ -355,7 +355,7 @@ template beSwap64*(a: uint64): uint64 =
     (a)
 
 template beLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
-  when nimvm:
+  when nimvm or defined(tcc):
     (uint32(src[srco + 0]) shl 24) or (uint32(src[srco + 1]) shl 16) or
       (uint32(src[srco + 2]) shl 8) or uint32(src[srco + 3])
   else:
@@ -363,7 +363,7 @@ template beLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
     leSwap32(p)
 
 template leLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
-  when nimvm:
+  when nimvm or defined(tcc):
     (uint32(src[srco + 3]) shl 24) or (uint32(src[srco + 2]) shl 16) or
       (uint32(src[srco + 1]) shl 8) or uint32(src[srco + 0])
   else:
@@ -371,7 +371,7 @@ template leLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
     beSwap32(p)
 
 template beLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
-  when nimvm:
+  when nimvm or defined(tcc):
     (uint64(src[srco + 0]) shl 56) or (uint64(src[srco + 1]) shl 48) or
       (uint64(src[srco + 2]) shl 40) or (uint64(src[srco + 3]) shl 32) or
       (uint64(src[srco + 4]) shl 24) or (uint64(src[srco + 5]) shl 16) or
@@ -381,7 +381,7 @@ template beLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
     leSwap64(p)
 
 template leLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
-  when nimvm:
+  when nimvm or defined(tcc):
     (uint64(src[srco + 7]) shl 56) or (uint64(src[srco + 6]) shl 48) or
       (uint64(src[srco + 5]) shl 40) or (uint64(src[srco + 4]) shl 32) or
       (uint64(src[srco + 3]) shl 24) or (uint64(src[srco + 2]) shl 16) or
@@ -391,7 +391,7 @@ template leLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
     beSwap64(p)
 
 template beStore32*(dst: var openarray[byte], so: int, v: uint32) =
-  when nimvm:
+  when nimvm or defined(tcc):
     dst[so + 0] = byte((v shr 24) and 0xFF'u32)
     dst[so + 1] = byte((v shr 16) and 0xFF'u32)
     dst[so + 2] = byte((v shr 8) and 0xFF'u32)
@@ -400,7 +400,7 @@ template beStore32*(dst: var openarray[byte], so: int, v: uint32) =
     cast[ptr uint32](addr dst[so])[] = leSwap32(v)
 
 template beStore64*(dst: var openarray[byte], so: int, v: uint64) =
-  when nimvm:
+  when nimvm or defined(tcc):
     dst[so + 0] = byte((v shr 56) and 0xFF'u64)
     dst[so + 1] = byte((v shr 48) and 0xFF'u64)
     dst[so + 2] = byte((v shr 40) and 0xFF'u64)
@@ -413,7 +413,7 @@ template beStore64*(dst: var openarray[byte], so: int, v: uint64) =
     cast[ptr uint64](addr dst[so])[] = leSwap64(v)
 
 template leStore32*(dst: var openarray[byte], so: int, v: uint32) =
-  when nimvm:
+  when nimvm or defined(tcc):
     dst[so + 0] = byte(v and 0xFF'u32)
     dst[so + 1] = byte((v shr 8) and 0xFF'u32)
     dst[so + 2] = byte((v shr 16) and 0xFF'u32)
@@ -422,7 +422,7 @@ template leStore32*(dst: var openarray[byte], so: int, v: uint32) =
     cast[ptr uint32](addr dst[so])[] = beSwap32(v)
 
 template leStore64*(dst: var openarray[byte], so: int, v: uint64) =
-  when nimvm:
+  when nimvm or defined(tcc):
     dst[so + 0] = byte(v and 0xFF'u64)
     dst[so + 1] = byte((v shr 8) and 0xFF'u64)
     dst[so + 2] = byte((v shr 16) and 0xFF'u64)
@@ -437,7 +437,7 @@ template leStore64*(dst: var openarray[byte], so: int, v: uint64) =
 template copyMem*[A, B](dst: var openarray[A], dsto: int,
                         src: openarray[B], srco: int,
                         length: int) =
-  when nimvm:
+  when nimvm or defined(tcc):
     for i in 0 ..< length:
       dst[dsto + i] = A(src[srco + i])
   else:

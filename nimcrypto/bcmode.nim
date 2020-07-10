@@ -95,12 +95,12 @@ proc init*[T](ctx: var ECB[T], key: openarray[byte]) {.inline.} =
   ## This procedure will not perform any additional padding for encryption
   ## key ``key``.
   ##
-  ## Length of ``key`` must be equal to ``ECB[T].sizeKey()`` octets (bytes).
+  ## Length of ``key`` must be at least ``ECB[T].sizeKey()`` octets (bytes).
   ##
   ## You can see examples of usage ECB mode here ``examples/ecb.nim``.
   mixin init
   assert(ctx.sizeBlock <= MaxBlockSize)
-  assert(len(key) == ctx.sizeKey())
+  assert(len(key) >= ctx.sizeKey())
   init(ctx.cipher, key)
 
 proc init*[T](ctx: var ECB[T], key: openarray[char]) {.inline.} =
@@ -255,8 +255,8 @@ proc init*[T](ctx: var CBC[T], key: openarray[byte], iv: openarray[byte]) =
   ##
   ## You can see examples of usage CBC mode here ``examples/cbc.nim``.
   mixin init
-  assert(len(iv) == ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
+  assert(len(iv) == ctx.sizeBlock())
+  assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
   ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
@@ -450,8 +450,8 @@ proc init*[T](ctx: var CTR[T], key: openarray[byte], iv: openarray[byte]) =
   ##
   ## You can see examples of usage CTR mode here ``examples/ctr.nim``.
   mixin init
-  assert(len(iv) >= ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
+  assert(len(iv) >= ctx.sizeBlock())
+  assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
   ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
@@ -510,7 +510,7 @@ proc encrypt*[T](ctx: var CTR[T], input: openarray[byte],
         inc128(ctx.iv)
       elif ctx.sizeBlock == (256 div 8):
         inc256(ctx.iv)
-    output[offset] = cast[byte](input[offset] xor ctx.ecount[n])
+    output[offset] = input[offset] xor ctx.ecount[n]
     inc(offset)
     n = (n + 1) mod ctx.sizeBlock()
   ctx.num = n
@@ -596,8 +596,8 @@ proc init*[T](ctx: var OFB[T], key: openarray[byte], iv: openarray[byte]) =
   ##
   ## You can see examples of usage OFB mode here ``examples/ofb.nim``.
   mixin init
-  assert(len(iv) >= ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
+  assert(len(iv) >= ctx.sizeBlock())
+  assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
   ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
@@ -641,7 +641,7 @@ proc encrypt*[T](ctx: var OFB[T], input: openarray[byte],
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
   ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
+  ## ``output`` array.
   mixin encrypt
   assert(len(input) <= len(output))
   var offset = 0
@@ -672,7 +672,7 @@ proc encrypt*[T](ctx: var OFB[T], input: openarray[char],
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
   ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
+  ## ``output`` array.
   encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
                output.toOpenArrayByte(0, len(output) - 1))
 
@@ -682,7 +682,7 @@ proc decrypt*[T](ctx: var OFB[T], input: openarray[byte],
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
   ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
+  ## ``output`` array.
   encrypt(ctx, input, output)
 
 proc decrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
@@ -704,7 +704,7 @@ proc decrypt*[T](ctx: var OFB[T], input: openarray[char],
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
   ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
+  ## ``output`` array.
   encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
                output.toOpenArrayByte(0, len(output) - 1))
 
@@ -734,8 +734,8 @@ proc init*[T](ctx: var CFB[T], key: openarray[byte], iv: openarray[byte]) =
   ##
   ## You can see examples of usage CFB mode here ``examples/cfb.nim``.
   mixin init
-  assert(len(iv) >= ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
+  assert(len(iv) >= ctx.sizeBlock())
+  assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
   ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
@@ -989,7 +989,7 @@ proc init*[T](ctx: var GCM[T], key: openarray[byte], iv: openarray[byte],
   mixin init
   # GCM supports only 128bit block ciphers
   assert(ctx.sizeBlock() == (128 div 8))
-  assert(len(key) == ctx.sizeKey)
+  assert(len(key) >= ctx.sizeKey())
   burnMem(ctx)
   ctx.cipher.init(key)
   ctx.cipher.encrypt(ctx.h, ctx.h)
@@ -1017,7 +1017,7 @@ proc encrypt*[T](ctx: var GCM[T], input: openarray[byte],
   mixin encrypt
   var ectr: array[16, byte]
   assert(len(input) <= len(output))
-  assert(len(input) > 0)
+
   var length = len(input)
   var offset = 0
   ctx.datalen += uint64(length)

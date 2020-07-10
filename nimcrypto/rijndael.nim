@@ -700,11 +700,6 @@ const
     0x1B000000'u32, 0x36000000'u32
   ]
 
-template VSWAP(a, b) =
-  temp = a
-  a = b
-  b = temp
-
 type
   RijndaelContext[bits: static[uint]] = object
     RKe: array[4 * (MaxNr + 1), uint32]
@@ -720,11 +715,11 @@ type
   rijndael* = rijndael128 | rijndael192 | rijndael256 | aes128 | aes192 | aes256
 
 proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
-                         N: int, key: ptr byte): int =
-  ctx.RKe[0] = GETU32(key, 0)
-  ctx.RKe[1] = GETU32(key, 4)
-  ctx.RKe[2] = GETU32(key, 8)
-  ctx.RKe[3] = GETU32(key, 12)
+                         N: int, key: openarray[byte]): int =
+  ctx.RKe[0] = beLoad32(key, 0)
+  ctx.RKe[1] = beLoad32(key, 4)
+  ctx.RKe[2] = beLoad32(key, 8)
+  ctx.RKe[3] = beLoad32(key, 12)
 
   var offset = 0
   var i = 0
@@ -747,8 +742,8 @@ proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
         break
       inc(offset, 4)
   else:
-    ctx.RKe[offset + 4] = GETU32(key, 16)
-    ctx.RKe[offset + 5] = GETU32(key, 20)
+    ctx.RKe[offset + 4] = beLoad32(key, 16)
+    ctx.RKe[offset + 5] = beLoad32(key, 20)
 
     if N == 192:
       while true:
@@ -770,8 +765,8 @@ proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
         ctx.RKe[offset + 11] = ctx.RKe[offset + 5] xor ctx.RKe[offset + 10]
         inc(offset, 6)
     else:
-      ctx.RKe[offset + 6] = GETU32(key, 24)
-      ctx.RKe[offset + 7] = GETU32(key, 28)
+      ctx.RKe[offset + 6] = beLoad32(key, 24)
+      ctx.RKe[offset + 7] = beLoad32(key, 28)
       if N == 256:
         while true:
           var temp = ctx.RKe[offset + 7]
@@ -800,18 +795,17 @@ proc rijndaelKeySetupEnc(ctx: var RijndaelContext,
           inc(offset, 8)
 
 proc rijndaelKeySetupDec(ctx: var RijndaelContext, N: int,
-                         key: ptr byte): int =
+                         key: openarray[byte]): int =
   result = rijndaelKeySetupEnc(ctx, N, key)
   ctx.RKd = ctx.RKe
-  var temp = 0'u32
   var i = 0
   var j = 4 * result
   var offset = 0
   while i < j:
-    VSWAP(ctx.RKd[i], ctx.RKd[j])
-    VSWAP(ctx.RKd[i + 1], ctx.RKd[j + 1])
-    VSWAP(ctx.RKd[i + 2], ctx.RKd[j + 2])
-    VSWAP(ctx.RKd[i + 3], ctx.RKd[j + 3])
+    swap(ctx.RKd[i], ctx.RKd[j])
+    swap(ctx.RKd[i + 1], ctx.RKd[j + 1])
+    swap(ctx.RKd[i + 2], ctx.RKd[j + 2])
+    swap(ctx.RKd[i + 3], ctx.RKd[j + 3])
     inc(i, 4)
     dec(j, 4)
   i = 1
@@ -883,14 +877,14 @@ template DEC_ROUND(D0, D1, D2, D3, S0, S1, S2, S3, RK, ROUND) =
        Td3[S0 and 0xFF] xor
        RK[ROUND * 4 + 3]
 
-proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr byte,
-                      oup: ptr byte) =
+proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: openarray[byte],
+                      oup: var openarray[byte]) =
   var t0, t1, t2, t3: uint32
 
-  var s0 = GETU32(inp, 0) xor ctx.RKe[0]
-  var s1 = GETU32(inp, 4) xor ctx.RKe[1]
-  var s2 = GETU32(inp, 8) xor ctx.RKe[2]
-  var s3 = GETU32(inp, 12) xor ctx.RKe[3]
+  var s0 = beLoad32(inp, 0) xor ctx.RKe[0]
+  var s1 = beLoad32(inp, 4) xor ctx.RKe[1]
+  var s2 = beLoad32(inp, 8) xor ctx.RKe[2]
+  var s3 = beLoad32(inp, 12) xor ctx.RKe[3]
 
   ENC_ROUND(t0, t1, t2 ,t3, s0, s1, s2, s3, ctx.RKe, 1)
   ENC_ROUND(s0, s1, s2, s3, t0, t1, t2, t3, ctx.RKe, 2)
@@ -931,19 +925,19 @@ proc rijndaelEncrypt*(ctx: var RijndaelContext, inp: ptr byte,
        (Te4[t2 and 0xFF] and 0x000000FF'u32) xor
        ctx.RKe[offset + 3]
 
-  PUTU32(oup, 0, s0)
-  PUTU32(oup, 4, s1)
-  PUTU32(oup, 8, s2)
-  PUTU32(oup, 12, s3)
+  beStore32(oup, 0, s0)
+  beStore32(oup, 4, s1)
+  beStore32(oup, 8, s2)
+  beStore32(oup, 12, s3)
 
-proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr byte,
-                      oup: ptr byte) =
+proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: openarray[byte],
+                      oup: var openarray[byte]) =
   var t0, t1, t2, t3: uint32
 
-  var s0 = GETU32(inp, 0) xor ctx.RKd[0]
-  var s1 = GETU32(inp, 4) xor ctx.RKd[1]
-  var s2 = GETU32(inp, 8) xor ctx.RKd[2]
-  var s3 = GETU32(inp, 12) xor ctx.RKd[3]
+  var s0 = beLoad32(inp, 0) xor ctx.RKd[0]
+  var s1 = beLoad32(inp, 4) xor ctx.RKd[1]
+  var s2 = beLoad32(inp, 8) xor ctx.RKd[2]
+  var s3 = beLoad32(inp, 12) xor ctx.RKd[3]
 
   DEC_ROUND(t0, t1, t2 ,t3, s0, s1, s2, s3, ctx.RKd, 1)
   DEC_ROUND(s0, s1, s2, s3, t0, t1, t2, t3, ctx.RKd, 2)
@@ -984,13 +978,10 @@ proc rijndaelDecrypt*(ctx: var RijndaelContext, inp: ptr byte,
        (Td4[t0 and 0xFF] and 0x000000FF'u32) xor
        ctx.RKd[offset + 3]
 
-  PUTU32(oup, 0, s0)
-  PUTU32(oup, 4, s1)
-  PUTU32(oup, 8, s2)
-  PUTU32(oup, 12, s3)
-
-proc initRijndaelContext*(ctx: var RijndaelContext, N: int, key: ptr byte) =
-  ctx.Nr = rijndaelKeySetupDec(ctx, N, key)
+  beStore32(oup, 0, s0)
+  beStore32(oup, 4, s1)
+  beStore32(oup, 8, s2)
+  beStore32(oup, 12, s3)
 
 template sizeKey*(ctx: RijndaelContext): int =
   (ctx.bits div 8)
@@ -1009,32 +1000,35 @@ template sizeKey*(r: typedesc[rijndael]): int =
 template sizeBlock*(r: typedesc[rijndael]): int =
   (16)
 
-proc init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =
+proc init*(ctx: var RijndaelContext, key: openarray[byte]) {.inline.} =
   ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, key)
 
-proc init*(ctx: var RijndaelContext, key: openarray[byte]) {.inline.} =
-  assert(len(key) >= ctx.sizeKey)
-  ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits, unsafeAddr key[0])
+proc init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =
+  var p = cast[ptr array[0, byte]](key)
+  ctx.Nr = rijndaelKeySetupDec(ctx, ctx.bits,
+                               toOpenArray(p[], 0, int(ctx.sizeKey()) - 1))
 
 proc clear*(ctx: var RijndaelContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
-  rijndaelEncrypt(ctx, inbytes, outbytes)
-
-proc decrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
-  rijndaelDecrypt(ctx, inbytes, outbytes)
-
 proc encrypt*(ctx: var RijndaelContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
-  rijndaelEncrypt(ctx, unsafeAddr input[0], addr output[0])
+  rijndaelEncrypt(ctx, input, output)
 
 proc decrypt*(ctx: var RijndaelContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
-  rijndaelDecrypt(ctx, unsafeAddr input[0], addr output[0])
+  rijndaelDecrypt(ctx, input, output)
+
+proc encrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
+  var ip = cast[ptr array[0, byte]](inbytes)
+  var op = cast[ptr array[0, byte]](outbytes)
+  rijndaelEncrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
+                       toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+
+proc decrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
+  var ip = cast[ptr array[0, byte]](inbytes)
+  var op = cast[ptr array[0, byte]](outbytes)
+  rijndaelDecrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
+                       toOpenArray(op[], 0, ctx.sizeBlock() - 1))

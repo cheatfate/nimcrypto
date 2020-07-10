@@ -313,13 +313,14 @@ template DEC_ROUND(CTX, R0, R1, R2, R3, round) =
   R2 = ROL(R2, 1) xor (T0 + T1 + CTX.K[2 * round + 8])
   R3 = ROR(R3 xor (T0 + 2'u32 * T1 + CTX.K[2 * round + 9]), 1)
 
-proc twofishEncrypt(ctx: var TwofishContext, inp: ptr byte, oup: ptr byte) =
+proc twofishEncrypt(ctx: var TwofishContext, inp: openarray[byte],
+                    oup: var openarray[byte]) {.inline.} =
   var T0, T1: uint32
 
-  var r3 = ctx.K[3] xor BSWAP(GET_DWORD(inp, 3))
-  var r2 = ctx.K[2] xor BSWAP(GET_DWORD(inp, 2))
-  var r1 = ctx.K[1] xor BSWAP(GET_DWORD(inp, 1))
-  var r0 = ctx.K[0] xor BSWAP(GET_DWORD(inp, 0))
+  var r3 = ctx.K[3] xor leLoad32(inp, 12)
+  var r2 = ctx.K[2] xor leLoad32(inp, 8)
+  var r1 = ctx.K[1] xor leLoad32(inp, 4)
+  var r0 = ctx.K[0] xor leLoad32(inp, 0)
 
   ENC_ROUND(ctx, r0, r1, r2, r3, 0)
   ENC_ROUND(ctx, r2, r3, r0, r1, 1)
@@ -338,18 +339,19 @@ proc twofishEncrypt(ctx: var TwofishContext, inp: ptr byte, oup: ptr byte) =
   ENC_ROUND(ctx, r0, r1, r2, r3, 14)
   ENC_ROUND(ctx, r2, r3, r0, r1, 15)
 
-  SET_DWORD(oup, 3, BSWAP(r1 xor ctx.K[7]))
-  SET_DWORD(oup, 2, BSWAP(r0 xor ctx.K[6]))
-  SET_DWORD(oup, 1, BSWAP(r3 xor ctx.K[5]))
-  SET_DWORD(oup, 0, BSWAP(r2 xor ctx.K[4]))
+  leStore32(oup, 12, r1 xor ctx.K[7])
+  leStore32(oup, 8, r0 xor ctx.K[6])
+  leStore32(oup, 4, r3 xor ctx.K[5])
+  leStore32(oup, 0, r2 xor ctx.K[4])
 
-proc twofishDecrypt(ctx: var TwofishContext, inp: ptr byte, oup: ptr byte) =
+proc twofishDecrypt(ctx: var TwofishContext, inp: openarray[byte],
+                    oup: var openarray[byte]) {.inline.} =
   var T0, T1: uint32
 
-  var r3 = ctx.K[7] xor BSWAP(GET_DWORD(inp, 3))
-  var r2 = ctx.K[6] xor BSWAP(GET_DWORD(inp, 2))
-  var r1 = ctx.K[5] xor BSWAP(GET_DWORD(inp, 1))
-  var r0 = ctx.K[4] xor BSWAP(GET_DWORD(inp, 0))
+  var r3 = ctx.K[7] xor leLoad32(inp, 12)
+  var r2 = ctx.K[6] xor leLoad32(inp, 8)
+  var r1 = ctx.K[5] xor leLoad32(inp, 4)
+  var r0 = ctx.K[4] xor leLoad32(inp, 0)
 
   DEC_ROUND(ctx, r0, r1, r2, r3, 15)
   DEC_ROUND(ctx, r2, r3, r0, r1, 14)
@@ -368,12 +370,13 @@ proc twofishDecrypt(ctx: var TwofishContext, inp: ptr byte, oup: ptr byte) =
   DEC_ROUND(ctx, r0, r1, r2, r3, 1)
   DEC_ROUND(ctx, r2, r3, r0, r1, 0)
 
-  SET_DWORD(oup, 3, BSWAP(r1 xor ctx.K[3]))
-  SET_DWORD(oup, 2, BSWAP(r0 xor ctx.K[2]))
-  SET_DWORD(oup, 1, BSWAP(r3 xor ctx.K[1]))
-  SET_DWORD(oup, 0, BSWAP(r2 xor ctx.K[0]))
+  leStore32(oup, 12, r1 xor ctx.K[3])
+  leStore32(oup, 8, r0 xor ctx.K[2])
+  leStore32(oup, 4, r3 xor ctx.K[1])
+  leStore32(oup, 0, r2 xor ctx.K[0])
 
-proc initTwofishContext(ctx: var TwofishContext, N: int, key: ptr byte) =
+proc initTwofishContext(ctx: var TwofishContext, N: int,
+                        key: openarray[byte]) =
   var
     A, B: uint32
 
@@ -384,8 +387,8 @@ proc initTwofishContext(ctx: var TwofishContext, N: int, key: ptr byte) =
   let k = (N + 63) div 64
 
   for i in 0..<k:
-    Me[i] = BSWAP(GET_DWORD(key, 2 * i))
-    Mo[i] = BSWAP(GET_DWORD(key, 2 * i + 1))
+    Me[i] = leLoad32(key, 8 * i)
+    Mo[i] = leLoad32(key, 4 + 8 * i)
 
   for i in 0..<k:
     for j in 0..<4:
@@ -418,32 +421,35 @@ template sizeKey*(r: typedesc[twofish]): int =
 template sizeBlock*(r: typedesc[twofish]): int =
   (16)
 
-proc init*(ctx: var TwofishContext, key: ptr byte, nkey: int = 0) {.inline.} =
+proc init*(ctx: var TwofishContext, key: openarray[byte]) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)
 
-proc init*(ctx: var TwofishContext, key: openarray[byte]) {.inline.} =
-  assert(len(key) >= ctx.sizeKey())
-  initTwofishContext(ctx, ctx.bits, unsafeAddr key[0])
+proc init*(ctx: var TwofishContext, key: ptr byte, nkey: int = 0) {.inline.} =
+  var p = cast[ptr array[0, byte]](key)
+  initTwofishContext(ctx, ctx.bits,
+                     toOpenArray(p[], 0, int(ctx.sizeKey()) - 1))
 
 proc clear*(ctx: var TwofishContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var TwofishContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
-  twofishEncrypt(ctx, inbytes, outbytes)
-
-proc decrypt*(ctx: var TwofishContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
-  twofishDecrypt(ctx, inbytes, outbytes)
-
 proc encrypt*(ctx: var TwofishContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
-  twofishEncrypt(ctx, unsafeAddr input[0], addr output[0])
+  twofishEncrypt(ctx, input, output)
 
 proc decrypt*(ctx: var TwofishContext, input: openarray[byte],
               output: var openarray[byte]) {.inline.} =
-  assert(len(input) == ctx.sizeBlock)
-  assert(len(input) <= len(output))
-  twofishDecrypt(ctx, unsafeAddr input[0], addr output[0])
+  twofishDecrypt(ctx, input, output)
+
+proc encrypt*(ctx: var TwofishContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
+  var ip = cast[ptr array[0, byte]](inbytes)
+  var op = cast[ptr array[0, byte]](outbytes)
+  twofishEncrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
+                      toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+
+proc decrypt*(ctx: var TwofishContext, inbytes: ptr byte,
+              outbytes: ptr byte) {.inline.} =
+  var ip = cast[ptr array[0, byte]](inbytes)
+  var op = cast[ptr array[0, byte]](outbytes)
+  twofishDecrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
+                      toOpenArray(op[], 0, ctx.sizeBlock() - 1))

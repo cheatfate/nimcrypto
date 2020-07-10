@@ -41,7 +41,6 @@ type
   ECB*[T] = object
     ## ECB (Electronic Code Book) context object
     cipher: T
-    tmp: array[MaxBlockBytesSize, byte]
 
   CBC*[T] = object
     ## CBC (Cipher Block Chaining) context object
@@ -90,27 +89,19 @@ template sizeKey*[T](ctx: ECB[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc init*[T](ctx: var ECB[T], key: ptr byte) =
-  ## Initialize ``ECB[T]`` with encryption key ``key``.
-  ##
-  ## Note! Size of data pointed by ``key`` must be at least ``ctx.sizeKey``
-  ## octets (bytes).
-  mixin init
-  assert(not isNil(key))
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, key)
-
 proc init*[T](ctx: var ECB[T], key: openarray[byte]) {.inline.} =
   ## Initialize ``ECB[T]`` with encryption key ``key``.
   ##
   ## This procedure will not perform any additional padding for encryption
   ## key ``key``.
   ##
-  ## Length of ``key`` must be at least ``ECB[T].sizeKey()`` octets (bytes).
+  ## Length of ``key`` must be equal to ``ECB[T].sizeKey()`` octets (bytes).
   ##
   ## You can see examples of usage ECB mode here ``examples/ecb.nim``.
-  assert(len(key) >= ctx.sizeKey())
-  init(ctx, unsafeAddr key[0])
+  mixin init
+  assert(ctx.sizeBlock <= MaxBlockSize)
+  assert(len(key) == ctx.sizeKey())
+  init(ctx.cipher, key)
 
 proc init*[T](ctx: var ECB[T], key: openarray[char]) {.inline.} =
   ## Initialize ``ECB[T]`` with encryption key ``key``.
@@ -121,12 +112,88 @@ proc init*[T](ctx: var ECB[T], key: openarray[char]) {.inline.} =
   ## Length of ``key`` must be at least ``ECB[T].sizeKey()`` octets (bytes).
   ##
   ## You can see examples of usage ECB mode here ``examples/ecb.nim``.
-  assert(len(key) >= ctx.sizeKey())
-  init(ctx, cast[ptr byte](unsafeAddr key[0]))
+  init(ctx, key.toOpenArrayByte(0, len(key) - 1))
+
+proc init*[T](ctx: var ECB[T], key: ptr byte) =
+  ## Initialize ``ECB[T]`` with encryption key ``key``.
+  ##
+  ## Note! Size of data pointed by ``key`` must be at least ``ctx.sizeKey``
+  ## octets (bytes).
+  assert(not isNil(key))
+  var p = cast[ptr array[0, byte]](key)
+  init(ctx.cipher, toOpenArray(p[], 0, ctx.sizeKey() - 1))
 
 proc clear*[T](ctx: var ECB[T]) {.inline.} =
   ## Clear ``ECB[T]`` context ``ctx``.
   burnMem(ctx)
+
+proc encrypt*[T](ctx: var ECB[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  ## Encrypt array of data ``input`` and store encrypted data to array
+  ## ``output`` using ``ECB[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` array must be less or equal to length of
+  ## ``output`` array.
+  ##
+  ## Note, that this procedure do not perform any additional padding, so you
+  ## need to do it on your own. Length of ``input`` must be aligned to the
+  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  mixin encrypt
+  assert(len(input) <= len(output))
+  assert(len(input) mod ctx.sizeBlock() == 0)
+  var offset = 0
+  while offset < len(input):
+    ctx.cipher.encrypt(input.toOpenArray(offset, offset + ctx.sizeBlock() - 1),
+                       output.toOpenArray(offset, offset + ctx.sizeBlock() - 1))
+    offset = offset + ctx.sizeBlock()
+
+proc encrypt*[T](ctx: var ECB[T], input: openarray[char],
+                 output: var openarray[char]) {.inline.} =
+  ## Encrypt array of data ``input`` and store encrypted data to array
+  ## ``output`` using ``ECB[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` array must be less or equal to length of
+  ## ``output`` array.
+  ##
+  ## Note, that this procedure do not perform any additional padding, so you
+  ## need to do it on your own. Length of ``input`` must be aligned to the
+  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+          output.toOpenArrayByte(0, len(output) - 1))
+
+proc decrypt*[T](ctx: var ECB[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  ## Decrypt array of data ``input`` and store decrypted data to array
+  ## ``output`` using ``ECB[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` array must be less or equal to length of
+  ## ``output`` array. Length of ``input`` array must not be zero.
+  ##
+  ## Note, that this procedure do not perform any additional padding, so you
+  ## need to do it on your own. Length of ``input`` must be aligned to the
+  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  mixin decrypt
+  assert(len(input) <= len(output))
+  assert(len(input) mod ctx.sizeBlock() == 0)
+  var offset = 0
+  while offset < len(input):
+    ctx.cipher.decrypt(input.toOpenArray(offset, offset + ctx.sizeBlock() - 1),
+                       output.toOpenArray(offset, offset + ctx.sizeBlock() - 1))
+    offset = offset + ctx.sizeBlock()
+
+proc decrypt*[T](ctx: var ECB[T], input: openarray[char],
+                 output: var openarray[char]) {.inline.} =
+  ## Decrypt array of data ``input`` and store decrypted data to array
+  ## ``output`` using ``ECB[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` array must be less or equal to length of
+  ## ``output`` array. Length of ``input`` array must not be zero.
+  ##
+  ## Note, that this procedure do not perform any additional padding, so you
+  ## need to do it on your own. Length of ``input`` must be aligned to the
+  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  decrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 proc encrypt*[T](ctx: var ECB[T], inp: ptr byte, oup: ptr byte,
                  length: uint): uint {.discardable.} =
@@ -139,25 +206,10 @@ proc encrypt*[T](ctx: var ECB[T], inp: ptr byte, oup: ptr byte,
   ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
   ##
   ## Procedure returns number of processed octets (bytes).
-  mixin encrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length mod uint(ctx.sizeBlock) == 0)
-
-  var blen = uint(ctx.sizeBlock)
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var tp = cast[ptr UncheckedArray[byte]](addr ctx.tmp[0])
-
-  var i = length
-  while i != 0:
-    if i < blen:
-      copyMem(tp, ip, i)
-      ctx.cipher.encrypt(cast[ptr byte](tp), cast[ptr byte](op))
-      break
-    ctx.cipher.encrypt(cast[ptr byte](ip), cast[ptr byte](op))
-    i = i - blen
-    ip = cast[ptr UncheckedArray[byte]](cast[uint](ip) + blen)
-    op = cast[ptr UncheckedArray[byte]](cast[uint](op) + blen)
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
   result = length
 
 proc decrypt*[T](ctx: var ECB[T], inp: ptr byte, oup: ptr byte,
@@ -171,82 +223,11 @@ proc decrypt*[T](ctx: var ECB[T], inp: ptr byte, oup: ptr byte,
   ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
   ##
   ## Procedure returns number of processed octets (bytes).
-  mixin decrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length mod uint(ctx.sizeBlock) == 0)
-
-  var blen = uint(ctx.sizeBlock)
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var i = length
-  while i != 0:
-    ctx.cipher.decrypt(cast[ptr byte](ip), cast[ptr byte](op))
-    i = i - blen
-    ip = cast[ptr UncheckedArray[byte]](cast[uint](ip) + blen)
-    op = cast[ptr UncheckedArray[byte]](cast[uint](op) + blen)
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  decrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
   result = length
-
-proc encrypt*[T](ctx: var ECB[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
-  ## Encrypt array of data ``input`` and store encrypted data to array
-  ## ``output`` using ``ECB[T]`` context ``ctx``.
-  ##
-  ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
-
-proc encrypt*[T](ctx: var ECB[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
-  ## Encrypt array of data ``input`` and store encrypted data to array
-  ## ``output`` using ``ECB[T]`` context ``ctx``.
-  ##
-  ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
-
-proc decrypt*[T](ctx: var ECB[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
-  ## Decrypt array of data ``input`` and store decrypted data to array
-  ## ``output`` using ``ECB[T]`` context ``ctx``.
-  ##
-  ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
-
-proc decrypt*[T](ctx: var ECB[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
-  ## Decrypt array of data ``input`` and store decrypted data to array
-  ## ``output`` using ``ECB[T]`` context ``ctx``.
-  ##
-  ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
 
 ## CBC (Cipher Block Chaining) Mode
 
@@ -262,21 +243,6 @@ template sizeKey*[T](ctx: CBC[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc init*[T](ctx: var CBC[T], key: ptr byte, iv: ptr byte) =
-  ## Initialize ``CBC[T]`` with encryption key ``key`` and initial vector (IV)
-  ## ``iv``.
-  ##
-  ## Note! Size of encryption key pointed by ``key`` must be at least
-  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
-  ## least ``ctx.sizeBlock`` octets (bytes).
-  ##
-  ## You can see examples of usage CBC mode here ``examples/cbc.nim``.
-  mixin init
-  assert(not isNil(key) and not isNil(iv))
-  init(ctx.cipher, key)
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
-
 proc init*[T](ctx: var CBC[T], key: openarray[byte], iv: openarray[byte]) =
   ## Initialize ``CBC[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
@@ -289,11 +255,11 @@ proc init*[T](ctx: var CBC[T], key: openarray[byte], iv: openarray[byte]) =
   ##
   ## You can see examples of usage CBC mode here ``examples/cbc.nim``.
   mixin init
-  assert(len(iv) >= ctx.sizeBlock)
+  assert(len(iv) == ctx.sizeBlock)
   assert(len(key) >= ctx.sizeKey)
   assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, unsafeAddr key[0])
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)
+  init(ctx.cipher, key)
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
 
 proc init*[T](ctx: var CBC[T], key: openarray[char], iv: openarray[char]) =
   ## Initialize ``CBC[T]`` with encryption key ``key`` and initial vector (IV)
@@ -306,94 +272,27 @@ proc init*[T](ctx: var CBC[T], key: openarray[char], iv: openarray[char]) =
   ## Length of ``iv`` must be at least ``ctx.sizeBlock()`` octets (bytes)
   ##
   ## You can see examples of usage CBC mode here ``examples/cbc.nim``.
-  mixin init
-  assert(len(iv) >= ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, cast[ptr byte](unsafeAddr key[0]))
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)
+  init(ctx, key.toOpenArrayByte(0, len(key) - 1),
+            iv.toOpenArrayByte(0, len(iv) - 1))
+
+proc init*[T](ctx: var CBC[T], key: ptr byte, iv: ptr byte) =
+  ## Initialize ``CBC[T]`` with encryption key ``key`` and initial vector (IV)
+  ## ``iv``.
+  ##
+  ## Note! Size of encryption key pointed by ``key`` must be at least
+  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
+  ## least ``ctx.sizeBlock`` octets (bytes).
+  ##
+  ## You can see examples of usage CBC mode here ``examples/cbc.nim``.
+  assert(not isNil(key) and not isNil(iv))
+  var pkey = cast[ptr array[0, byte]](key)
+  var piv = cast[ptr array[0, byte]](iv)
+  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
+            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
 
 proc clear*[T](ctx: var CBC[T]) {.inline.} =
   ## Clear ``CBC[T]`` context ``ctx``.
   burnMem(ctx)
-
-proc encrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
-                 length: uint): uint {.discardable.} =
-  ## Perform ``CBC[T]`` encryption of plain data pointed by ``inp`` of length
-  ## ``length`` and store encrypted data to ``oup``. ``oup`` must be able to
-  ## hold at least ``length`` octets (bytes) of data.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. ``length`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
-  ##
-  ## Procedure returns number of processed octets (bytes).
-  mixin encrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length != 0)
-
-  var blen = uint(ctx.sizeBlock)
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var cp = cast[ptr UncheckedArray[byte]](addr ctx.iv[0])
-
-  var i = length
-  while i != 0:
-    var n = 0'u
-    while (n < blen) and (n < length):
-      op[n] = ip[n] xor cp[n]
-      inc(n)
-    while n < blen:
-      op[n] = cp[n]
-      inc(n)
-    ctx.cipher.encrypt(cast[ptr byte](op), cast[ptr byte](op))
-    cp = op
-    if i < blen:
-      break
-    i = i - blen
-    ip = cast[ptr UncheckedArray[byte]](cast[uint](ip) + blen)
-    op = cast[ptr UncheckedArray[byte]](cast[uint](op) + blen)
-  copyMem(addr ctx.iv[0], cp, blen)
-  result = length
-
-proc decrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
-                 length: uint): uint {.discardable.} =
-  ## Perform ``CBC[T]`` decryption of encrypted data pointed by ``inp`` of
-  ## length ``length`` and store plain data to ``oup``. ``oup`` must be able to
-  ## hold at least ``length`` octets (bytes) of data.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. ``length`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
-  ##
-  ## Procedure returns number of processed octets (bytes).
-  mixin decrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length != 0)
-
-  let blen = uint(ctx.sizeBlock)
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var tp = cast[ptr UncheckedArray[byte]](addr ctx.tmp[0])
-  var cp = cast[ptr UncheckedArray[byte]](addr ctx.iv[0])
-
-  var i = length
-  while i != 0:
-    var n = 0'u
-    ctx.cipher.decrypt(cast[ptr byte](ip), cast[ptr byte](tp))
-    while (n < blen) and (n < length):
-      var c = ip[n]
-      op[n] = tp[n] xor cp[n]
-      cp[n] = c
-      inc(n)
-    if i < blen:
-      while n < blen:
-        cp[n] = ip[n]
-      break
-    i = i - blen
-    ip = cast[ptr UncheckedArray[byte]](cast[uint](ip) + blen)
-    op = cast[ptr UncheckedArray[byte]](cast[uint](op) + blen)
-  result = length
 
 proc encrypt*[T](ctx: var CBC[T], input: openarray[byte],
                  output: var openarray[byte]) {.inline.} =
@@ -407,8 +306,32 @@ proc encrypt*[T](ctx: var CBC[T], input: openarray[byte],
   ## need to do it on your own. Length of ``input`` must be aligned to the
   ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
   assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
+  assert(len(input) mod ctx.sizeBlock() == 0)
+  var offset = 0
+  while offset < len(input):
+    for i in 0 ..< ctx.sizeBlock():
+      output[offset + i] = input[offset + i] xor ctx.iv[i]
+    ctx.cipher.encrypt(output.toOpenArray(offset, offset + ctx.sizeBlock() - 1),
+                       output.toOpenArray(offset, offset + ctx.sizeBlock() - 1))
+    ctx.iv[0 ..< ctx.sizeBlock()] = output[offset ..< offset + ctx.sizeBlock()]
+    offset = offset + ctx.sizeBlock()
+
+proc encrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
+                 length: uint): uint {.discardable.} =
+  ## Perform ``CBC[T]`` encryption of plain data pointed by ``inp`` of length
+  ## ``length`` and store encrypted data to ``oup``. ``oup`` must be able to
+  ## hold at least ``length`` octets (bytes) of data.
+  ##
+  ## Note, that this procedure do not perform any additional padding, so you
+  ## need to do it on your own. ``length`` must be aligned to the
+  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
+  ##
+  ## Procedure returns number of processed octets (bytes).
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
 proc encrypt*[T](ctx: var CBC[T], input: openarray[char],
                  output: var openarray[char]) {.inline.} =
@@ -421,10 +344,8 @@ proc encrypt*[T](ctx: var CBC[T], input: openarray[char],
   ## Note, that this procedure do not perform any additional padding, so you
   ## need to do it on your own. Length of ``input`` must be aligned to the
   ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
+  encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 proc decrypt*[T](ctx: var CBC[T], input: openarray[byte],
                  output: var openarray[byte]) {.inline.} =
@@ -437,9 +358,35 @@ proc decrypt*[T](ctx: var CBC[T], input: openarray[byte],
   ## Note, that this procedure do not perform any additional padding, so you
   ## need to do it on your own. Length of ``input`` must be aligned to the
   ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  mixin decrypt
   assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
+  assert(len(input) mod ctx.sizeBlock() == 0)
+  var offset = 0
+  while offset < len(input):
+    ctx.cipher.decrypt(input.toOpenArray(offset, offset + ctx.sizeBlock() - 1),
+                       ctx.tmp)
+    for i in 0 ..< ctx.sizeBlock():
+      var c = input[offset + i]
+      output[offset + i] = ctx.tmp[i] xor ctx.iv[i]
+      ctx.iv[i] = c
+    offset = offset + ctx.sizeBlock()
+
+proc decrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
+                 length: uint): uint {.discardable.} =
+  ## Perform ``CBC[T]`` decryption of encrypted data pointed by ``inp`` of
+  ## length ``length`` and store plain data to ``oup``. ``oup`` must be able to
+  ## hold at least ``length`` octets (bytes) of data.
+  ##
+  ## Note, that this procedure do not perform any additional padding, so you
+  ## need to do it on your own. ``length`` must be aligned to the
+  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
+  ##
+  ## Procedure returns number of processed octets (bytes).
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  decrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
 proc decrypt*[T](ctx: var CBC[T], input: openarray[char],
                  output: var openarray[char]) {.inline.} =
@@ -452,10 +399,8 @@ proc decrypt*[T](ctx: var CBC[T], input: openarray[char],
   ## Note, that this procedure do not perform any additional padding, so you
   ## need to do it on your own. Length of ``input`` must be aligned to the
   ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
+  decrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 ## CTR (Counter) Mode
 
@@ -471,7 +416,7 @@ template sizeKey*[T](ctx: CTR[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc inc128(counter: ptr UncheckedArray[byte]) =
+proc inc128(counter: var openarray[byte]) =
   var n = 16'u32
   var c = 1'u32
   while true:
@@ -482,18 +427,7 @@ proc inc128(counter: ptr UncheckedArray[byte]) =
     if n == 0:
       break
 
-proc inc128(counter: var array[16, byte]) =
-  var n = 16'u32
-  var c = 1'u32
-  while true:
-    dec(n)
-    c = c + counter[n]
-    counter[n] = cast[byte](c)
-    c = c shr 8
-    if n == 0:
-      break
-
-proc inc256(counter: ptr UncheckedArray[byte]) =
+proc inc256(counter: var openarray[byte]) =
   var n = 32'u32
   var c = 1'u32
   while true:
@@ -503,21 +437,6 @@ proc inc256(counter: ptr UncheckedArray[byte]) =
     c = c shr 8
     if n == 0:
       break
-
-proc init*[T](ctx: var CTR[T], key: ptr byte, iv: ptr byte) =
-  ## Initialize ``CTR[T]`` with encryption key ``key`` and initial vector (IV)
-  ## ``iv``.
-  ##
-  ## Note! Size of encryption key pointed by ``key`` must be at least
-  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
-  ## least ``ctx.sizeBlock`` octets (bytes).
-  ##
-  ## You can see examples of usage CTR mode here ``examples/ctr.nim``.
-  mixin init
-  assert(not isNil(key) and not isNil(iv))
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, key)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
 proc init*[T](ctx: var CTR[T], key: openarray[byte], iv: openarray[byte]) =
   ## Initialize ``CTR[T]`` with encryption key ``key`` and initial vector (IV)
@@ -534,8 +453,23 @@ proc init*[T](ctx: var CTR[T], key: openarray[byte], iv: openarray[byte]) =
   assert(len(iv) >= ctx.sizeBlock)
   assert(len(key) >= ctx.sizeKey)
   assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, unsafeAddr key[0])
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)
+  init(ctx.cipher, key)
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
+
+proc init*[T](ctx: var CTR[T], key: ptr byte, iv: ptr byte) =
+  ## Initialize ``CTR[T]`` with encryption key ``key`` and initial vector (IV)
+  ## ``iv``.
+  ##
+  ## Note! Size of encryption key pointed by ``key`` must be at least
+  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
+  ## least ``ctx.sizeBlock`` octets (bytes).
+  ##
+  ## You can see examples of usage CTR mode here ``examples/ctr.nim``.
+  assert(not isNil(key) and not isNil(iv))
+  var pkey = cast[ptr array[0, byte]](key)
+  var piv = cast[ptr array[0, byte]](iv)
+  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
+            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
 
 proc init*[T](ctx: var CTR[T], key: openarray[char],
               iv: openarray[char]) {.inline.} =
@@ -549,104 +483,92 @@ proc init*[T](ctx: var CTR[T], key: openarray[char],
   ## Length of ``iv`` array must be at least ``ctx.sizeBlock()`` octets (bytes).
   ##
   ## You can see examples of usage CTR mode here ``examples/ctr.nim``.
-  mixin init
-  assert(len(iv) >= ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, cast[ptr byte](unsafeAddr key[0]))
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)  
+  init(ctx, key.toOpenArrayByte(0, len(key) - 1),
+            iv.toOpenArrayByte(0, len(iv) - 1))
 
 proc clear*[T](ctx: var CTR[T]) {.inline.} =
   ## Clear ``CTR[T]`` context ``ctx``.
   burnMem(ctx)
+
+proc encrypt*[T](ctx: var CTR[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  ## Perform ``CTR[T]`` encryption of plain data array ``input`` and store
+  ## encrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` array must be less or equal to length of
+  ## ``output`` array.
+  mixin encrypt
+  assert(len(input) <= len(output))
+  assert(ctx.sizeBlock == (128 div 8) or ctx.sizeBlock == (256 div 8))
+
+  var offset = 0
+  var n = ctx.num
+  while offset < len(input):
+    if n == 0:
+      ctx.cipher.encrypt(ctx.iv, ctx.ecount)
+      if ctx.sizeBlock == (128 div 8):
+        inc128(ctx.iv)
+      elif ctx.sizeBlock == (256 div 8):
+        inc256(ctx.iv)
+    output[offset] = cast[byte](input[offset] xor ctx.ecount[n])
+    inc(offset)
+    n = (n + 1) mod ctx.sizeBlock()
+  ctx.num = n
+
+proc encrypt*[T](ctx: var CTR[T], input: openarray[char],
+                 output: var openarray[char]) {.inline.} =
+  ## Perform ``CTR[T]`` encryption of plain data array ``input`` and store
+  ## encrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` array must be less or equal to length of
+  ## ``output`` array.
+  encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 proc encrypt*[T](ctx: var CTR[T], inp: ptr byte, oup: ptr byte,
                  length: uint): uint {.discardable.} =
   ## Perform ``CTR[T]`` encryption of plain data pointed by ``inp`` of length
   ## ``length`` and store encrypted data to ``oup``. ``oup`` must be able to
   ## hold at least ``length`` octets (bytes) of data.
-  ## 
+  ##
   ## Procedure returns number of processed octets (bytes).
-  mixin encrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length != 0)
-  assert(ctx.sizeBlock == (128 div 8) or ctx.sizeBlock == (256 div 8))
-  var n = ctx.num
-  var i = 0'u
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var cp = cast[ptr UncheckedArray[byte]](addr ctx.iv[0])
-  let mask = uint(ctx.sizeBlock)
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
-  while i < length:
-    if n == 0:
-      ctx.cipher.encrypt(addr ctx.iv[0], addr ctx.ecount[0])
-      if ctx.sizeBlock == (128 div 8):
-        inc128(cp)
-      elif ctx.sizeBlock == (256 div 8):
-        inc256(cp)
-    op[i] = cast[byte](ip[i] xor ctx.ecount[n])
-    inc(i)
-    n = (n + 1) mod mask
-
-  ctx.num = uint(n)
-  result = ctx.num
+proc decrypt*[T](ctx: var CTR[T], input: openarray[byte],
+                 output: var openarray[byte]) {.inline.} =
+  ## Perform ``CTR[T]`` decryption of encrypted data array ``input`` and
+  ## store decrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` array must be less or equal to length of
+  ## ``output`` array.
+  encrypt(ctx, input, output)
 
 proc decrypt*[T](ctx: var CTR[T], inp: ptr byte, oup: ptr byte,
                  length: uint): uint {.discardable, inline.} =
   ## Perform ``CTR[T]`` decryption of encrypted data pointed by ``inp`` of
   ## length ``length`` and store decrypted data to ``oup``. ``oup`` must be able
   ## to hold at least ``length`` octets (bytes) of data.
-  ## 
+  ##
   ## Procedures returns number of processed octets (bytes).
-  mixin encrypt
-  result = encrypt(ctx, inp, oup, length)
-
-proc encrypt*[T](ctx: var CTR[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
-  ## Encrypt array of data ``input`` and store encrypted data to array
-  ## ``output`` using ``CTR[T]`` context ``ctx``.
-  ##
-  ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
-
-proc encrypt*[T](ctx: var CTR[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
-  ## Encrypt array of data ``input`` and store encrypted data to array
-  ## ``output`` using ``CTR[T]`` context ``ctx``.
-  ##
-  ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
-
-proc decrypt*[T](ctx: var CTR[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
-  ## Decrypt array of data ``input`` and store decrypted data to array
-  ## ``output`` using ``CTR[T]`` context ``ctx``.
-  ##
-  ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
 proc decrypt*[T](ctx: var CTR[T], input: openarray[char],
                  output: var openarray[char]) {.inline.} =
-  ## Decrypt array of data ``input`` and store decrypted data to array
-  ## ``output`` using ``CTR[T]`` context ``ctx``.
+  ## Perform ``CTR[T]`` decryption of encrypted data array ``input`` and
+  ## store decrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
   ##
   ## Note that length of ``input`` array must be less or equal to length of
-  ## ``output`` array. Length of ``input`` array must not be zero.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))  
+  ## ``output`` array.
+  encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 ## OFB (Output Feedback) Mode
 
@@ -661,21 +583,6 @@ template sizeKey*[T](ctx: OFB[T]): int =
   ## to cipher ``T`` key size.
   mixin sizeKey
   sizeKey(ctx.cipher)
-
-proc init*[T](ctx: var OFB[T], key: ptr byte, iv: ptr byte) =
-  ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
-  ## ``iv``.
-  ##
-  ## Note! Size of encryption key pointed by ``key`` must be at least
-  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
-  ## least ``ctx.sizeBlock`` octets (bytes).
-  ##
-  ## You can see examples of usage OFB mode here ``examples/ofb.nim``.
-  mixin init
-  assert(not isNil(key) and not isNil(iv))
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, key)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
 proc init*[T](ctx: var OFB[T], key: openarray[byte], iv: openarray[byte]) =
   ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -692,8 +599,23 @@ proc init*[T](ctx: var OFB[T], key: openarray[byte], iv: openarray[byte]) =
   assert(len(iv) >= ctx.sizeBlock)
   assert(len(key) >= ctx.sizeKey)
   assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, unsafeAddr key[0])
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)
+  init(ctx.cipher, key)
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
+
+proc init*[T](ctx: var OFB[T], key: ptr byte, iv: ptr byte) =
+  ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
+  ## ``iv``.
+  ##
+  ## Note! Size of encryption key pointed by ``key`` must be at least
+  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
+  ## least ``ctx.sizeBlock`` octets (bytes).
+  ##
+  ## You can see examples of usage OFB mode here ``examples/ofb.nim``.
+  assert(not isNil(key) and not isNil(iv))
+  var pkey = cast[ptr array[0, byte]](key)
+  var piv = cast[ptr array[0, byte]](iv)
+  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
+            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
 
 proc init*[T](ctx: var OFB[T], key: openarray[char], iv: openarray[char]) =
   ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -706,60 +628,12 @@ proc init*[T](ctx: var OFB[T], key: openarray[char], iv: openarray[char]) =
   ## Length of ``iv`` array must be at least ``ctx.sizeBlock()`` octets (bytes).
   ##
   ## You can see examples of usage OFB mode here ``examples/ofb.nim``.
-  mixin init
-  assert(len(iv) >= ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, cast[ptr byte](unsafeAddr key[0]))
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)
+  init(ctx, key.toOpenArrayByte(0, len(key) - 1),
+            iv.toOpenArrayByte(0, len(iv) - 1))
 
 proc clear*[T](ctx: var OFB[T]) {.inline.} =
   ## Clear ``OFB[T]`` context ``ctx``.
   burnMem(ctx)
-
-proc encrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
-                 length: uint): uint {.discardable.} =
-  ## Perform ``OFB[T]`` encryption of plain data pointed by ``inp`` of length
-  ## ``length`` and store encrypted data to ``oup``. ``oup`` must be able to
-  ## hold at least ``length`` octets (bytes) of data.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. ``length`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
-  ##
-  ## Procedure returns number of processed octets (bytes).
-  mixin encrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length != 0)
-  assert(ctx.sizeBlock == (128 div 8) or ctx.sizeBlock == (256 div 8))
-  var n = 0
-  var i = 0'u
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var cp = cast[ptr UncheckedArray[byte]](addr ctx.iv[0])
-  let mask = ctx.sizeBlock
-
-  while i < length:
-    if n == 0:
-      ctx.cipher.encrypt(cast[ptr byte](cp), cast[ptr byte](cp))
-    op[i] = ip[i] xor cp[n]
-    inc(i)
-    n = (n + 1) mod mask
-  result = uint(n)
-
-proc decrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
-                 length: uint): uint {.discardable, inline.} =
-  ## Perform ``OFB[T]`` decryption of encrypted data pointed by ``inp`` of
-  ## length ``length`` and store plain data to ``oup``. ``oup`` must be able to
-  ## hold at least ``length`` octets (bytes) of data.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. ``length`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
-  ##
-  ## Procedure returns number of processed octets (bytes).
-  mixin encrypt
-  result = encrypt(ctx, inp, oup, length)
 
 proc encrypt*[T](ctx: var OFB[T], input: openarray[byte],
                  output: var openarray[byte]) {.inline.} =
@@ -768,13 +642,29 @@ proc encrypt*[T](ctx: var OFB[T], input: openarray[byte],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  mixin encrypt
   assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
+  var offset = 0
+  var n = 0
+  while offset < len(input):
+    if n == 0:
+      ctx.cipher.encrypt(ctx.iv, ctx.iv)
+    output[offset] = input[offset] xor ctx.iv[n]
+    inc(offset)
+    n = (n + 1) mod ctx.sizeBlock()
+
+proc encrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
+                 length: uint): uint {.discardable.} =
+  ## Perform ``OFB[T]`` encryption of plain data pointed by ``inp`` of length
+  ## ``length`` and store encrypted data to ``oup``. ``oup`` must be able to
+  ## hold at least ``length`` octets (bytes) of data.
+  ##
+  ## Procedure returns number of processed octets (bytes).
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
 proc encrypt*[T](ctx: var OFB[T], input: openarray[char],
                  output: var openarray[char]) {.inline.} =
@@ -783,14 +673,8 @@ proc encrypt*[T](ctx: var OFB[T], input: openarray[char],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
+  encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 proc decrypt*[T](ctx: var OFB[T], input: openarray[byte],
                  output: var openarray[byte]) {.inline.} =
@@ -799,13 +683,20 @@ proc decrypt*[T](ctx: var OFB[T], input: openarray[byte],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
+  encrypt(ctx, input, output)
+
+proc decrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
+                 length: uint): uint {.discardable, inline.} =
+  ## Perform ``OFB[T]`` decryption of encrypted data pointed by ``inp`` of
+  ## length ``length`` and store plain data to ``oup``. ``oup`` must be able to
+  ## hold at least ``length`` octets (bytes) of data.
   ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
+  ## Procedure returns number of processed octets (bytes).
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
 proc decrypt*[T](ctx: var OFB[T], input: openarray[char],
                  output: var openarray[char]) {.inline.} =
@@ -814,14 +705,8 @@ proc decrypt*[T](ctx: var OFB[T], input: openarray[char],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
+  encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 ## CFB (Cipher Feedback) Mode
 
@@ -836,21 +721,6 @@ template sizeKey*[T](ctx: CFB[T]): int =
   ## to cipher ``T`` key size.
   mixin sizeKey
   sizeKey(ctx.cipher)
-
-proc init*[T](ctx: var CFB[T], key: ptr byte, iv: ptr byte) =
-  ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
-  ## ``iv``.
-  ##
-  ## Note! Size of encryption key pointed by ``key`` must be at least
-  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
-  ## least ``ctx.sizeBlock`` octets (bytes).
-  ##
-  ## You can see examples of usage CFB mode here ``examples/cfb.nim``.
-  mixin init
-  assert(not isNil(key) and not isNil(iv))
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, key)
-  copyMem(addr ctx.iv[0], iv, ctx.sizeBlock)
 
 proc init*[T](ctx: var CFB[T], key: openarray[byte], iv: openarray[byte]) =
   ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -867,8 +737,23 @@ proc init*[T](ctx: var CFB[T], key: openarray[byte], iv: openarray[byte]) =
   assert(len(iv) >= ctx.sizeBlock)
   assert(len(key) >= ctx.sizeKey)
   assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, unsafeAddr key[0])
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)
+  init(ctx.cipher, key)
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
+
+proc init*[T](ctx: var CFB[T], key: ptr byte, iv: ptr byte) =
+  ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
+  ## ``iv``.
+  ##
+  ## Note! Size of encryption key pointed by ``key`` must be at least
+  ## ``ctx.sizeKey`` octets (bytes) and size of initial vector ``iv`` must be at
+  ## least ``ctx.sizeBlock`` octets (bytes).
+  ##
+  ## You can see examples of usage CFB mode here ``examples/cfb.nim``.
+  assert(not isNil(key) and not isNil(iv))
+  var pkey = cast[ptr array[0, byte]](key)
+  var piv = cast[ptr array[0, byte]](iv)
+  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
+            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
 
 proc init*[T](ctx: var CFB[T], key: openarray[char], iv: openarray[char]) =
   ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -881,77 +766,12 @@ proc init*[T](ctx: var CFB[T], key: openarray[char], iv: openarray[char]) =
   ## Length of ``iv`` array must be at least ``ctx.sizeBlock()`` octets (bytes).
   ##
   ## You can see examples of usage CFB mode here ``examples/cfb.nim``.
-  mixin init
-  assert(len(iv) >= ctx.sizeBlock)
-  assert(len(key) >= ctx.sizeKey)
-  assert(ctx.sizeBlock <= MaxBlockSize)
-  init(ctx.cipher, cast[ptr byte](unsafeAddr key[0]))
-  copyMem(addr ctx.iv[0], unsafeAddr iv[0], ctx.sizeBlock)
+  init(ctx, key.toOpenArrayByte(0, len(key) - 1),
+            iv.toOpenArrayByte(0, len(iv) - 1))
 
 proc clear*[T](ctx: var CFB[T]) {.inline.} =
   ## Clear ``CFB[T]`` context ``ctx``.
   burnMem(ctx)
-
-proc encrypt*[T](ctx: var CFB[T], inp: ptr byte, oup: ptr byte,
-                 length: uint): uint {.discardable.} =
-  ## Perform ``CFB[T]`` encryption of plain data pointed by ``inp`` of length
-  ## ``length`` and store encrypted data to ``oup``. ``oup`` must be able to
-  ## hold at least ``length`` octets (bytes) of data.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. ``length`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
-  ##
-  ## Procedure returns number of processed octets (bytes).
-  mixin encrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length != 0)
-  var n = 0
-  var i = 0'u
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var cp = cast[ptr UncheckedArray[byte]](addr ctx.iv[0])
-  let mask = ctx.sizeBlock
-
-  while i < length:
-    if n == 0:
-      ctx.cipher.encrypt(cast[ptr byte](cp), cast[ptr byte](cp))
-    cp[n] = cp[n] xor ip[i]
-    op[i] = cp[n]
-    inc(i)
-    n = (n + 1) mod mask
-  result = uint(n)
-
-proc decrypt*[T](ctx: var CFB[T], inp: ptr byte, oup: ptr byte,
-                 length: uint): uint {.discardable.} =
-  ## Perform ``CFB[T]`` decryption of encrypted data pointed by ``inp`` of
-  ## length ``length`` and store plain data to ``oup``. ``oup`` must be able to
-  ## hold at least ``length`` octets (bytes) of data.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. ``length`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``length mod ctx.sizeBlock == 0``.
-  ##
-  ## Procedure returns number of processed octets (bytes).
-  mixin encrypt
-  assert(not isNil(inp) and not isNil(oup))
-  assert(length != 0)
-  var n = 0
-  var i = 0'u
-  var ip = cast[ptr UncheckedArray[byte]](inp)
-  var op = cast[ptr UncheckedArray[byte]](oup)
-  var cp = cast[ptr UncheckedArray[byte]](addr ctx.iv[0])
-  let mask = ctx.sizeBlock
-
-  while i < length:
-    if n == 0:
-      ctx.cipher.encrypt(cast[ptr byte](cp), cast[ptr byte](cp))
-    let c = ip[i]
-    op[i] = cp[n] xor c
-    cp[n] = c
-    inc(i)
-    n = (n + 1) mod mask
-  result = uint(n)
 
 proc encrypt*[T](ctx: var CFB[T], input: openarray[byte],
                  output: var openarray[byte]) {.inline.} =
@@ -960,13 +780,30 @@ proc encrypt*[T](ctx: var CFB[T], input: openarray[byte],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  mixin encrypt
   assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
+  var offset = 0
+  var n = 0
+  while offset < len(input):
+    if n == 0:
+      ctx.cipher.encrypt(ctx.iv, ctx.iv)
+    ctx.iv[n] = ctx.iv[n] xor input[offset]
+    output[offset] = ctx.iv[n]
+    inc(offset)
+    n = (n + 1) mod ctx.sizeBlock()
+
+proc encrypt*[T](ctx: var CFB[T], inp: ptr byte, oup: ptr byte,
+                 length: uint): uint {.discardable.} =
+  ## Perform ``CFB[T]`` encryption of plain data pointed by ``inp`` of length
+  ## ``length`` and store encrypted data to ``oup``. ``oup`` must be able to
+  ## hold at least ``length`` octets (bytes) of data.
+  ##
+  ## Procedure returns number of processed octets (bytes).
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
 proc encrypt*[T](ctx: var CFB[T], input: openarray[char],
                  output: var openarray[char]) {.inline.} =
@@ -975,14 +812,8 @@ proc encrypt*[T](ctx: var CFB[T], input: openarray[char],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  encrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
+  encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 proc decrypt*[T](ctx: var CFB[T], input: openarray[byte],
                  output: var openarray[byte]) =
@@ -991,13 +822,31 @@ proc decrypt*[T](ctx: var CFB[T], input: openarray[byte],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
+  mixin encrypt
   assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, unsafeAddr input[0], addr output[0], uint(len(input)))
+  var n = 0
+  var offset = 0
+  while offset < len(input):
+    if n == 0:
+      ctx.cipher.encrypt(ctx.iv, ctx.iv)
+    let c = input[offset]
+    output[offset] = ctx.iv[n] xor c
+    ctx.iv[n] = c
+    inc(offset)
+    n = (n + 1) mod ctx.sizeBlock()
+
+proc decrypt*[T](ctx: var CFB[T], inp: ptr byte, oup: ptr byte,
+                 length: uint): uint {.discardable.} =
+  ## Perform ``CFB[T]`` decryption of encrypted data pointed by ``inp`` of
+  ## length ``length`` and store plain data to ``oup``. ``oup`` must be able to
+  ## hold at least ``length`` octets (bytes) of data.
+  ##
+  ## Procedure returns number of processed octets (bytes).
+  var ip = cast[ptr array[0, byte]](inp)
+  var op = cast[ptr array[0, byte]](oup)
+  decrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
+               toOpenArray(op[], 0, int(length - 1)))
+  result = length
 
 proc decrypt*[T](ctx: var CFB[T], input: openarray[char],
                  output: var openarray[char]) =
@@ -1006,14 +855,8 @@ proc decrypt*[T](ctx: var CFB[T], input: openarray[char],
   ##
   ## Note that length of ``input`` array must be less or equal to length of
   ## ``output`` array. Length of ``input`` array must not be zero.
-  ##
-  ## Note, that this procedure do not perform any additional padding, so you
-  ## need to do it on your own. Length of ``input`` must be aligned to the
-  ## ``ctx.sizeBlock`` value, e.g. ``len(input) mod ctx.sizeBlock == 0``.
-  assert(len(input) <= len(output))
-  assert(len(input) > 0)
-  decrypt(ctx, cast[ptr byte](unsafeAddr input[0]),
-          cast[ptr byte](addr output[0]), uint(len(input)))
+  decrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
+               output.toOpenArrayByte(0, len(output) - 1))
 
 ## GCM (Galois Counter Mode)
 
@@ -1054,40 +897,35 @@ proc rev64(x: uint64): uint64 =
   result = (xx shl 32) or (xx shr 32)
 
 proc ghash(y: var openarray[byte], h: openarray[byte],
-           data: ptr byte, size: int) =
-  var
-    y0, y1, h0, h1, h2, h0r, h1r, h2r: uint64
-    buf: ptr byte
+           data: openarray[byte]) =
+  var  y0, y1, h0, h1, h2, h0r, h1r, h2r: uint64
 
-  y1 = EGETU64(addr y[0], 0)
-  y0 = EGETU64(addr y[0], 8)
-  h1 = EGETU64(unsafeAddr h[0], 0)
-  h0 = EGETU64(unsafeAddr h[0], 8)
+  y1 = beLoad64(y, 0)
+  y0 = beLoad64(y, 8)
+  h1 = beLoad64(h, 0)
+  h0 = beLoad64(h, 8)
   h0r = rev64(h0)
   h1r = rev64(h1)
   h2 = h0 xor h1
   h2r = h0r xor h1r
 
-  var length = size
-  buf = data
+  var length = len(data)
+  var offset = 0
   while length > 0:
     var tmp: array[16, byte]
-    var src: ptr byte
     var y0r, y1r, y2, y2r: uint64
     var z0, z1, z2, z0h, z1h, z2h, v0, v1, v2, v3: uint64
 
     if length >= 16:
-      src = buf
-      buf = cast[ptr byte](cast[uint](buf) + 16)
-      length -= 16
+      y1 = y1 xor beLoad64(data, offset)
+      y0 = y0 xor beLoad64(data, offset + 8)
+      dec(length, 16)
+      inc(offset, 16)
     else:
-      zeroMem(addr tmp[0], 16)
-      copyMem(addr tmp[0], buf, length)
-      src = addr tmp[0]
+      tmp[0 ..< length] = data[offset ..< offset + length]
+      y1 = y1 xor beLoad64(tmp, 0)
+      y0 = y0 xor beLoad64(tmp, 8)
       length = 0
-
-    y1 = y1 xor GETU64(src, 0)
-    y0 = y0 xor GETU64(src, 8)
 
     y0r = rev64(y0)
     y1r = rev64(y1)
@@ -1124,8 +962,8 @@ proc ghash(y: var openarray[byte], h: openarray[byte],
     y0 = v2
     y1 = v3
 
-  EPUTU64(addr y, 0, y1)
-  EPUTU64(addr y, 8, y0)
+  beStore64(y, 0, y1)
+  beStore64(y, 8, y0)
 
 template sizeBlock*[T](ctx: GCM[T]): int =
   ## Size of ``GCM[T]`` block in octets (bytes). This value is equal
@@ -1150,25 +988,24 @@ proc init*[T](ctx: var GCM[T], key: openarray[byte], iv: openarray[byte],
   ## You can see examples of usage GCM mode here ``examples/gcm.nim``.
   mixin init
   # GCM supports only 128bit block ciphers
-  assert(ctx.sizeBlock == 16)
+  assert(ctx.sizeBlock() == (128 div 8))
   assert(len(key) == ctx.sizeKey)
   burnMem(ctx)
   ctx.cipher.init(key)
   ctx.cipher.encrypt(ctx.h, ctx.h)
   if len(iv) == 12:
-    copyMem(addr ctx.y[0], unsafeAddr iv[0], 12)
+    ctx.y[0 ..< 12] = iv[0 ..< 12]
     inc128(ctx.y)
   else:
     var tmp: array[16, byte]
-    ghash(ctx.y, ctx.h, unsafeAddr iv[0], len(iv))
-    EPUTU32(addr tmp[0], 12, len(iv) shl 3)
-    ghash(ctx.y, ctx.h, addr tmp[0], 16)
+    ghash(ctx.y, ctx.h, iv)
+    beStore32(tmp, 12, uint32(len(iv) shl 3))
+    ghash(ctx.y, ctx.h, tmp.toOpenArray(0, 15))
   ctx.cipher.encrypt(ctx.y, ctx.basectr)
-  let slen = len(aad)
-  ctx.aadlen = uint64(slen)
+  ctx.aadlen = uint64(len(aad))
   ctx.datalen = 0
   if len(aad) > 0:
-    ghash(ctx.buf, ctx.h, unsafeAddr aad[0], slen)
+    ghash(ctx.buf, ctx.h, aad)
 
 proc encrypt*[T](ctx: var GCM[T], input: openarray[byte],
                  output: var openarray[byte]) =
@@ -1190,7 +1027,7 @@ proc encrypt*[T](ctx: var GCM[T], input: openarray[byte],
     ctx.cipher.encrypt(ctx.y, ectr)
     for i in 0..<uselen:
       output[offset + i] = ectr[i] xor input[offset + i]
-    ghash(ctx.buf, ctx.h, addr output[offset], uselen)
+    ghash(ctx.buf, ctx.h, output.toOpenArray(offset, offset + uselen - 1))
     length -= uselen
     offset += uselen
 
@@ -1204,7 +1041,6 @@ proc decrypt*[T](ctx: var GCM[T], input: openarray[byte],
   mixin encrypt
   var ectr: array[16, byte]
   assert(len(input) <= len(output))
-  assert(len(input) > 0)
 
   var length = len(input)
   var offset = 0
@@ -1215,7 +1051,7 @@ proc decrypt*[T](ctx: var GCM[T], input: openarray[byte],
     ctx.cipher.encrypt(ctx.y, ectr)
     for i in 0..<uselen:
       output[offset + i] = ectr[i] xor input[offset + i]
-    ghash(ctx.buf, ctx.h, unsafeAddr input[offset], uselen)
+    ghash(ctx.buf, ctx.h, input.toOpenArray(offset, offset + uselen - 1))
     length -= uselen
     offset += uselen
 
@@ -1228,10 +1064,10 @@ proc getTag*[T](ctx: var GCM[T], tag: var openarray[byte]) =
   let uselen = if taglen < 16: taglen else: 16
   var workbuf: array[16, byte]
   if taglen > 0:
-    copyMem(addr tag[0], addr ctx.basectr[0], uselen)
-  EPUTU64(addr workbuf[0], 0, ctx.aadlen shl 3)
-  EPUTU64(addr workbuf[0], 8, ctx.datalen shl 3)
-  ghash(ctx.buf, ctx.h, addr workbuf[0], 16)
+    copyMem(tag, 0, ctx.basectr, 0, uselen)
+  beStore64(workbuf, 0, ctx.aadlen shl 3)
+  beStore64(workbuf, 8, ctx.datalen shl 3)
+  ghash(ctx.buf, ctx.h, workbuf)
   for i in 0..<uselen:
     tag[i] = tag[i] xor ctx.buf[i]
 

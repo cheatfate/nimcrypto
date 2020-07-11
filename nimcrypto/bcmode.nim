@@ -259,7 +259,7 @@ proc init*[T](ctx: var CBC[T], key: openarray[byte], iv: openarray[byte]) =
   assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
-  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv.toOpenArray(0, ctx.sizeBlock() - 1)
 
 proc init*[T](ctx: var CBC[T], key: openarray[char], iv: openarray[char]) =
   ## Initialize ``CBC[T]`` with encryption key ``key`` and initial vector (IV)
@@ -313,7 +313,9 @@ proc encrypt*[T](ctx: var CBC[T], input: openarray[byte],
       output[offset + i] = input[offset + i] xor ctx.iv[i]
     ctx.cipher.encrypt(output.toOpenArray(offset, offset + ctx.sizeBlock() - 1),
                        output.toOpenArray(offset, offset + ctx.sizeBlock() - 1))
-    ctx.iv[0 ..< ctx.sizeBlock()] = output[offset ..< offset + ctx.sizeBlock()]
+
+    ctx.iv[0 ..< ctx.sizeBlock()] =
+                        output.toOpenArray(offset, offset + ctx.sizeBlock() - 1)
     offset = offset + ctx.sizeBlock()
 
 proc encrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
@@ -454,7 +456,7 @@ proc init*[T](ctx: var CTR[T], key: openarray[byte], iv: openarray[byte]) =
   assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
-  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv.toOpenArray(0, ctx.sizeBlock() - 1)
 
 proc init*[T](ctx: var CTR[T], key: ptr byte, iv: ptr byte) =
   ## Initialize ``CTR[T]`` with encryption key ``key`` and initial vector (IV)
@@ -600,7 +602,7 @@ proc init*[T](ctx: var OFB[T], key: openarray[byte], iv: openarray[byte]) =
   assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
-  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv.toOpenArray(0, ctx.sizeBlock() - 1)
 
 proc init*[T](ctx: var OFB[T], key: ptr byte, iv: ptr byte) =
   ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -738,7 +740,7 @@ proc init*[T](ctx: var CFB[T], key: openarray[byte], iv: openarray[byte]) =
   assert(len(key) >= ctx.sizeKey())
   assert(ctx.sizeBlock <= MaxBlockSize)
   init(ctx.cipher, key)
-  ctx.iv[0 ..< ctx.sizeBlock()] = iv[0 ..< ctx.sizeBlock()]
+  ctx.iv[0 ..< ctx.sizeBlock()] = iv.toOpenArray(0, ctx.sizeBlock() - 1)
 
 proc init*[T](ctx: var CFB[T], key: ptr byte, iv: ptr byte) =
   ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -922,7 +924,7 @@ proc ghash(y: var openarray[byte], h: openarray[byte],
       dec(length, 16)
       inc(offset, 16)
     else:
-      tmp[0 ..< length] = data[offset ..< offset + length]
+      tmp[0 ..< length] = data.toOpenArray(offset, offset + length - 1)
       y1 = y1 xor beLoad64(tmp, 0)
       y0 = y0 xor beLoad64(tmp, 8)
       length = 0
@@ -994,7 +996,7 @@ proc init*[T](ctx: var GCM[T], key: openarray[byte], iv: openarray[byte],
   ctx.cipher.init(key)
   ctx.cipher.encrypt(ctx.h, ctx.h)
   if len(iv) == 12:
-    ctx.y[0 ..< 12] = iv[0 ..< 12]
+    ctx.y[0 ..< 12] = iv.toOpenArray(0, 11)
     inc128(ctx.y)
   else:
     var tmp: array[16, byte]

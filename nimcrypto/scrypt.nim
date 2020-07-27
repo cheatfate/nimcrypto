@@ -132,11 +132,12 @@ proc smix(b: var openArray[byte], boffset, r, N: int,
     leStore32(b, j, x[i])
     inc(j, 4)
 
-func validateParam(N, r, p: int) {.raises: ValueError.} =
+func validateParam(N, r, p: int): bool =
   # currently, this function does not validate OOM
   # condition
   if N <= 1 or (N and (N-1)) != 0:
-    raise newException(ValueError, "scrypt: N must be > 1 and a power of 2")
+    # N must be > 1 and a power of 2
+    return false
 
   const
     maxInt = high(int64)
@@ -150,14 +151,19 @@ func validateParam(N, r, p: int) {.raises: ValueError.} =
     badParam4 = N > maxIntd128 div r
 
   if badParam1 or badParam2 or badParam3 or badParam4:
-    raise newException(ValueError, "scrypt: parameters are too large")
+    # parameters are too large
+    return false
+
+  result = true
 
 # scrypt derives a key from the password, salt, and cost parameters, returning
 # a byte slice of length keyLen that can be used as cryptographic key.
 #
 # N is a CPU/memory cost parameter, which must be a power of two greater than 1.
 # r and p must satisfy r * p < 2^30. If the parameters do not satisfy the
-# limits, the function raises an exception.
+# limits, the function return zero.
+#
+# Returns number of bytes stored on success, or 0 on error.
 #
 # For example, you can get a derived key for e.g. AES-256 (which needs a
 # 32-byte key) by doing:
@@ -170,8 +176,10 @@ func validateParam(N, r, p: int) {.raises: ValueError.} =
 # can derive within 100 milliseconds. Remember to get a good random salt.
 
 func scrypt*(password, salt: openArray[byte],
-             N, r, p, keyLen: int): seq[byte] {.raises: ValueError.} =
-  validateParam(N, r, p)
+             N, r, p: int, output: var openarray[byte]): int =
+  if not validateParam(N, r, p):
+    return 0
+
   let
     r32  = r*32
     r64  = r32*2
@@ -179,16 +187,30 @@ func scrypt*(password, salt: openArray[byte],
 
   var
     x = newSeq[uint32](r64 + r32*N) # xy + v in one alloc
-    b = sha256.pbkdf2(password, salt, 1, p*r128)
     n = 0
+    b = newSeq[byte](p*r128)
+
+  if sha256.pbkdf2(password, salt, 1, b) == 0:
+    return 0
 
   for i in 0 ..< p:
     smix(b, n, r, N, x.toOpenArray(r64, x.len-1), x)
     inc(n, r128)
 
-  sha256.pbkdf2(password, b, 1, keyLen)
+  sha256.pbkdf2(password, b, 1, output)
+
+func scrypt*(password, salt: openArray[byte],
+             N, r, p, keyLen: int): seq[byte] =
+  if keyLen > 0:
+    result = newSeq[byte](keyLen)
+    discard scrypt(password, salt, N, r, p, result)
 
 func scrypt*(password, salt: string,
-             N, r, p, keyLen: int): seq[byte] {.raises: ValueError.} =
+             N, r, p, keyLen: int): seq[byte] =
   scrypt(password.toOpenArrayByte(0, password.len-1),
     salt.toOpenArrayByte(0, salt.len-1), N, r, p, keyLen)
+
+func scrypt*(password, salt: string,
+             N, r, p: int, output: var openarray[byte]): int =
+  scrypt(password.toOpenArrayByte(0, password.len-1),
+    salt.toOpenArrayByte(0, salt.len-1), N, r, p, output)

@@ -1,8 +1,21 @@
-import macros, nimcrypto/[utils, pbkdf2]
+#
+#
+#                    NimCrypto
+#               (c) Copyright 2020
+#
+#      See the file "LICENSE", included in this
+#    distribution, for details about the copyright.
+#
+
+import macros, utils, pbkdf2
+
+## This module implements
+## The scrypt Password-Based Key Derivation Function
+## https://tools.ietf.org/html/rfc7914
 
 macro repInc(n: static[int], body: untyped) =
-  # repeat body as much as `n` and replace
-  # any `z` in body with an int via template
+  ## repeat body as much as `n` and replace
+  ## any `z` in body with an int via template
   var x = genSym(nskTemplate, "x")
   var z = newIdentNode("z")
   result = newStmtList()
@@ -13,8 +26,8 @@ macro repInc(n: static[int], body: untyped) =
 
 proc salsaXor(tmp: var openArray[uint32],
   src: openArray[uint32], srco: int, dest: var openArray[uint32], dsto: int) =
-  # salsaXor applies Salsa20/8 to the XOR of 16 numbers from tmp and in,
-  # and puts the result into both tmp and out.
+  ## salsaXor applies Salsa20/8 to the XOR of 16 numbers from tmp and in,
+  ## and puts the result into both tmp and out.
 
   repInc(16):
     # we need the {.inject.} because it was generated via template
@@ -74,7 +87,7 @@ func integer(b: openArray[uint32], r: int): uint64 =
 proc blockXor(dst: var openArray[uint32],
               src: openArray[uint32], srco: int, n: int) =
 
-  # blockXor XORs numbers from dst with n numbers from src.
+  ## blockXor XORs numbers from dst with n numbers from src.
   for i in 0 ..< n:
     dst[i] = dst[i] xor src[i+srco]
 
@@ -119,22 +132,6 @@ proc smix(b: var openArray[byte], boffset, r, N: int,
     leStore32(b, j, x[i])
     inc(j, 4)
 
-# Key derives a key from the password, salt, and cost parameters, returning
-# a byte slice of length keyLen that can be used as cryptographic key.
-#
-# N is a CPU/memory cost parameter, which must be a power of two greater than 1.
-# r and p must satisfy r * p < 2^30. If the parameters do not satisfy the
-# limits, the function raises an exception.
-#
-# For example, you can get a derived key for e.g. AES-256 (which needs a
-# 32-byte key) by doing:
-#
-#    dk = scrypt(some_password, salt, 32768, 8, 1, 32)
-#
-# The recommended parameters for interactive logins as of 2017 are N=32768, r=8
-# and p=1. The parameters N, r, and p should be increased as memory latency and
-# CPU parallelism increases; consider setting N to the highest power of 2 you
-# can derive within 100 milliseconds. Remember to get a good random salt.
 func validateParam(N, r, p: int) {.raises: ValueError.} =
   if N <= 1 or (N and (N-1)) != 0:
     raise newException(ValueError, "scrypt: N must be > 1 and a power of 2")
@@ -152,6 +149,23 @@ func validateParam(N, r, p: int) {.raises: ValueError.} =
 
   if badParam1 or badParam2 or badParam3 or badParam4:
     raise newException(ValueError, "scrypt: parameters are too large")
+
+# scrypt derives a key from the password, salt, and cost parameters, returning
+# a byte slice of length keyLen that can be used as cryptographic key.
+#
+# N is a CPU/memory cost parameter, which must be a power of two greater than 1.
+# r and p must satisfy r * p < 2^30. If the parameters do not satisfy the
+# limits, the function raises an exception.
+#
+# For example, you can get a derived key for e.g. AES-256 (which needs a
+# 32-byte key) by doing:
+#
+#    dk = scrypt(some_password, salt, 32768, 8, 1, 32)
+#
+# The recommended parameters for interactive logins as of 2017 are N=32768, r=8
+# and p=1. The parameters N, r, and p should be increased as memory latency and
+# CPU parallelism increases; consider setting N to the highest power of 2 you
+# can derive within 100 milliseconds. Remember to get a good random salt.
 
 func scrypt*(password, salt: openArray[byte],
              N, r, p, keyLen: int): seq[byte] {.raises: ValueError.} =

@@ -189,15 +189,16 @@ func scrypt*(password, salt: openArray[byte],
     x = newSeq[uint32](r64 + r32*N) # xy + v in one alloc
     n = 0
     b = newSeq[byte](p*r128)
+    ctx: HMAC[sha256]
 
-  if sha256.pbkdf2(password, salt, 1, b) == 0:
+  if ctx.pbkdf2(password, salt, 1, b) == 0:
     return 0
 
   for i in 0 ..< p:
     smix(b, n, r, N, x.toOpenArray(r64, x.len-1), x)
     inc(n, r128)
 
-  sha256.pbkdf2(password, b, 1, output)
+  ctx.pbkdf2(password, b, 1, output)
 
 func scrypt*(password, salt: openArray[byte],
              N, r, p, keyLen: int): seq[byte] =

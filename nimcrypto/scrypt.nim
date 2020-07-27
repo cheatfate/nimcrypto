@@ -133,6 +133,8 @@ proc smix(b: var openArray[byte], boffset, r, N: int,
     inc(j, 4)
 
 func validateParam(N, r, p: int) {.raises: ValueError.} =
+  # currently, this function does not validate OOM
+  # condition
   if N <= 1 or (N and (N-1)) != 0:
     raise newException(ValueError, "scrypt: N must be > 1 and a power of 2")
 

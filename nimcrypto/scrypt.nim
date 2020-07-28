@@ -67,37 +67,42 @@ proc salsaXor(tmp: var openArray[uint32],
     dest[z + dsto] = `x z`
     tmp[z] = `x z`
 
-proc blockMix(tmp: var openArray[uint32], src: openArray[uint32],
-              dest: var openArray[uint32], r: int) =
+proc blockMix(tmp: var openArray[uint32], src: openArray[uint32], srco: int,
+              dest: var openArray[uint32], dsto: int, r: int) =
   let
     r16  = r*16
     r2_1 = 2*r-1
-  var i16, i8: int
-  copyMem(tmp, 0, src, r2_1*16, 16)
+  var
+    i16 = srco
+    i8 = dsto
+  copyMem(tmp, 0, src, r2_1*16+srco, 16)
   for i in countup(0, r2_1, 2):
     salsaXor(tmp, src, i16, dest, i8)
     salsaXor(tmp, src, i16+16, dest, i8+r16)
     inc(i16, 32)
     inc(i8, 16)
 
-func integer(b: openArray[uint32], r: int): uint64 =
-  let j = (2*r - 1) * 16
+func integer(b: openArray[uint32], boff, r: int): uint64 =
+  let j = (2*r - 1) * 16 + boff
   result = uint64(b[j]) or (uint64(b[j+1]) shl 32)
 
-proc blockXor(dst: var openArray[uint32],
+proc blockXor(dst: var openArray[uint32], dsto: int,
               src: openArray[uint32], srco: int, n: int) =
 
   ## blockXor XORs numbers from dst with n numbers from src.
   for i in 0 ..< n:
-    dst[i] = dst[i] xor src[i+srco]
+    dst[i+dsto] = dst[i+dsto] xor src[i+srco]
 
 proc smix(b: var openArray[byte], boffset, r, N: int,
-          v, xy: var openArray[uint32]) =
+          xyv: var openArray[uint32], voffset: int) =
   let
     r32 = r * 32
     N_1 = N - 1
-  template x: untyped = xy
-  template y: untyped = xy.toOpenArray(r32, xy.len-1)
+
+  template x: untyped = xyv
+  template v: untyped = xyv
+  template y: untyped = xyv
+  template yoffset: untyped = r32
 
   var
     # tmp: store xor'ed value for next step
@@ -108,24 +113,25 @@ proc smix(b: var openArray[byte], boffset, r, N: int,
     x[i] = leLoad32(b, j)
     inc(j, 4)
 
-  var n = 0
+  var n = voffset
   for i in countup(0, N_1, 2):
+    # x[n] is an alias to v
     copyMem(v, n, x, 0, r32)
-    blockMix(tmp, x, y, r)
+    blockMix(tmp, x, 0, y, yoffset, r)
     inc(n, r32)
 
-    copyMem(v, n, x, r32, r32)
-    blockMix(tmp, y, x, r)
+    copyMem(v, n, y, yoffset, r32)
+    blockMix(tmp, y, yoffset, x, 0, r)
     inc(n, r32)
 
   for i in countup(0, N_1, 2):
-    j = int(integer(x, r) and uint64(N_1))
-    blockXor(x, v, j*r32, r32)
-    blockMix(tmp, x, y, r)
+    j = int(integer(x, 0, r) and uint64(N_1))
+    blockXor(x, 0, v, j*r32+voffset, r32)
+    blockMix(tmp, x, 0, y, yoffset, r)
 
-    j = int(integer(y, r) and uint64(N_1))
-    blockXor(y, v, j*r32, r32)
-    blockMix(tmp, y, x, r)
+    j = int(integer(y, yoffset, r) and uint64(N_1))
+    blockXor(y, yoffset, v, j*r32+voffset, r32)
+    blockMix(tmp, y, yoffset, x, 0, r)
 
   j = boffset
   for i in 0 ..< r32:
@@ -134,7 +140,7 @@ proc smix(b: var openArray[byte], boffset, r, N: int,
 
 func validateParam(N, r, p: int): bool =
   # currently, this function does not validate OOM
-  # condition
+  # condition or prevent DOS attack
   if N <= 1 or (N and (N-1)) != 0:
     # N must be > 1 and a power of 2
     return false
@@ -202,7 +208,7 @@ func scrypt*[T, M](password: openArray[T], salt: openArray[M],
     return 0
 
   for i in 0 ..< p:
-    smix(b, n, r, N, x.toOpenArray(r64, x.len-1), x)
+    smix(b, n, r, N, x, r64)
     inc(n, r128)
 
   ctx.pbkdf2(password, b, 1, output)

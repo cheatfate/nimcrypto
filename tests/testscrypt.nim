@@ -2,7 +2,7 @@ import unittest
 
 # use include here, because we want to test
 # internal functions too
-include nimcrypto/scrypt
+include ../nimcrypto/scrypt
 
 when defined(nimHasUsed): {.used.}
 
@@ -92,7 +92,7 @@ suite "Scrypt KDF tests suite":
     var bTmp: array[32, uint32]
 
     bIn.swapBytes(bInBE)
-    blockMix(bTmp, bIn, bOut, 1)
+    blockMix(bTmp, bIn, 0, bOut, 0, 1)
     bOut.swapBytes
     check bOut == bOutBE
 
@@ -100,11 +100,10 @@ suite "Scrypt KDF tests suite":
     let
       r = 1
       N = 16
-    var xy = newSeq[uint32](64*r)
-    var v = newSeq[uint32](32*N*r)
+    var xy = newSeq[uint32](64*r + 32*N*r)
 
     var b = utils.fromHex(bhex)
-    smix(b, 0, r, N, v, xy)
+    smix(b, 0, r, N, xy, 64*r)
     var bb = utils.fromHex(bouthex)
     check b == bb
 
@@ -113,6 +112,12 @@ suite "Scrypt KDF tests suite":
     let key = fromHex("77D6576238657B203B19CA42C18A0497F16B4844E3074AE8DFDFFA3FEDE21442" &
               "FCD0069DED0948F8326A753A0FC81F17E8D3E0FB2E0D3628CF35E20C38D18906")
     let dkey = scrypt(password="", salt="", N=16, r=1, p=1, keyLen=64)
+    check key == dkey
+
+  test "scrypt N=16, r=1, p=1, keyLen=64 (compile-time)":
+    const key = fromHex("77D6576238657B203B19CA42C18A0497F16B4844E3074AE8DFDFFA3FEDE21442" &
+              "FCD0069DED0948F8326A753A0FC81F17E8D3E0FB2E0D3628CF35E20C38D18906")
+    const dkey = scrypt(password="", salt="", N=16, r=1, p=1, keyLen=64)
     check key == dkey
 
   test "scrypt N=1024, r=8, p=16, keyLen=64":

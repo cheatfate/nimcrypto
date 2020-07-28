@@ -175,8 +175,15 @@ func validateParam(N, r, p: int): bool =
 # CPU parallelism increases; consider setting N to the highest power of 2 you
 # can derive within 100 milliseconds. Remember to get a good random salt.
 
-func scrypt*(password, salt: openArray[byte],
+func scrypt*[T, M](password: openArray[T], salt: openArray[M],
              N, r, p: int, output: var openarray[byte]): int =
+
+  when not((M is byte) or (M is char)):
+    {.fatal: "Choosen password type is not supported!".}
+
+  when not((T is byte) or (T is char)):
+    {.fatal: "Choosen salt type is not supported!".}
+
   if not validateParam(N, r, p):
     return 0
 
@@ -200,18 +207,8 @@ func scrypt*(password, salt: openArray[byte],
 
   ctx.pbkdf2(password, b, 1, output)
 
-func scrypt*(password, salt: openArray[byte],
+func scrypt*[T, M](password: openArray[T], salt: openArray[M],
              N, r, p, keyLen: int): seq[byte] =
   if keyLen > 0:
     result = newSeq[byte](keyLen)
     discard scrypt(password, salt, N, r, p, result)
-
-func scrypt*(password, salt: string,
-             N, r, p, keyLen: int): seq[byte] =
-  scrypt(password.toOpenArrayByte(0, password.len-1),
-    salt.toOpenArrayByte(0, salt.len-1), N, r, p, keyLen)
-
-func scrypt*(password, salt: string,
-             N, r, p: int, output: var openarray[byte]): int =
-  scrypt(password.toOpenArrayByte(0, password.len-1),
-    salt.toOpenArrayByte(0, salt.len-1), N, r, p, output)

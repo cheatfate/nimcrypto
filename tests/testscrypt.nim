@@ -107,6 +107,13 @@ suite "Scrypt KDF tests suite":
     var bb = utils.fromHex(bouthex)
     check b == bb
 
+  func scrypt[T, M](password: openArray[T], salt: openArray[M],
+                     N, r, p, keyLen: static[int]): array[keyLen, byte] =
+    let (xyvLen, bLen) = scryptCalc(N, r, p)
+    var xyv = newSeq[uint32](xyvLen)
+    var b = newSeq[byte](bLen)
+    discard scrypt(password, salt, N, r, p, xyv, b, result)
+
   # again, these test vectors are copied from RFC 7914
   test "scrypt N=16, r=1, p=1, keyLen=64":
     let key = fromHex("77D6576238657B203B19CA42C18A0497F16B4844E3074AE8DFDFFA3FEDE21442" &

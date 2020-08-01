@@ -1,7 +1,7 @@
 #
 #
 #                    NimCrypto
-#               (c) Copyright 2020
+#          (c) Copyright 2020 Andri Lim
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.

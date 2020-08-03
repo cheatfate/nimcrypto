@@ -9,8 +9,19 @@
 
 ## This module provides utility functions common to all other submodules of
 ## nimcrypto.
+##
+## Constant-time hexadecimal processing is Nim's adaptation of `src/hex.c` from
+## decent library "Constant-Time Toolkit" (https://github.com/pornin/CTTK)
+## Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
 
 {.deadCodeElim:on.}
+
+type
+  HexFlags* {.pure.} = enum
+    LowerCase,  ## Produce lowercase hexadecimal characters
+    PadOdd,     ## Pads odd strings
+    SkipSpaces, ## Skips all the whitespace characters inside of string
+    SkipPrefix  ## Skips `0x` and `x` prefixes at the begining of string
 
 template ROL*(x: uint32, n: int): uint32 =
   (x shl uint32(n and 0x1F)) or (x shr uint32(32 - (n and 0x1F)))
@@ -24,75 +35,134 @@ template ROR*(x: uint32, n: int): uint32 =
 template ROR*(x: uint64, n: int): uint64 =
   (x shr uint64(n and 0x3F)) or (x shl uint64(64 - (n and 0x3F)))
 
-template skip0xPrefix(hexStr: string): int =
-  ## Returns the index of the first meaningful char in `hexStr` by skipping
-  ## "0x" prefix
-  if hexStr.len == 0: 0
-  elif hexStr[0] == '0' and hexStr[1] in {'x', 'X'}: 2
-  else: 0
+proc `-`(x: uint32): uint32 {.inline.} =
+  result = (0xFFFF_FFFF'u32 - x) + 1'u32
 
-proc hexToBytes*(a: string, output: var openarray[byte]) =
-  if (len(a) mod 2) != 0:
-    raise newException(ValueError, "Invalid hexadecimal string")
-  let offset = skip0xPrefix(a)
-  let length = len(a) - offset
-  if length != 2 * len(output):
-    raise newException(ValueError, "Incorrect output buffer size")
-  var i = offset
-  var k = 0
-  var r = 0
-  if length > 0:
-    while i < len(a):
-      let c = a[i]
-      if i != offset and i %% 2 == 0:
-        output[k] = byte(r)
-        r = 0
-        inc(k)
+proc LT(x, y: uint32): uint32 {.inline.} =
+  let z = x - y
+  (z xor ((y xor x) and (y xor z))) shr 31
+
+proc hexValue(c: char): int =
+  let x = uint32(c) - 0x30'u32
+  let y = uint32(c) - 0x41'u32
+  let z = uint32(c) - 0x61'u32
+  let r = ((x + 1'u32) and -LT(x, 10)) or
+          ((y + 11'u32) and -LT(y, 6)) or
+          ((z + 11'u32) and -LT(z, 6))
+  int(r) - 1
+
+proc hexDigit(x: int, lowercase: bool = false): char =
+  var off = uint32(0x41 - 0x3A)
+  if lowercase:
+    off += 0x20
+  char(0x30'u32 + uint32(x) + (off and not((uint32(x) - 10) shr 8)))
+
+proc bytesToHex*(src: openarray[byte], dst: var openarray[char],
+                 flags: set[HexFlags]): int =
+  if len(dst) == 0:
+    (len(src) shl 1)
+  else:
+    var halflast = false
+    let dstlen = len(dst)
+    var srclen = len(src)
+
+    if dstlen < (srclen shl 1):
+      if (dstlen and 1) == 1:
+        srclen = (dstlen - 1) shr 1
+        halflast = true
       else:
-        r = r shl 4
-      case c
-      of 'a'..'f':
-        r = r or (10 + ord(c) - ord('a'))
-      of 'A'..'F':
-        r = r or (10 + ord(c) - ord('A'))
-      of '0'..'9':
-        r = r or (ord(c) - ord('0'))
+        srclen = (dstlen shr 1)
+
+    let lowercase = (HexFlags.LowerCase in flags)
+
+    var k = 0
+    for i in 0 ..< srclen:
+      let x = int(src[i])
+      dst[k + 0] = hexDigit(x shr 4, lowercase)
+      dst[k + 1] = hexDigit(x and 15, lowercase)
+      inc(k, 2)
+
+    if halflast:
+      let x = int(src[srclen])
+      dst[k + 0] = hexDigit(x shr 4, lowercase)
+      inc(k)
+
+    return k
+
+proc hexToBytes*(src: openarray[char], dst: var openarray[byte],
+                 flags: set[HexFlags]): int =
+  var halfbyte = false
+  var acc: byte
+  var v = 0
+  let offset =
+    if (HexFlags.SkipPrefix in flags):
+      let srclen = len(src)
+      if srclen > 1:
+        if (src[0] == '0') and (src[1] in {'x', 'X'}):
+          2
+        elif src[0] in {'x', 'X'}:
+          1
+        else:
+          0
       else:
-        raise newException(ValueError,
-                           "Unexpected non-hex character \"" & $c & "\"")
-      inc(i)
-    output[k] = byte(r)
+        0
+    else:
+      0
+
+  for i in offset ..< len(src):
+    let c = byte(src[i])
+    let d = hexValue(src[i])
+
+    if d < 0:
+      if (HexFlags.SkipSpaces in flags) and (c <= 0x20'u8):
+        continue
+      if (HexFlags.PadOdd in flags) and halfbyte:
+        if v < len(dst):
+          dst[v] = acc
+        inc(v)
+      return v
+
+    if halfbyte:
+      if v < len(dst):
+        dst[v] = acc + byte(d)
+      inc(v)
+    else:
+      if v == len(dst):
+        return v
+      acc = byte(d) shl 4
+
+    halfbyte = not(halfbyte)
+
+  if halfbyte:
+    if (HexFlags.PadOdd in flags):
+      if v < len(dst):
+        dst[v] = acc
+      inc(v)
+    else:
+      return v
+  return v
+
+proc toHex*(a: openarray[byte], flags: set[HexFlags]): string =
+  var res = newString(len(a) shl 1)
+  discard bytesToHex(a, res, flags)
+  res
+
+proc toHex*(a: openarray[byte], lowercase: bool = false): string {.inline.} =
+  var res = newString(len(a) shl 1)
+  if lowercase:
+    discard bytesToHex(a, res, {HexFlags.LowerCase})
+  else:
+    discard bytesToHex(a, res, {})
+  res
+
+proc hexToBytes*(a: string, output: var openarray[byte]) {.inline.} =
+  discard hexToBytes(a, output, {HexFlags.SkipPrefix, HexFlags.PadOdd})
 
 proc fromHex*(a: string): seq[byte] =
-  if (len(a) mod 2) != 0:
-    raise newException(ValueError, "Invalid hexadecimal string")
-  if len(a) == 0:
-    result = newSeq[byte]()
-  else:
-    let offset = skip0xPrefix(a)
-    result = newSeq[byte]((len(a) - offset) div 2)
-    hexToBytes(a, result)
-
-proc hexChar*(c: byte, lowercase: bool = false): string =
-  var alpha: int
-  if lowercase:
-    alpha = ord('a')
-  else:
-    alpha = ord('A')
-  result = newString(2)
-  let t1 = ord(c) shr 4
-  let t0 = ord(c) and 0x0F
-  case t1
-  of 0..9: result[0] = chr(t1 + ord('0'))
-  else: result[0] = chr(t1 - 10 + alpha)
-  case t0:
-  of 0..9: result[1] = chr(t0 + ord('0'))
-  else: result[1] = chr(t0 - 10 + alpha)
-
-proc toHex*(a: openarray[byte], lowercase: bool = false): string =
-  result = ""
-  for i in a:
-    result = result & hexChar(i, lowercase)
+  var buf = newSeq[byte](len(a) shr 1)
+  let res = hexToBytes(a, buf, {HexFlags.SkipPrefix, HexFlags.PadOdd})
+  buf.setLen(res)
+  buf
 
 proc stripSpaces*(s: string): string =
   result = ""

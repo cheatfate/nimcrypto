@@ -38,32 +38,15 @@ proc `$`*(digest: MDigest): string =
   ##
   ##    var digestHexString = $sha256.digest("Hello World!")
   ##    echo digestHexString
-  when Nimcrypto0xPrefix:
-    result = newString(len(digest.data) * 2 + 2)
-    result[0] = '0'
-    result[1] = 'x'
-    let offset = 2
-  else:
-    result = newString(len(digest.data) * 2)
-    let offset = 0
-
+  var res = newString((len(digest.data) shl 1))
   when NimcryptoHexLowercase:
-    let alpha = ord('a')
+    discard bytesToHex(digest.data, res, {HexFlags.LowerCase})
   else:
-    let alpha = ord('A')
-
-  for i in 0..<len(digest.data):
-    let c = digest.data[i]
-    let t1 = ord(c) shr 4
-    let t0 = ord(c) and 0x0F
-    let i0 = offset + i * 2
-    let i1 = offset + i * 2 + 1
-    case t1
-      of 0..9: result[i0] = chr(t1 + ord('0'))
-      else: result[i0] = chr(t1 - 10 + alpha)
-    case t0:
-      of 0..9: result[i1] = chr(t0 + ord('0'))
-      else: result[i1] = chr(t0 - 10 + alpha)
+    discard bytesToHex(digest.data, res, {})
+  when Nimcrypto0xPrefix:
+    "0x" & res
+  else:
+    res
 
 proc digest*(HashType: typedesc, data: ptr byte,
              ulen: uint): MDigest[HashType.bits] =

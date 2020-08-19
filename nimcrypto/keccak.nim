@@ -231,9 +231,10 @@ else:
     a[0] = a[0] xor RNDC[r]
 
 proc keccakTransform(data: var array[200, byte]) {.inline.} =
-  var bc: array[5, uint64]
-  var st: array[25, uint64]
-  var t: uint64
+  var
+    bc {.noinit.}: array[5, uint64]
+    st {.noinit.}: array[25, uint64]
+    t: uint64
 
   when nimvm:
     for i in 0 ..< len(st):

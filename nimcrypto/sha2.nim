@@ -234,8 +234,9 @@ template ROUND512(a, b, c, d, e, f, g, h, z) =
   h = t0 + t1
 
 proc sha256Transform(state: var array[8, uint32], data: openarray[byte]) =
-  var t0, t1: uint32
-  var W: array[64, uint32]
+  var
+    t0, t1: uint32
+    W {.noinit.}: array[64, uint32]
 
   W[0] = beLoad32(data, 0); W[1] = beLoad32(data, 4);
   W[2] = beLoad32(data, 8); W[3] = beLoad32(data, 12)
@@ -336,8 +337,9 @@ proc sha256Transform(state: var array[8, uint32], data: openarray[byte]) =
   state[7] = state[7] + s7
 
 proc sha512Transform(state: var array[8, uint64], data: openarray[byte]) =
-  var t0, t1: uint64
-  var W: array[80, uint64]
+  var
+    t0, t1: uint64
+    W {.noinit.}: array[80, uint64]
 
   W[0] = beLoad64(data, 0); W[1] = beLoad64(data, 8);
   W[2] = beLoad64(data, 16); W[3] = beLoad64(data, 24)

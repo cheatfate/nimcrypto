@@ -227,15 +227,15 @@ proc update*(ctx: var Sha1Context, pbytes: ptr byte,
 
 proc finish*(ctx: var Sha1Context,
              data: var openarray[byte]): uint {.inline, discardable.} =
+  let
+    one80 = [0x80'u8]
+    one00 = [0x00'u8]
   var
-    onebyte {.noinit.}: array[1, byte]
     pad {.noinit.}: array[8, byte]
   beStore64(pad, 0, uint64(ctx.size shl 3))
-  onebyte[0] = 0x80'u8
-  update(ctx, onebyte)
-  onebyte[0] = 0x00'u8
+  update(ctx, one80)
   while (ctx.size and 63'u64) != (64 - 8):
-    update(ctx, onebyte)
+    update(ctx, one00)
   update(ctx, pad)
   if len(data) >= int(ctx.sizeDigest):
     result = ctx.sizeDigest

@@ -270,7 +270,7 @@ when sizeof(int) == 4:
     swap8(q[3], q[7])
 
   proc subWord(x: uint32): uint32 =
-    var q: array[8, uint32]
+    var q {.noinit.}: array[8, uint32]
     q[0] = x
     q[1] = x
     q[2] = x
@@ -461,7 +461,7 @@ when sizeof(int) == 4:
 
   proc encrypt*(ctx: RijndaelContext, input: openarray[byte],
                 output: var openarray[byte]) =
-    var q: array[8, uint32]
+    var q {.noinit.}: array[8, uint32]
     q[0] = leLoad32(input, 0)
     q[2] = leLoad32(input, 4)
     q[4] = leLoad32(input, 8)
@@ -489,7 +489,7 @@ when sizeof(int) == 4:
 
   proc decrypt*(ctx: RijndaelContext, input: openarray[byte],
                 output: var openarray[byte]) =
-    var q: array[8, uint32]
+    var q {.noinit.}: array[8, uint32]
     q[0] = leLoad32(input, 0)
     q[2] = leLoad32(input, 4)
     q[4] = leLoad32(input, 8)

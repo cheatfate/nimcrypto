@@ -139,8 +139,8 @@ else:
     B2S_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
 
 proc blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
-  var v: array[16, uint64]
-  var m: array[16, uint64]
+  var v {.noinit.}: array[16, uint64]
+  var m {.noinit.}: array[16, uint64]
 
   when nimvm:
     for i in 0 ..< 8:
@@ -201,8 +201,8 @@ proc blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
     ctx.h[7] = ctx.h[7] xor (v[7] xor v[7 + 8])
 
 proc blake2Transform(ctx: var Blake2sContext, last: bool) {.inline.} =
-  var v: array[16, uint32]
-  var m: array[16, uint32]
+  var v {.noinit.}: array[16, uint32]
+  var m {.noinit.}: array[16, uint32]
 
   when nimvm:
     for i in 0 ..< 8:

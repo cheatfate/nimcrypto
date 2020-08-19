@@ -82,7 +82,7 @@ proc sha1Transform[T: bchar](ctx: var Sha1Context,
                              offset: int) {.noinit, inline.} =
   var
     A, B, C, D, E: uint32
-    arr: array[16, uint32]
+    arr {.noinit.}: array[16, uint32]
 
   A = ctx.h[0]
   B = ctx.h[1]
@@ -227,8 +227,9 @@ proc update*(ctx: var Sha1Context, pbytes: ptr byte,
 
 proc finish*(ctx: var Sha1Context,
              data: var openarray[byte]): uint {.inline, discardable.} =
-  var onebyte: array[1, byte]
-  var pad: array[8, byte]
+  var
+    onebyte {.noinit.}: array[1, byte]
+    pad {.noinit.}: array[8, byte]
   beStore64(pad, 0, uint64(ctx.size shl 3))
   onebyte[0] = 0x80'u8
   update(ctx, onebyte)

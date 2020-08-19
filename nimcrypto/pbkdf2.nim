@@ -34,7 +34,6 @@ proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
     md: array[int(ctx.sizeDigest), byte]
     ctr: uint32
     glength: int
-    olength: int
     bytesWrite: int
 
   when not((M is byte) or (M is char)):
@@ -43,12 +42,17 @@ proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
   when not((N is byte) or (N is char)):
     {.fatal: "Choosen salt type is not supported!".}
 
+  when (sizeof(int) != 8) and (sizeof(int) != 4):
+    {.fatal: "Choosen architecture is not supported!".}
+
   ctr = 1
   glength = 0
-  when sizeof(int) == 8:
-    olength = min(len(output), int(0xFFFF_FFFF)) # 2^32 - 1
-  elif sizeof(int) == 4:
-    olength = len(output)
+  let olength =
+    when sizeof(int) == 8:
+      min(len(output), int(0xFFFF_FFFF)) # 2^32 - 1
+    else:
+      len(output)
+
   while glength < olength:
     beStore32(counter, 0, ctr)
     ctx.init(password)
@@ -68,7 +72,7 @@ proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
     glength = glength + bytesWrite
     ctr = ctr + 1
   ctx.clear()
-  result = int(glength)
+  int(glength)
 
 proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
                       salt: openarray[N], c: int,
@@ -85,11 +89,9 @@ proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
   ##
   ## Returns number of bytes stored on success, or 0 on error.
   if outlen == -1:
-    result = pbkdf2(ctx, password, salt, c,
-                    output.toOpenArray(0, len(output) - 1))
+    pbkdf2(ctx, password, salt, c, output.toOpenArray(0, len(output) - 1))
   else:
-    result = pbkdf2(ctx, password, salt, c,
-                    output.toOpenArray(0, outlen))
+    pbkdf2(ctx, password, salt, c, output.toOpenArray(0, outlen))
 
 proc pbkdf2*[T, M](hashtype: typedesc, password: openarray[T],
                    salt: openarray[M], c: int,
@@ -103,7 +105,9 @@ proc pbkdf2*[T, M](hashtype: typedesc, password: openarray[T],
   ## ``outlen``   - length of bytes to be stored.
   ##
   ## Returns sequence of bytes.
+  var res: seq[byte]
   if outlen > 0:
     var ctx: HMAC[hashtype]
-    result = newSeq[byte](outlen)
-    discard pbkdf2(ctx, password, salt, c, result)
+    res.setLen(outlen)
+    discard pbkdf2(ctx, password, salt, c, res)
+  res

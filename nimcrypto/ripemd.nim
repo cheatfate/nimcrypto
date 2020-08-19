@@ -475,7 +475,7 @@ proc ripemd128Transform(state: var array[4, uint32], data: openarray[byte]) =
     bbb = state[1]
     ccc = state[2]
     ddd = state[3]
-    X: array[16, uint32]
+    X {.noinit.}: array[16, uint32]
 
   X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
   X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)
@@ -512,7 +512,7 @@ proc ripemd256Transform(state: var array[8, uint32], data: openarray[byte]) =
     bbb = state[5]
     ccc = state[6]
     ddd = state[7]
-    X: array[16, uint32]
+    X {.noinit.}: array[16, uint32]
 
   X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
   X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)
@@ -559,7 +559,7 @@ proc ripemd160Transform(state: var array[5, uint32],
     ccc = state[2]
     ddd = state[3]
     eee = state[4]
-    X: array[16, uint32]
+    X {.noinit.}: array[16, uint32]
 
   X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
   X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)
@@ -602,7 +602,7 @@ proc ripemd320Transform(state: var array[10, uint32],
     ccc = state[7]
     ddd = state[8]
     eee = state[9]
-    X: array[16, uint32]
+    X {.noinit.}: array[16, uint32]
 
   X[0] = leLoad32(data, 0); X[1] = leLoad32(data, 4)
   X[2] = leLoad32(data, 8); X[3] = leLoad32(data, 12)

@@ -3,8 +3,8 @@ version: '{build}'
 cache:
 - x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
 - i686-8.1.0-release-win32-dwarf-rt_v6-rev0.7z
-- sqlite-dll-win64-x64-3310100.zip
-- sqlite-dll-win32-x86-3290000.zip
+- NimV1x64
+- NimV1x32
 
 matrix:
   fast_finish: true # set this flag to immediately finish build once one of the jobs fails.
@@ -14,35 +14,39 @@ environment:
     - MINGW_DIR: mingw64
       MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/seh/x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z/download
       MINGW_ARCHIVE: x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
-      SQLITE_URL: https://www.sqlite.org/2020/sqlite-dll-win64-x64-3310100.zip
-      SQLITE_ARCHIVE: sqlite-dll-win64-x64-3310100.zip
-      SQLITE_NAME: sqlite3_64.dll
       platform: x64
+      NIM_DIR: NimDev
+      NIM_BRANCH: devel
+
+    - MINGW_DIR: mingw64
+      MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/seh/x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z/download
+      MINGW_ARCHIVE: x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
+      platform: x64
+      NIM_DIR: NimV1x64
+      NIM_BRANCH: v1.0.8
+
     - MINGW_DIR: mingw32
       MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/8.1.0/threads-win32/dwarf/i686-8.1.0-release-win32-dwarf-rt_v6-rev0.7z/download
       MINGW_ARCHIVE: i686-8.1.0-release-win32-dwarf-rt_v6-rev0.7z
-      SQLITE_URL: https://www.sqlite.org/2020/sqlite-dll-win32-x86-3310100.zip
-      SQLITE_ARCHIVE: sqlite-dll-win32-x86-3310100.zip
-      SQLITE_NAME: sqlite3_32.dll
       platform: x86
+      NIM_DIR: NimDev
+      NIM_BRANCH: devel
+
+    - MINGW_DIR: mingw32
+      MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/8.1.0/threads-win32/dwarf/i686-8.1.0-release-win32-dwarf-rt_v6-rev0.7z/download
+      MINGW_ARCHIVE: i686-8.1.0-release-win32-dwarf-rt_v6-rev0.7z
+      platform: x86
+      NIM_DIR: NimV1x32
+      NIM_BRANCH: v1.0.8
 
 install:
   - IF not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
-  - IF not exist "%SQLITE_ARCHIVE%" appveyor DownloadFile "%SQLITE_URL%" -FileName "%SQLITE_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
-  - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\Nim\bin;%PATH%
-  - git clone https://github.com/nim-lang/Nim.git %CD%\Nim
-  - 7z x -y "%SQLITE_ARCHIVE%" -o"%CD%\Nim\bin" > nul
-  - RENAME "%CD%\Nim\bin\sqlite3.dll" "%SQLITE_NAME%"
-  - cd %CD%\Nim
-  - git clone --depth 1 https://github.com/nim-lang/csources
-  - cd csources
-  - IF "%PLATFORM%" == "x64" ( build64.bat ) else ( build.bat )
-  - cd ..
-  - bin\nim c koch
-  - koch boot -d:release
-  - koch nimble
+  - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\%NIM_DIR%\bin;%PATH%
+  - tests/bootstrap.bat
 build_script:
+  - echo %PATH%
+  - nim --version
   - cd C:\projects\nimcrypto
   - nimble install -y --verbose
 test_script:

@@ -188,7 +188,7 @@ func validateParam(N, r, p: int): bool =
     maxIntd256 = maxInt div 256
 
   let
-    badParam1 = uint64(r)*uint64(p) >= 1 shl 30
+    badParam1 = (uint64(r) * uint64(p)) >= uint64(1 shl 30)
     badParam2 = r > maxIntd128 div p
     badParam3 = r > maxIntd256
     badParam4 = N > maxIntd128 div r

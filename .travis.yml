@@ -1,20 +1,44 @@
-sudo: false
 language: c
-os:
-  - linux
-  - osx
-dist: xenial
+cache:
+  ccache: true
+  directories:
+    - NimV1
+jobs:
+  include:
+    - os: linux
+      arch: amd64
+      env:
+        - NPROC=2
+        - NIM_DIR=NimDev
+        - NIM_BRANCH=devel
+      dist: xenial
+    - os: linux
+      arch: amd64
+      env:
+        - NPROC=2
+        - NIM_DIR=NimV1
+        - NIM_BRANCH=v1.0.8
+      dist: xenial
+    - os: osx
+      env:
+        - NPROC=2
+        - NIM_DIR=NimDev
+        - NIM_BRANCH=devel
+      before_install:
+        - HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install ccache
+    - os: osx
+      env:
+        - NPROC=2
+        - NIM_DIR=NimV1
+        - NIM_BRANCH=v1.0.8
+      before_install:
+        - HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install ccache
+
 before_script:
-  - git clone https://github.com/nim-lang/Nim.git
-  - cd Nim
-  - git clone --depth 1 https://github.com/nim-lang/csources
-  - cd csources && sh build.sh
-  - cd ..
-  - bin/nim c koch
-  - ./koch boot -d:release
-  - ./koch nimble
-  - export PATH=$(pwd)/bin:$PATH
-  - cd ..
+  - ./tests/bootstrap.sh
+  - export PATH="$(pwd)/$NIM_DIR/bin:$PATH"
 script:
+  - echo $PATH
+  - nim --version
   - nimble install -y --verbose
   - nimble test

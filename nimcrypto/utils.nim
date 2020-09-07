@@ -87,7 +87,7 @@ proc bytesToHex*(src: openarray[byte], dst: var openarray[char],
       dst[k + 0] = hexDigit(x shr 4, lowercase)
       inc(k)
 
-    return k
+    k
 
 proc hexToBytes*(src: openarray[char], dst: var openarray[byte],
                  flags: set[HexFlags]): int =

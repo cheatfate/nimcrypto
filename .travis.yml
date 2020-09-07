@@ -1,7 +1,8 @@
 language: c
 cache:
   ccache: true
-
+  directories:
+    - NimV1
 jobs:
   include:
     - os: linux
@@ -16,7 +17,7 @@ jobs:
       env:
         - NPROC=2
         - NIM_DIR=NimV1
-        - NIM_BRANCH=tags/v1.0.8
+        - NIM_BRANCH=v1.0.8
       dist: xenial
     - os: osx
       env:
@@ -29,7 +30,7 @@ jobs:
       env:
         - NPROC=2
         - NIM_DIR=NimV1
-        - NIM_BRANCH=tags/v1.0.8
+        - NIM_BRANCH=v1.0.8
       before_install:
         - HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install ccache
 

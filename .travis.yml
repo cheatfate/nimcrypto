@@ -1,8 +1,6 @@
 language: c
 cache:
   ccache: true
-  directories:
-    - NimV1
 
 jobs:
   include:

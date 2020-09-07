@@ -45,7 +45,7 @@ install:
   - SET PATH=%CD%\%MINGW_DIR%\bin;%CD%\%NIM_DIR%\bin;%PATH%
   - tests/bootstrap.bat
 build_script:
-  - echo $PATH
+  - echo %PATH%
   - nim --version
   - cd C:\projects\nimcrypto
   - nimble install -y --verbose

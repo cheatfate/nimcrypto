@@ -8,7 +8,7 @@
 #
 
 ## This is example of usage ``CTR[T]`` encryption/decryption.
-## 
+##
 ## In this sample we are using CTR[AES256], but you can use any block
 ## cipher from nimcrypto library.
 import nimcrypto
@@ -123,7 +123,10 @@ block:
   var key = newString(aes256.sizeKey)
   var iv = newString(aes256.sizeBlock)
   # We do not need to pad data, `CTR` mode works byte by byte.
-  var plainText = aliceData
+  var plainText = newString(len(aliceData))
+
+  copyMem(addr plainText[0], addr aliceData[0], len(aliceData))
+
   var encText = newString(len(aliceData))
   var decText = newString(len(aliceData))
 

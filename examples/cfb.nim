@@ -8,7 +8,7 @@
 #
 
 ## This is example of usage ``CFB[T]`` encryption/decryption.
-## 
+##
 ## In this sample we are using CFB[AES256], but you can use any block
 ## cipher from nimcrypto library.
 import nimcrypto
@@ -117,7 +117,7 @@ block:
   var ectx, dctx: CFB[aes256]
   var key = newString(aes256.sizeKey)
   var iv = newString(aes256.sizeBlock)
-  var plainText = aliceData
+  var plainText = newString(len(aliceData))
   var encText = newString(len(aliceData))
   var decText = newString(len(aliceData))
 

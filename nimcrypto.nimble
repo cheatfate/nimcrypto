@@ -13,17 +13,24 @@ requires "nim > 0.18.0"
 # Tests
 
 task test, "Runs the test suite":
-  let testCommands = @[
+  var testCommands = @[
     "nim c -f -r tests/",
     "nim c -f -d:danger -r tests/",
     "nim c -f -d:danger --threads:on -r tests/",
   ]
+
+  when (NimMajor, NimMinor) >= (1, 5):
+    testCommands.add "nim c -f --gc:orc --threads:on -r tests/"
+
   let exampleFiles = @[
     "ecb", "cbc", "ofb", "cfb", "ctr", "gcm"
   ]
-  let exampleCommands = @[
+  var exampleCommands = @[
       "nim c -f -r --threads:on examples/",
   ]
+
+  when (NimMajor, NimMinor) >= (1, 5):
+    exampleCommands.add "nim c -f --gc:orc --threads:on -r examples/"
 
   for cmd in testCommands:
     echo "\n" & cmd & "testall"

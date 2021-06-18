@@ -125,10 +125,12 @@ jobs:
           echo '${{ github.workspace }}'"/external/dlls-${{ matrix.target.cpu }}" >> $GITHUB_PATH
 
       - name: Restore Nim from cache
+        if: >
+          target.os.nim_branch != 'devel'
         id: nim-compiler-cache
         uses: actions/cache@v2
         with:
-          path: '${{ github.workspace }}/${{ matrix.target.nim_dir }}-${{ matrix.target.nim_branch}}'
+          path: '${{ github.workspace }}/${NIM_DIR}'
           key: 'nim-${{ matrix.target.cpu }}-${{ matrix.target.nim_branch }}'
 
       - name: Build Nim and associated tools

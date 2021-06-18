@@ -106,7 +106,6 @@ jobs:
 
       - name: Build Nim and associated tools
         shell: bash
-        working-directory: nimcrypto
         run: |
           echo "${NIM_BRANCH}"
           echo "${NIM_DIR}"
@@ -119,9 +118,9 @@ jobs:
             PLATFORM=x86
           fi
           if [[ '${{ matrix.target.os }}' == 'windows' ]]; then
-            ./tests/bootstrap.bat
+            nimcrypto/tests/bootstrap.bat
           else
-            ./tests/bootstrap.sh
+            nimcrypto/tests/bootstrap.sh
           fi
 
       - name: Setup environment

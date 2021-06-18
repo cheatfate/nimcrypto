@@ -10,13 +10,8 @@ if [[ -z "${NIM_BRANCH}" ]]; then
   exit 1
 fi
 
-if [[ -z "${NIM_ARCH}" ]]; then
-  echo "NIM_ARCH variable is not set"
-  exit 1
-fi
-
 function build_nim {
-  echo "Building Nim [${NIM_BRANCH}] (${NIM_ARCH}) in ${NIM_DIR}"
+  echo "Building Nim [${NIM_BRANCH}] in ${NIM_DIR}"
   git clone https://github.com/nim-lang/Nim.git ${NIM_DIR}
   cd "${NIM_DIR}"
   if [ "${NIM_BRANCH}" = "devel" ]; then
@@ -43,12 +38,12 @@ function use_nim {
   else
     cd ..
     rm -rf "${NIM_DIR}"
-    build_nim()
+    build_nim
   fi
 }
 
 if [ ! -e "${NIM_DIR}/bin/nim" ]; then
-  build_nim()
+  build_nim
 else
-  use_nim()
+  use_nim
 fi

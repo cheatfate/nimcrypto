@@ -4,7 +4,7 @@ on: [push, pull_request]
 jobs:
   build:
     strategy:
-      fail-fast: false
+      fail-fast: true
       max-parallel: 20
       matrix:
         branch: [master]
@@ -13,42 +13,22 @@ jobs:
             cpu: amd64
             nim_dir: nim-devel-amd64
             nim_branch: devel
-          - ok: linux
-            cpu: amd64
-            nim_dir: nim-devel-amd64
-            nim_branch: v1.2.12
           - os: linux
             cpu: i386
             nim_dir: nim-devel-i386
             nim_branch: devel
-          - os: linux
-            cpu: i386
-            nim_dir: nim-devel-i386
-            nim_branch: v1.2.12
           - os: macos
             cpu: amd64
             nim_dir: nim-devel-amd64
             nim_branch: devel
-          - os: macos
-            cpu: amd64
-            nim_dir: nim-devel-amd64
-            nim_branch: v1.2.12
           - os: windows
             cpu: amd64
             nim_dir: nim-devel-amd64
             nim_branch: devel
           - os: windows
-            cpu: amd64
-            nim_dir: nim-devel-amd64
-            nim_branch: v1.2.12
-          - os: windows
             cpu: i386
             nim_dir: nim-devel-i386
             nim_branch: devel
-          - os: windows
-            cpu: i386
-            nim_dir: nim-devel-i386
-            nim_branch: v1.2.12
         include:
           - target:
               os: linux

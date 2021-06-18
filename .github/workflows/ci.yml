@@ -53,7 +53,7 @@ jobs:
     name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-nim-${{ matrix.target.nim_branch }} (${{ matrix.branch }})'
     runs-on: ${{ matrix.builder }}
     env:
-      NIM_DIR: nim-${{ matrix.target.nim_branch}}-${{ matrix.target.cpu }}
+      NIM_DIR: nim-${{ matrix.target.nim_branch }}-${{ matrix.target.cpu }}
       NIM_BRANCH: ${{ matrix.target.nim_branch }}
       NIM_ARCH: ${{ matrix.target.cpu }}
     steps:
@@ -121,12 +121,13 @@ jobs:
         id: nim-compiler-cache
         uses: actions/cache@v2
         with:
-          path: '${{ github.workspace }}/${NIM_DIR}'
+          path: '${{ github.workspace }}/nim-${{ matrix.target.nim_branch }}-${{ matrix.target.cpu }}'
           key: 'nim-${{ matrix.target.cpu }}-${{ matrix.target.nim_branch }}'
 
       - name: Build Nim and associated tools
         shell: bash
         run: |
+          pwd
           ls -la
           if [[ '${{ matrix.target.os }}' == 'windows' ]]; then
             nimcrypto/tests/bootstrap.bat

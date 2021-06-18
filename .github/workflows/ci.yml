@@ -21,10 +21,18 @@ jobs:
             cpu: i386
             nim_dir: nim-devel-i386
             nim_branch: devel
+          - os: linux
+            cpu: i386
+            nim_dir: nim-devel-i386
+            nim_branch: v1.2.12
           - os: macos
             cpu: amd64
             nim_dir: nim-devel-amd64
             nim_branch: devel
+          - os: macos
+            cpu: amd64
+            nim_dir: nim-devel-amd64
+            nim_branch: v1.2.12
           - os: windows
             cpu: amd64
             nim_dir: nim-devel-amd64

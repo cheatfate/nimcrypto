@@ -1,4 +1,5 @@
-# nimcrypto [![Build Status](https://ci.appveyor.com/api/projects/status/github/cheatfate/nimcrypto?branch=master&svg=true)](https://ci.appveyor.com/project/cheatfate/nimcrypto)
+# nimcrypto
+[![Github action](https://github.com/cheatfate/nimcrypto/workflows/nimcrypto/badge.svg)](https://github.com/cheatfate/nimcrypto/actions/workflows/ci.yml)
 
 # Nim cryptographic library
 

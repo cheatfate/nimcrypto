@@ -11,14 +11,19 @@ jobs:
         target:
           - os: linux
             cpu: amd64
+            NIM_BRANCH: deve
           - os: linux
             cpu: i386
+            NIM_BRANCH: devel
           - os: macos
             cpu: amd64
+            NIM_BRANCH: devel
           - os: windows
             cpu: amd64
+            NIM_BRANCH: devel
           - os: windows
             cpu: i386
+            NIM_BRANCH: devel
         include:
           - target:
               os: linux
@@ -93,19 +98,19 @@ jobs:
 
       - name: Build Nim and associated tools
         shell: bash
+        working-directory: nimcrypto
         run: |
-          curl -O -L -s -S https://raw.githubusercontent.com/status-im/nimbus-build-system/master/scripts/build_nim.sh
+          echo ${NIM_BRANCH}
           if [[ '${{ matrix.target.cpu }}' == 'amd64' ]]; then
             PLATFORM=x64
           else
             PLATFORM=x86
           fi
           if [[ '${{ matrix.target.os }}' == 'windows' ]]; then
-            MAKE_CMD="mingw32-make"
+            ./tests/bootstrap.bat
           else
-            MAKE_CMD="make"
+            ./tests/bootstrap.sh
           fi
-          ./tests/bootstrap.sh
 
       - name: Setup environment
         shell: bash

@@ -13,22 +13,42 @@ jobs:
             cpu: amd64
             nim_dir: nim-devel-amd64
             nim_branch: devel
+          - ok: linux
+            cpu: amd64
+            nim_dir: nim-devel-amd64
+            nim_branch: v1.2.12
           - os: linux
             cpu: i386
             nim_dir: nim-devel-i386
             nim_branch: devel
+          - os: linux
+            cpu: i386
+            nim_dir: nim-devel-i386
+            nim_branch: v1.2.12
           - os: macos
             cpu: amd64
             nim_dir: nim-devel-amd64
             nim_branch: devel
+          - os: macos
+            cpu: amd64
+            nim_dir: nim-devel-amd64
+            nim_branch: v1.2.12
           - os: windows
             cpu: amd64
             nim_dir: nim-devel-amd64
             nim_branch: devel
           - os: windows
+            cpu: amd64
+            nim_dir: nim-devel-amd64
+            nim_branch: v1.2.12
+          - os: windows
             cpu: i386
             nim_dir: nim-devel-i386
             nim_branch: devel
+          - os: windows
+            cpu: i386
+            nim_dir: nim-devel-i386
+            nim_branch: v1.2.12
         include:
           - target:
               os: linux
@@ -107,11 +127,6 @@ jobs:
       - name: Build Nim and associated tools
         shell: bash
         run: |
-          echo "${NIM_BRANCH}"
-          echo "${NIM_DIR}"
-          echo '${{ github.workspace }}'"/${NIM_DIR}/bin"
-          pwd
-
           if [[ '${{ matrix.target.cpu }}' == 'amd64' ]]; then
             PLATFORM=x64
           else
@@ -126,7 +141,6 @@ jobs:
       - name: Setup environment
         shell: bash
         run: |
-          echo '${{ github.workspace }}'"/${NIM_DIR}/bin"
           echo '${{ github.workspace }}'"/${NIM_DIR}/bin" >> $GITHUB_PATH
 
       - name: Run nimcrypto tests

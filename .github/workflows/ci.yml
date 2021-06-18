@@ -11,18 +11,23 @@ jobs:
         target:
           - os: linux
             cpu: amd64
-            NIM_BRANCH: deve
+            NIM_DIR: nim-devel-amd64
+            NIM_BRANCH: devel
           - os: linux
             cpu: i386
+            NIM_DIR: nim-devel-i386
             NIM_BRANCH: devel
           - os: macos
             cpu: amd64
+            NIM_DIR: nim-devel-amd64
             NIM_BRANCH: devel
           - os: windows
             cpu: amd64
+            NIM_DIR: nim-devel-amd64
             NIM_BRANCH: devel
           - os: windows
             cpu: i386
+            NIM_DIR: nim-devel-i386
             NIM_BRANCH: devel
         include:
           - target:
@@ -100,7 +105,9 @@ jobs:
         shell: bash
         working-directory: nimcrypto
         run: |
-          echo ${NIM_BRANCH}
+          echo "${NIM_BRANCH}"
+          echo "${NIM_DIR}"
+
           if [[ '${{ matrix.target.cpu }}' == 'amd64' ]]; then
             PLATFORM=x64
           else

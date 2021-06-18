@@ -55,6 +55,7 @@ jobs:
     env:
       NIM_DIR: nim-${{ matrix.target.nim_branch}}-${{ matrix.target.cpu }}
       NIM_BRANCH: ${{ matrix.target.nim_branch }}
+      NIM_ARCH: ${{ matrix.target.cpu }}
     steps:
       - name: Checkout nimcrypto
         uses: actions/checkout@v2
@@ -126,12 +127,6 @@ jobs:
       - name: Build Nim and associated tools
         shell: bash
         run: |
-          if [[ '${{ matrix.target.cpu }}' == 'amd64' ]]; then
-            PLATFORM=x64
-          else
-            PLATFORM=x86
-          fi
-          echo ${PLATFORM}
           if [[ '${{ matrix.target.os }}' == 'windows' ]]; then
             nimcrypto/tests/bootstrap.bat
           else

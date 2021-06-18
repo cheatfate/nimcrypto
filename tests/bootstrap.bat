@@ -12,6 +12,11 @@ IF "%NIM_BRANCH%" == "" (
   EXIT /B 0
 )
 
+IF "%NIM_ARCH%" == "" (
+  ECHO NIM_ARCH variable is not set
+  EXIT /B 0
+)
+
 IF NOT EXIST "%CD%\%NIM_DIR%\bin\nim.exe" (
   CALL :BUILD_NIM
 ) ELSE (
@@ -20,14 +25,7 @@ IF NOT EXIST "%CD%\%NIM_DIR%\bin\nim.exe" (
 EXIT /B 0
 
 :BUILD_NIM
-ECHO Building Nim [%NIM_BRANCH%] (%PLATFORM%) in %NIM_DIR%
-IF "%PLATFORM%" == "" (
-  IF "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
-    SET PLATFORM=x64
-  ) ELSE (
-    SET PLATFORM=x86
-  )
-)
+ECHO Building Nim [%NIM_BRANCH%] (%NIM_ARCH%) in %NIM_DIR%
 git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
 IF NOT "%NIM_BRANCH%" == "devel" (
@@ -38,7 +36,7 @@ IF NOT "%NIM_BRANCH%" == "devel" (
 git clone --depth 1 https://github.com/nim-lang/csources_v1
 CD csources_v1
 
-IF "%PLATFORM%" == "x64" (CALL build64.bat) ELSE (CALL build32.bat)
+IF "%NIM_ARCH%" == "amd64" (CALL build64.bat) ELSE (CALL build32.bat)
 CD ..
 ECHO CSOURCES NIM DONE
 bin\nim c --skipParentCfg -d:release koch

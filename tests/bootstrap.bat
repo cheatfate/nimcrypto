@@ -20,6 +20,7 @@ IF NOT EXIST "%CD%\%NIM_DIR%\bin\nim.exe" (
 EXIT /B 0
 
 :BUILD_NIM
+ECHO Building Nim [%NIM_BRANCH%] (%PLATFORM%) in %NIM_DIR%
 IF "%PLATFORM%" == "" (
   IF "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
     SET PLATFORM=x64
@@ -27,7 +28,6 @@ IF "%PLATFORM%" == "" (
     SET PLATFORM=x86
   )
 )
-ECHO Building Nim [%NIM_BRANCH%] (%PLATFORM%) in %NIM_DIR%
 git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
 IF NOT "%NIM_BRANCH%" == "devel" (

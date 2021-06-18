@@ -131,6 +131,7 @@ jobs:
           else
             PLATFORM=x86
           fi
+          echo ${PLATFORM}
           if [[ '${{ matrix.target.os }}' == 'windows' ]]; then
             nimcrypto/tests/bootstrap.bat
           else

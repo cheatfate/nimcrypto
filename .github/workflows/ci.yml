@@ -126,7 +126,7 @@ jobs:
 
       - name: Restore Nim from cache
         if: >
-          target.os.nim_branch != 'devel'
+          matrix.nim_branch != 'devel'
         id: nim-compiler-cache
         uses: actions/cache@v2
         with:

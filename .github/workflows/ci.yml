@@ -11,24 +11,24 @@ jobs:
         target:
           - os: linux
             cpu: amd64
-            NIM_DIR: nim-devel-amd64
-            NIM_BRANCH: devel
+            nim_dir: nim-devel-amd64
+            nim_branch: devel
           - os: linux
             cpu: i386
-            NIM_DIR: nim-devel-i386
-            NIM_BRANCH: devel
+            nim_dir: nim-devel-i386
+            nim_branch: devel
           - os: macos
             cpu: amd64
-            NIM_DIR: nim-devel-amd64
-            NIM_BRANCH: devel
+            nim_dir: nim-devel-amd64
+            nim_branch: devel
           - os: windows
             cpu: amd64
-            NIM_DIR: nim-devel-amd64
-            NIM_BRANCH: devel
+            nim_dir: nim-devel-amd64
+            nim_branch: devel
           - os: windows
             cpu: i386
-            NIM_DIR: nim-devel-i386
-            NIM_BRANCH: devel
+            nim_dir: nim-devel-i386
+            nim_branch: devel
         include:
           - target:
               os: linux
@@ -42,6 +42,9 @@ jobs:
 
     name: '${{ matrix.target.os }}-${{ matrix.target.cpu }} (${{ matrix.branch }})'
     runs-on: ${{ matrix.builder }}
+    env:
+      NIM_DIR: ${{ matrix.target.nim_dir }}
+      NIM_BRANCH: ${{ matrix.target.nim_branch }}
     steps:
       - name: Checkout nimcrypto
         uses: actions/checkout@v2

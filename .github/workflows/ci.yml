@@ -127,6 +127,7 @@ jobs:
       - name: Build Nim and associated tools
         shell: bash
         run: |
+          ls -la
           if [[ '${{ matrix.target.os }}' == 'windows' ]]; then
             nimcrypto/tests/bootstrap.bat
           else

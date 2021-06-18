@@ -126,8 +126,8 @@ jobs:
       - name: Setup environment
         shell: bash
         run: |
-          echo '${{ github.workspace }}/${NIM_DIR}/bin'
-          echo '${{ github.workspace }}/${NIM_DIR}/bin' >> $GITHUB_PATH
+          echo '${{ github.workspace }}'"/${NIM_DIR}/bin"
+          echo '${{ github.workspace }}'"/${NIM_DIR}/bin" >> $GITHUB_PATH
 
       - name: Run nimcrypto tests
         shell: bash

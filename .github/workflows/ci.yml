@@ -111,7 +111,6 @@ jobs:
           echo "${NIM_BRANCH}"
           echo "${NIM_DIR}"
           echo '${{ github.workspace }}'"/${NIM_DIR}/bin"
-          echo '${{ github.workspace }}'"/${NIM_DIR}/bin" >> $GITHUB_PATH
 
           if [[ '${{ matrix.target.cpu }}' == 'amd64' ]]; then
             PLATFORM=x64
@@ -126,7 +125,9 @@ jobs:
 
       - name: Setup environment
         shell: bash
-        run: echo '${{ github.workspace }}/nim/bin' >> $GITHUB_PATH
+        run: |
+          echo '${{ github.workspace }}/${NIM_DIR}/bin'
+          echo '${{ github.workspace }}/${NIM_DIR}/bin' >> $GITHUB_PATH
 
       - name: Run nimcrypto tests
         shell: bash

@@ -8,7 +8,7 @@ IF NOT EXIST "%CD%\%NIM_DIR%\bin\nim.exe" (
   ) ELSE (
     git checkout devel
   )
-  git clone --depth 1 https://github.com/nim-lang/csources
+  git clone --depth 1 https://github.com/nim-lang/csources_v1
   cd csources
   IF "%PLATFORM%" == "x64" ( build64.bat ) else ( build.bat )
   cd ..

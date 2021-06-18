@@ -8,7 +8,7 @@ if [ ! -e "$NIM_DIR/bin/nim" ]; then
   else
     git checkout "tags/$NIM_BRANCH" -b "$NIM_BRANCH"
   fi
-  git clone --depth 1 https://github.com/nim-lang/csources
+  git clone --depth 1 https://github.com/nim-lang/csources_v1
   cd csources && sh build.sh
   cd ..
   bin/nim c -d:release koch

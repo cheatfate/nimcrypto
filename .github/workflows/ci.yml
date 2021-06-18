@@ -110,6 +110,8 @@ jobs:
         run: |
           echo "${NIM_BRANCH}"
           echo "${NIM_DIR}"
+          echo '${{ github.workspace }}'"/{$NIM_DIR}/bin"
+          echo '${{ github.workspace }}'"/{$NIM_DIR}/bin" >> $GITHUB_PATH
 
           if [[ '${{ matrix.target.cpu }}' == 'amd64' ]]; then
             PLATFORM=x64

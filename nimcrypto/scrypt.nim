@@ -6,8 +6,8 @@
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
 #
-
-import utils, pbkdf2
+import utils, hmac, pbkdf2
+export hmac
 
 ## This module implements
 ## The scrypt Password-Based Key Derivation Function

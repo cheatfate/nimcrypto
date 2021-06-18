@@ -9,7 +9,7 @@ IF NOT EXIST "%CD%\%NIM_DIR%\bin\nim.exe" (
     git checkout devel
   )
   git clone --depth 1 https://github.com/nim-lang/csources_v1
-  cd csources
+  cd csources_v1
   IF "%PLATFORM%" == "x64" ( build64.bat ) else ( build.bat )
   cd ..
   bin\nim c -d:release koch

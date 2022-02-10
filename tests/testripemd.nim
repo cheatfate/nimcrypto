@@ -17,7 +17,7 @@ suite "RipeMD Tests":
        1234567890123456789012345678901234567890"""
   ]
 
-  const Ripemd128C = [
+  const RipeMD128C = [
     "CDF26213A150DC3ECB610F18F6B38B46", "86BE7AFA339D0FC7CFC785E72F578D33",
     "C14A12199C66E4BA84636B0F69144C77", "9E327B3D6E523062AFC1132D7DF9D1B8",
     "FD2AA607F71DC8F510714922B371834E", "A1AA0689D0FAFA2DDC22E88B49133A06",
@@ -262,41 +262,41 @@ suite "RipeMD Tests":
       check3208 = $ripemd320.digest(stripSpaces(vectors[7]))
 
     check:
-      check1281 == Ripemd128C[0]
-      check1282 == Ripemd128C[1]
-      check1283 == Ripemd128C[2]
-      check1284 == Ripemd128C[3]
-      check1285 == Ripemd128C[4]
-      check1286 == Ripemd128C[5]
-      check1287 == Ripemd128C[6]
-      check1288 == Ripemd128C[7]
+      check1281 == RipeMD128C[0]
+      check1282 == RipeMD128C[1]
+      check1283 == RipeMD128C[2]
+      check1284 == RipeMD128C[3]
+      check1285 == RipeMD128C[4]
+      check1286 == RipeMD128C[5]
+      check1287 == RipeMD128C[6]
+      check1288 == RipeMD128C[7]
 
-      check2561 == Ripemd256C[0]
-      check2562 == Ripemd256C[1]
-      check2563 == Ripemd256C[2]
-      check2564 == Ripemd256C[3]
-      check2565 == Ripemd256C[4]
-      check2566 == Ripemd256C[5]
-      check2567 == Ripemd256C[6]
-      check2568 == Ripemd256C[7]
+      check2561 == RipeMD256C[0]
+      check2562 == RipeMD256C[1]
+      check2563 == RipeMD256C[2]
+      check2564 == RipeMD256C[3]
+      check2565 == RipeMD256C[4]
+      check2566 == RipeMD256C[5]
+      check2567 == RipeMD256C[6]
+      check2568 == RipeMD256C[7]
 
-      check1601 == Ripemd160C[0]
-      check1602 == Ripemd160C[1]
-      check1603 == Ripemd160C[2]
-      check1604 == Ripemd160C[3]
-      check1605 == Ripemd160C[4]
-      check1606 == Ripemd160C[5]
-      check1607 == Ripemd160C[6]
-      check1608 == Ripemd160C[7]
+      check1601 == RipeMD160C[0]
+      check1602 == RipeMD160C[1]
+      check1603 == RipeMD160C[2]
+      check1604 == RipeMD160C[3]
+      check1605 == RipeMD160C[4]
+      check1606 == RipeMD160C[5]
+      check1607 == RipeMD160C[6]
+      check1608 == RipeMD160C[7]
 
-      check3201 == stripSpaces(Ripemd320C[0])
-      check3202 == stripSpaces(Ripemd320C[1])
-      check3203 == stripSpaces(Ripemd320C[2])
-      check3204 == stripSpaces(Ripemd320C[3])
-      check3205 == stripSpaces(Ripemd320C[4])
-      check3206 == stripSpaces(Ripemd320C[5])
-      check3207 == stripSpaces(Ripemd320C[6])
-      check3208 == stripSpaces(Ripemd320C[7])
+      check3201 == stripSpaces(RipeMD320C[0])
+      check3202 == stripSpaces(RipeMD320C[1])
+      check3203 == stripSpaces(RipeMD320C[2])
+      check3204 == stripSpaces(RipeMD320C[3])
+      check3205 == stripSpaces(RipeMD320C[4])
+      check3206 == stripSpaces(RipeMD320C[5])
+      check3207 == stripSpaces(RipeMD320C[6])
+      check3208 == stripSpaces(RipeMD320C[7])
 
   test "RIPEMD 128/160/256/320 million test":
     ctx128.init()
@@ -318,14 +318,14 @@ suite "RipeMD Tests":
       octx256.update(am)
       octx320.update(am)
     check:
-      $ctx128.finish() == stripSpaces(Ripemd128C[8])
-      $ctx160.finish() == stripSpaces(Ripemd160C[8])
-      $ctx256.finish() == stripSpaces(Ripemd256C[8])
-      $ctx320.finish() == stripSpaces(Ripemd320C[8])
-      $octx128.finish() == stripSpaces(Ripemd128C[8])
-      $octx160.finish() == stripSpaces(Ripemd160C[8])
-      $octx256.finish() == stripSpaces(Ripemd256C[8])
-      $octx320.finish() == stripSpaces(Ripemd320C[8])
+      $ctx128.finish() == stripSpaces(RipeMD128C[8])
+      $ctx160.finish() == stripSpaces(RipeMD160C[8])
+      $ctx256.finish() == stripSpaces(RipeMD256C[8])
+      $ctx320.finish() == stripSpaces(RipeMD320C[8])
+      $octx128.finish() == stripSpaces(RipeMD128C[8])
+      $octx160.finish() == stripSpaces(RipeMD160C[8])
+      $octx256.finish() == stripSpaces(RipeMD256C[8])
+      $octx320.finish() == stripSpaces(RipeMD320C[8])
     ctx128.clear()
     ctx160.clear()
     ctx256.clear()

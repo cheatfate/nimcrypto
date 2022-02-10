@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.5.4"
+version       = "0.5.5"
 author        = "Eugene Kabanov"
 description   = "Nim cryptographic library"
 license       = "MIT"
@@ -14,7 +14,7 @@ requires "nim > 0.18.0"
 
 task test, "Runs the test suite":
   var testCommands = @[
-    "nim c -f -r tests/",
+    "nim c -f -r --styleCheck:usages --styleCheck:error tests/",
     "nim c -f -d:danger -r tests/",
     "nim c -f -d:danger --threads:on -r tests/",
   ]

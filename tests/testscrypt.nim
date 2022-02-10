@@ -153,7 +153,7 @@ suite "Scrypt KDF tests suite":
       let dkey = scrypt(password="pleaseletmein", salt="SodiumChloride", N=1048576, r=8, p=1, keyLen=64)
       check key == dkey
 
-  test "string vs openarray[byte]":
+  test "string vs openArray[byte]":
     let stringarg = scrypt(password="password", salt="NaCl", N=1024, r=8, p=16, keyLen=32)
     let openarrayarg = scrypt(fromHex("70617373776F7264"), fromHex("4E61436C"), N=1024, r=8, p=16, keyLen=32)
     check stringarg == openarrayarg

@@ -239,7 +239,7 @@ when sizeof(int) == 4:
     q[1] = q3 xor q6 xor q0
     q[0] = q2 xor q5 xor q7
 
-  proc ortho(q: var openarray[uint32]) {.inline.} =
+  proc ortho(q: var openArray[uint32]) {.inline.} =
     template swapN(cl, ch, s, x, y) =
       var a, b: uint32
       a = x
@@ -284,7 +284,7 @@ when sizeof(int) == 4:
     ortho(q)
     q[0]
 
-  proc keySchedule(ctx: var RijndaelContext, key: openarray[byte]) =
+  proc keySchedule(ctx: var RijndaelContext, key: openArray[byte]) =
     var tmp = 0'u32
     var j, k: int
 
@@ -459,8 +459,8 @@ when sizeof(int) == 4:
     q[6] = q3 xor q4 xor q5 xor q7 xor r3 xor r5 xor r6 xor r7 xor rotr16(v6)
     q[7] = q4 xor q5 xor q6 xor r4 xor r6 xor r7 xor rotr16(v7)
 
-  proc encrypt*(ctx: RijndaelContext, input: openarray[byte],
-                output: var openarray[byte]) =
+  proc encrypt*(ctx: RijndaelContext, input: openArray[byte],
+                output: var openArray[byte]) =
     var q {.noinit.}: array[8, uint32]
     q[0] = leLoad32(input, 0)
     q[2] = leLoad32(input, 4)
@@ -487,8 +487,8 @@ when sizeof(int) == 4:
     leStore32(output, 8, q[4])
     leStore32(output, 12, q[6])
 
-  proc decrypt*(ctx: RijndaelContext, input: openarray[byte],
-                output: var openarray[byte]) =
+  proc decrypt*(ctx: RijndaelContext, input: openArray[byte],
+                output: var openArray[byte]) =
     var q {.noinit.}: array[8, uint32]
     q[0] = leLoad32(input, 0)
     q[2] = leLoad32(input, 4)
@@ -743,7 +743,7 @@ elif sizeof(int) == 8:
     swap8(q[3], q[7])
 
   proc interleaveIn(q0: var uint64, q1: var uint64,
-                    w: openarray[uint32]) {.inline.} =
+                    w: openArray[uint32]) {.inline.} =
     var x0, x1, x2, x3: uint64
 
     x0 = w[0]
@@ -769,7 +769,7 @@ elif sizeof(int) == 8:
     q0 = x0 or (x2 shl 8)
     q1 = x1 or (x3 shl 8)
 
-  proc interleaveOut(w: var openarray[uint32], q0: uint64,
+  proc interleaveOut(w: var openArray[uint32], q0: uint64,
                      q1: uint64) {.inline.} =
     var x0, x1, x2, x3: uint64
 
@@ -802,7 +802,7 @@ elif sizeof(int) == 8:
     ortho(q)
     uint32(q[0] and 0xFFFF_FFFF'u64)
 
-  proc keySchedule(ctx: var RijndaelContext, key: openarray[byte]) =
+  proc keySchedule(ctx: var RijndaelContext, key: openArray[byte]) =
     var skey: array[60, uint32]
     var tkey: array[30, uint64]
     var tmp = 0'u32
@@ -997,8 +997,8 @@ elif sizeof(int) == 8:
     q[6] = q3 xor q4 xor q5 xor q7 xor r3 xor r5 xor r6 xor r7 xor rotr32(v6)
     q[7] = q4 xor q5 xor q6 xor r4 xor r6 xor r7 xor rotr32(v7)
 
-  proc encrypt*(ctx: RijndaelContext, input: openarray[byte],
-                output: var openarray[byte]) =
+  proc encrypt*(ctx: RijndaelContext, input: openArray[byte],
+                output: var openArray[byte]) =
     var q: array[8, uint64]
     var w: array[4, uint32]
 
@@ -1031,8 +1031,8 @@ elif sizeof(int) == 8:
     leStore32(output, 8, w[2])
     leStore32(output, 12, w[3])
 
-  proc decrypt*(ctx: RijndaelContext, input: openarray[byte],
-                output: var openarray[byte]) =
+  proc decrypt*(ctx: RijndaelContext, input: openArray[byte],
+                output: var openArray[byte]) =
     var q: array[8, uint64]
     var w: array[16, uint32]
 
@@ -1088,7 +1088,7 @@ template sizeKey*(r: typedesc[rijndael]): int =
 template sizeBlock*(r: typedesc[rijndael]): int =
   (16)
 
-proc init*(ctx: var RijndaelContext, key: openarray[byte]) {.inline.} =
+proc init*(ctx: var RijndaelContext, key: openArray[byte]) {.inline.} =
   keySchedule(ctx, key)
 
 proc init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =

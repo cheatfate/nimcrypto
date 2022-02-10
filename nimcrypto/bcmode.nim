@@ -89,7 +89,7 @@ template sizeKey*[T](ctx: ECB[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc init*[T](ctx: var ECB[T], key: openarray[byte]) {.inline.} =
+proc init*[T](ctx: var ECB[T], key: openArray[byte]) {.inline.} =
   ## Initialize ``ECB[T]`` with encryption key ``key``.
   ##
   ## This procedure will not perform any additional padding for encryption
@@ -103,7 +103,7 @@ proc init*[T](ctx: var ECB[T], key: openarray[byte]) {.inline.} =
   assert(len(key) >= ctx.sizeKey())
   init(ctx.cipher, key)
 
-proc init*[T](ctx: var ECB[T], key: openarray[char]) {.inline.} =
+proc init*[T](ctx: var ECB[T], key: openArray[char]) {.inline.} =
   ## Initialize ``ECB[T]`` with encryption key ``key``.
   ##
   ## This procedure will not perform any additional padding for encryption
@@ -127,8 +127,8 @@ proc clear*[T](ctx: var ECB[T]) {.inline.} =
   ## Clear ``ECB[T]`` context ``ctx``.
   burnMem(ctx)
 
-proc encrypt*[T](ctx: var ECB[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc encrypt*[T](ctx: var ECB[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``ECB[T]`` context ``ctx``.
   ##
@@ -147,8 +147,8 @@ proc encrypt*[T](ctx: var ECB[T], input: openarray[byte],
                        output.toOpenArray(offset, offset + ctx.sizeBlock() - 1))
     offset = offset + ctx.sizeBlock()
 
-proc encrypt*[T](ctx: var ECB[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc encrypt*[T](ctx: var ECB[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``ECB[T]`` context ``ctx``.
   ##
@@ -161,8 +161,8 @@ proc encrypt*[T](ctx: var ECB[T], input: openarray[char],
   encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
           output.toOpenArrayByte(0, len(output) - 1))
 
-proc decrypt*[T](ctx: var ECB[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc decrypt*[T](ctx: var ECB[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``ECB[T]`` context ``ctx``.
   ##
@@ -181,8 +181,8 @@ proc decrypt*[T](ctx: var ECB[T], input: openarray[byte],
                        output.toOpenArray(offset, offset + ctx.sizeBlock() - 1))
     offset = offset + ctx.sizeBlock()
 
-proc decrypt*[T](ctx: var ECB[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc decrypt*[T](ctx: var ECB[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``ECB[T]`` context ``ctx``.
   ##
@@ -243,7 +243,7 @@ template sizeKey*[T](ctx: CBC[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc init*[T](ctx: var CBC[T], key: openarray[byte], iv: openarray[byte]) =
+proc init*[T](ctx: var CBC[T], key: openArray[byte], iv: openArray[byte]) =
   ## Initialize ``CBC[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -261,7 +261,7 @@ proc init*[T](ctx: var CBC[T], key: openarray[byte], iv: openarray[byte]) =
   init(ctx.cipher, key)
   ctx.iv[0 ..< ctx.sizeBlock()] = iv.toOpenArray(0, ctx.sizeBlock() - 1)
 
-proc init*[T](ctx: var CBC[T], key: openarray[char], iv: openarray[char]) =
+proc init*[T](ctx: var CBC[T], key: openArray[char], iv: openArray[char]) =
   ## Initialize ``CBC[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -294,8 +294,8 @@ proc clear*[T](ctx: var CBC[T]) {.inline.} =
   ## Clear ``CBC[T]`` context ``ctx``.
   burnMem(ctx)
 
-proc encrypt*[T](ctx: var CBC[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc encrypt*[T](ctx: var CBC[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``CBC[T]`` context ``ctx``.
   ##
@@ -335,8 +335,8 @@ proc encrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc encrypt*[T](ctx: var CBC[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc encrypt*[T](ctx: var CBC[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``CBC[T]`` context ``ctx``.
   ##
@@ -349,8 +349,8 @@ proc encrypt*[T](ctx: var CBC[T], input: openarray[char],
   encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
                output.toOpenArrayByte(0, len(output) - 1))
 
-proc decrypt*[T](ctx: var CBC[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc decrypt*[T](ctx: var CBC[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``CBC[T]`` context ``ctx``.
   ##
@@ -390,8 +390,8 @@ proc decrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc decrypt*[T](ctx: var CBC[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc decrypt*[T](ctx: var CBC[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``CBC[T]`` context ``ctx``.
   ##
@@ -418,7 +418,7 @@ template sizeKey*[T](ctx: CTR[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc inc128(counter: var openarray[byte]) =
+proc inc128(counter: var openArray[byte]) =
   var n = 16'u32
   var c = 1'u32
   while true:
@@ -429,7 +429,7 @@ proc inc128(counter: var openarray[byte]) =
     if n == 0:
       break
 
-proc inc256(counter: var openarray[byte]) =
+proc inc256(counter: var openArray[byte]) =
   var n = 32'u32
   var c = 1'u32
   while true:
@@ -440,7 +440,7 @@ proc inc256(counter: var openarray[byte]) =
     if n == 0:
       break
 
-proc init*[T](ctx: var CTR[T], key: openarray[byte], iv: openarray[byte]) =
+proc init*[T](ctx: var CTR[T], key: openArray[byte], iv: openArray[byte]) =
   ## Initialize ``CTR[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -473,8 +473,8 @@ proc init*[T](ctx: var CTR[T], key: ptr byte, iv: ptr byte) =
   init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
             toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
 
-proc init*[T](ctx: var CTR[T], key: openarray[char],
-              iv: openarray[char]) {.inline.} =
+proc init*[T](ctx: var CTR[T], key: openArray[char],
+              iv: openArray[char]) {.inline.} =
   ## Initialize ``CTR[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -492,8 +492,8 @@ proc clear*[T](ctx: var CTR[T]) {.inline.} =
   ## Clear ``CTR[T]`` context ``ctx``.
   burnMem(ctx)
 
-proc encrypt*[T](ctx: var CTR[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc encrypt*[T](ctx: var CTR[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Perform ``CTR[T]`` encryption of plain data array ``input`` and store
   ## encrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
   ##
@@ -517,8 +517,8 @@ proc encrypt*[T](ctx: var CTR[T], input: openarray[byte],
     n = (n + 1) mod ctx.sizeBlock()
   ctx.num = n
 
-proc encrypt*[T](ctx: var CTR[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc encrypt*[T](ctx: var CTR[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Perform ``CTR[T]`` encryption of plain data array ``input`` and store
   ## encrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
   ##
@@ -540,8 +540,8 @@ proc encrypt*[T](ctx: var CTR[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc decrypt*[T](ctx: var CTR[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc decrypt*[T](ctx: var CTR[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Perform ``CTR[T]`` decryption of encrypted data array ``input`` and
   ## store decrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
   ##
@@ -562,8 +562,8 @@ proc decrypt*[T](ctx: var CTR[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc decrypt*[T](ctx: var CTR[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc decrypt*[T](ctx: var CTR[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Perform ``CTR[T]`` decryption of encrypted data array ``input`` and
   ## store decrypted data to array ``output`` using ``CTR[T]`` context ``ctx``.
   ##
@@ -586,7 +586,7 @@ template sizeKey*[T](ctx: OFB[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc init*[T](ctx: var OFB[T], key: openarray[byte], iv: openarray[byte]) =
+proc init*[T](ctx: var OFB[T], key: openArray[byte], iv: openArray[byte]) =
   ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -619,7 +619,7 @@ proc init*[T](ctx: var OFB[T], key: ptr byte, iv: ptr byte) =
   init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
             toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
 
-proc init*[T](ctx: var OFB[T], key: openarray[char], iv: openarray[char]) =
+proc init*[T](ctx: var OFB[T], key: openArray[char], iv: openArray[char]) =
   ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -637,8 +637,8 @@ proc clear*[T](ctx: var OFB[T]) {.inline.} =
   ## Clear ``OFB[T]`` context ``ctx``.
   burnMem(ctx)
 
-proc encrypt*[T](ctx: var OFB[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc encrypt*[T](ctx: var OFB[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
@@ -668,8 +668,8 @@ proc encrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc encrypt*[T](ctx: var OFB[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc encrypt*[T](ctx: var OFB[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
@@ -678,8 +678,8 @@ proc encrypt*[T](ctx: var OFB[T], input: openarray[char],
   encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
                output.toOpenArrayByte(0, len(output) - 1))
 
-proc decrypt*[T](ctx: var OFB[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc decrypt*[T](ctx: var OFB[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
@@ -700,8 +700,8 @@ proc decrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc decrypt*[T](ctx: var OFB[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc decrypt*[T](ctx: var OFB[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``OFB[T]`` context ``ctx``.
   ##
@@ -724,7 +724,7 @@ template sizeKey*[T](ctx: CFB[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc init*[T](ctx: var CFB[T], key: openarray[byte], iv: openarray[byte]) =
+proc init*[T](ctx: var CFB[T], key: openArray[byte], iv: openArray[byte]) =
   ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -757,7 +757,7 @@ proc init*[T](ctx: var CFB[T], key: ptr byte, iv: ptr byte) =
   init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
             toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
 
-proc init*[T](ctx: var CFB[T], key: openarray[char], iv: openarray[char]) =
+proc init*[T](ctx: var CFB[T], key: openArray[char], iv: openArray[char]) =
   ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
   ## ``iv``.
   ##
@@ -775,8 +775,8 @@ proc clear*[T](ctx: var CFB[T]) {.inline.} =
   ## Clear ``CFB[T]`` context ``ctx``.
   burnMem(ctx)
 
-proc encrypt*[T](ctx: var CFB[T], input: openarray[byte],
-                 output: var openarray[byte]) {.inline.} =
+proc encrypt*[T](ctx: var CFB[T], input: openArray[byte],
+                 output: var openArray[byte]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``CFB[T]`` context ``ctx``.
   ##
@@ -807,8 +807,8 @@ proc encrypt*[T](ctx: var CFB[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc encrypt*[T](ctx: var CFB[T], input: openarray[char],
-                 output: var openarray[char]) {.inline.} =
+proc encrypt*[T](ctx: var CFB[T], input: openArray[char],
+                 output: var openArray[char]) {.inline.} =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``CFB[T]`` context ``ctx``.
   ##
@@ -817,8 +817,8 @@ proc encrypt*[T](ctx: var CFB[T], input: openarray[char],
   encrypt(ctx, input.toOpenArrayByte(0, len(input) - 1),
                output.toOpenArrayByte(0, len(output) - 1))
 
-proc decrypt*[T](ctx: var CFB[T], input: openarray[byte],
-                 output: var openarray[byte]) =
+proc decrypt*[T](ctx: var CFB[T], input: openArray[byte],
+                 output: var openArray[byte]) =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``CFB[T]`` context ``ctx``.
   ##
@@ -850,8 +850,8 @@ proc decrypt*[T](ctx: var CFB[T], inp: ptr byte, oup: ptr byte,
                toOpenArray(op[], 0, int(length - 1)))
   result = length
 
-proc decrypt*[T](ctx: var CFB[T], input: openarray[char],
-                 output: var openarray[char]) =
+proc decrypt*[T](ctx: var CFB[T], input: openArray[char],
+                 output: var openArray[char]) =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``CFB[T]`` context ``ctx``.
   ##
@@ -898,8 +898,8 @@ proc rev64(x: uint64): uint64 =
   RMS(xx, 0x0000FFFF0000FFFF'u64, 16)
   result = (xx shl 32) or (xx shr 32)
 
-proc ghash(y: var openarray[byte], h: openarray[byte],
-           data: openarray[byte]) =
+proc ghash(y: var openArray[byte], h: openArray[byte],
+           data: openArray[byte]) =
   var  y0, y1, h0, h1, h2, h0r, h1r, h2r: uint64
 
   y1 = beLoad64(y, 0)
@@ -979,8 +979,8 @@ template sizeKey*[T](ctx: GCM[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
-proc init*[T](ctx: var GCM[T], key: openarray[byte], iv: openarray[byte],
-              aad: openarray[byte]) =
+proc init*[T](ctx: var GCM[T], key: openArray[byte], iv: openArray[byte],
+              aad: openArray[byte]) =
   ## Initialize ``GCM[T]`` with encryption key ``key``, initial vector (IV)
   ## ``iv`` and additional authentication data (AAD) ``aad``.
   ##
@@ -1009,8 +1009,8 @@ proc init*[T](ctx: var GCM[T], key: openarray[byte], iv: openarray[byte],
   if len(aad) > 0:
     ghash(ctx.buf, ctx.h, aad)
 
-proc encrypt*[T](ctx: var GCM[T], input: openarray[byte],
-                 output: var openarray[byte]) =
+proc encrypt*[T](ctx: var GCM[T], input: openArray[byte],
+                 output: var openArray[byte]) =
   ## Encrypt array of data ``input`` and store encrypted data to array
   ## ``output`` using ``GCM[T]`` context ``ctx``.
   ##
@@ -1033,8 +1033,8 @@ proc encrypt*[T](ctx: var GCM[T], input: openarray[byte],
     length -= uselen
     offset += uselen
 
-proc decrypt*[T](ctx: var GCM[T], input: openarray[byte],
-                 output: var openarray[byte]) =
+proc decrypt*[T](ctx: var GCM[T], input: openArray[byte],
+                 output: var openArray[byte]) =
   ## Decrypt array of data ``input`` and store decrypted data to array
   ## ``output`` using ``GCM[T]`` context ``ctx``.
   ##
@@ -1057,7 +1057,7 @@ proc decrypt*[T](ctx: var GCM[T], input: openarray[byte],
     length -= uselen
     offset += uselen
 
-proc getTag*[T](ctx: var GCM[T], tag: var openarray[byte]) =
+proc getTag*[T](ctx: var GCM[T], tag: var openArray[byte]) =
   ## Obtain authentication tag from ``GCM[T]`` context ``ctx`` and store it to
   ## ``tag``.
   ##

@@ -572,7 +572,7 @@ suite "KECCAK/SHA3 Tests":
           dcheck256 == stripSpaces(sdigest256[i])
           dcheck384 == stripSpaces(sdigest384[i])
           dcheck512 == stripSpaces(sdigest512[i])
-      # openarray[T] test
+      # openArray[T] test
       check:
         $sha3_224.digest(msg) == stripSpaces(sdigest224[i])
         $sha3_256.digest(msg) == stripSpaces(sdigest256[i])

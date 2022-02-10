@@ -52,7 +52,7 @@ when defined(posix):
 when defined(openbsd):
   import posix, os
 
-  proc getentropy(pBytes: pointer, nBytes: int): cint
+  proc getentropy(pbytes: pointer, nbytes: int): cint
        {.importc: "getentropy", header: "<unistd.h>".}
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
@@ -109,7 +109,7 @@ elif defined(linux):
 
   var gSystemRng {.threadvar.}: SystemRng ## System thread global RNG
 
-  proc newSystemRNG(): SystemRng =
+  proc newSystemRng(): SystemRng =
     result = SystemRng()
 
     if SYS_getrandom != 0:
@@ -131,7 +131,7 @@ elif defined(linux):
     if srng.getRandomPresent:
       while result < nbytes:
         p = cast[pointer](cast[uint](pbytes) + uint(result))
-        let res = syscall(SYS_getrandom, pBytes, nBytes - result, 0)
+        let res = syscall(SYS_getrandom, pbytes, nbytes - result, 0)
         if res > 0:
           result += res
         elif res == 0:
@@ -233,7 +233,7 @@ elif defined(windows):
     mask = verSetConditionMask(mask, VER_SERVICEPACKMINOR, VER_GREATER_EQUAL)
     return (verifyVersionInfo(addr ov, typeMask, mask) == 1)
 
-  proc newSystemRNG(): SystemRng =
+  proc newSystemRng(): SystemRng =
     result = SystemRng()
     if isEqualOrHigher(6, 0, 0):
       if isEqualOrHigher(6, 0, 1):
@@ -267,7 +267,7 @@ elif defined(windows):
         result = nbytes
 
     if result == -1:
-      if rtlGenRandom(pBytes, nbytes.ULONG) != 0:
+      if rtlGenRandom(pbytes, nbytes.ULONG) != 0:
         result = nbytes
 
   proc randomClose*() =
@@ -281,7 +281,7 @@ else:
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
     result = urandomRead(pbytes, nbytes)
 
-proc randomBytes*[T](bytes: var openarray[T]): int =
+proc randomBytes*[T](bytes: var openArray[T]): int =
   let length = len(bytes) * sizeof(T)
   if length > 0:
     result = randomBytes(addr bytes[0], length)

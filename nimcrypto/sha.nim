@@ -78,7 +78,7 @@ proc init*(ctx: var Sha1Context) {.inline.} =
   ctx.h[4] = 0xC3D2E1F0'u32
 
 proc sha1Transform[T: bchar](ctx: var Sha1Context,
-                             blk: openarray[T],
+                             blk: openArray[T],
                              offset: int) {.noinit, inline.} =
   var
     A, B, C, D, E: uint32
@@ -195,7 +195,7 @@ proc clear*(ctx: var Sha1Context) {.inline.} =
 proc reset*(ctx: var Sha1Context) {.inline.} =
   init(ctx)
 
-proc update*[T: bchar](ctx: var Sha1Context, data: openarray[T]) {.inline.} =
+proc update*[T: bchar](ctx: var Sha1Context, data: openArray[T]) {.inline.} =
   var length = len(data)
   if length > 0:
     var lenw = int(ctx.size and 63'u64) # ctx.size mod 64
@@ -226,7 +226,7 @@ proc update*(ctx: var Sha1Context, pbytes: ptr byte,
   ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
 
 proc finish*(ctx: var Sha1Context,
-             data: var openarray[byte]): uint {.inline, discardable.} =
+             data: var openArray[byte]): uint {.inline, discardable.} =
   let
     one80 = [0x80'u8]
     one00 = [0x00'u8]

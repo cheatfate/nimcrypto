@@ -233,7 +233,7 @@ template ROUND512(a, b, c, d, e, f, g, h, z) =
   d = d + t0
   h = t0 + t1
 
-proc sha256Transform(state: var array[8, uint32], data: openarray[byte]) =
+proc sha256Transform(state: var array[8, uint32], data: openArray[byte]) =
   var
     t0, t1: uint32
     W {.noinit.}: array[64, uint32]
@@ -336,7 +336,7 @@ proc sha256Transform(state: var array[8, uint32], data: openarray[byte]) =
   state[6] = state[6] + s6
   state[7] = state[7] + s7
 
-proc sha512Transform(state: var array[8, uint64], data: openarray[byte]) =
+proc sha512Transform(state: var array[8, uint64], data: openArray[byte]) =
   var
     t0, t1: uint64
     W {.noinit.}: array[80, uint64]
@@ -456,7 +456,7 @@ proc sha512Transform(state: var array[8, uint64], data: openarray[byte]) =
   state[6] = state[6] + s6
   state[7] = state[7] + s7
 
-proc update*[T: bchar](ctx: var Sha2Context, data: openarray[T]) {.inline.} =
+proc update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.inline.} =
   var pos = 0
   var length = len(data)
 
@@ -522,7 +522,7 @@ proc finalize512(ctx: var Sha2Context) {.inline.} =
   sha512Transform(ctx.state, ctx.buffer)
 
 proc finish*(ctx: var Sha2Context,
-             data: var openarray[byte]): uint {.inline, discardable.} =
+             data: var openArray[byte]): uint {.inline, discardable.} =
   result = 0'u
   when ctx.bits == 224 and ctx.bsize == 64:
     if len(data) >= 28:

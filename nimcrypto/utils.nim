@@ -57,7 +57,7 @@ proc hexDigit(x: int, lowercase: bool = false): char =
     off += 0x20
   char(0x30'u32 + uint32(x) + (off and not((uint32(x) - 10) shr 8)))
 
-proc bytesToHex*(src: openarray[byte], dst: var openarray[char],
+proc bytesToHex*(src: openArray[byte], dst: var openArray[char],
                  flags: set[HexFlags]): int =
   if len(dst) == 0:
     (len(src) shl 1)
@@ -89,7 +89,7 @@ proc bytesToHex*(src: openarray[byte], dst: var openarray[char],
 
     k
 
-proc hexToBytes*(src: openarray[char], dst: var openarray[byte],
+proc hexToBytes*(src: openArray[char], dst: var openArray[byte],
                  flags: set[HexFlags]): int =
   var halfbyte = false
   var acc: byte
@@ -142,12 +142,12 @@ proc hexToBytes*(src: openarray[char], dst: var openarray[byte],
       return v
   return v
 
-proc toHex*(a: openarray[byte], flags: set[HexFlags]): string =
+proc toHex*(a: openArray[byte], flags: set[HexFlags]): string =
   var res = newString(len(a) shl 1)
   discard bytesToHex(a, res, flags)
   res
 
-proc toHex*(a: openarray[byte], lowercase: bool = false): string {.inline.} =
+proc toHex*(a: openArray[byte], lowercase: bool = false): string {.inline.} =
   var res = newString(len(a) shl 1)
   if lowercase:
     discard bytesToHex(a, res, {HexFlags.LowerCase})
@@ -155,7 +155,7 @@ proc toHex*(a: openarray[byte], lowercase: bool = false): string {.inline.} =
     discard bytesToHex(a, res, {})
   res
 
-proc hexToBytes*(a: string, output: var openarray[byte]) {.inline.} =
+proc hexToBytes*(a: string, output: var openArray[byte]) {.inline.} =
   discard hexToBytes(a, output, {HexFlags.SkipPrefix, HexFlags.PadOdd})
 
 proc fromHex*(a: string): seq[byte] =
@@ -181,7 +181,7 @@ proc burnMem*(p: pointer, size: Natural) =
       sp = cast[ptr byte](cast[uint](sp) + 1)
       dec(c)
 
-proc burnArray*[T](a: var openarray[T]) {.inline.} =
+proc burnArray*[T](a: var openArray[T]) {.inline.} =
   if len(a) > 0:
     burnMem(addr a[0], len(a) * sizeof(T))
 
@@ -207,7 +207,7 @@ proc isFullZero*(p: pointer, size: Natural): bool =
       dec(c)
   result = (counter == 0)
 
-proc isFullZero*[T](a: openarray[T]): bool {.inline.} =
+proc isFullZero*[T](a: openArray[T]): bool {.inline.} =
   result = true
   if len(a) > 0:
     result = isFullZero(unsafeAddr a[0], len(a) * sizeof(T))
@@ -327,7 +327,7 @@ template beSwap64*(a: uint64): uint64 =
   else:
     (a)
 
-template beLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
+template beLoad32*[T: byte|char](src: openArray[T], srco: int): uint32 =
   when nimvm:
     (uint32(src[srco + 0]) shl 24) or (uint32(src[srco + 1]) shl 16) or
       (uint32(src[srco + 2]) shl 8) or uint32(src[srco + 3])
@@ -335,7 +335,7 @@ template beLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
     let p = cast[ptr uint32](unsafeAddr src[srco])[]
     leSwap32(p)
 
-template leLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
+template leLoad32*[T: byte|char](src: openArray[T], srco: int): uint32 =
   when nimvm:
     (uint32(src[srco + 3]) shl 24) or (uint32(src[srco + 2]) shl 16) or
       (uint32(src[srco + 1]) shl 8) or uint32(src[srco + 0])
@@ -343,7 +343,7 @@ template leLoad32*[T: byte|char](src: openarray[T], srco: int): uint32 =
     let p = cast[ptr uint32](unsafeAddr src[srco])[]
     beSwap32(p)
 
-template beLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
+template beLoad64*[T: byte|char](src: openArray[T], srco: int): uint64 =
   when nimvm:
     (uint64(src[srco + 0]) shl 56) or (uint64(src[srco + 1]) shl 48) or
       (uint64(src[srco + 2]) shl 40) or (uint64(src[srco + 3]) shl 32) or
@@ -353,7 +353,7 @@ template beLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
     let p = cast[ptr uint64](unsafeAddr src[srco])[]
     leSwap64(p)
 
-template leLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
+template leLoad64*[T: byte|char](src: openArray[T], srco: int): uint64 =
   when nimvm:
     (uint64(src[srco + 7]) shl 56) or (uint64(src[srco + 6]) shl 48) or
       (uint64(src[srco + 5]) shl 40) or (uint64(src[srco + 4]) shl 32) or
@@ -363,7 +363,7 @@ template leLoad64*[T: byte|char](src: openarray[T], srco: int): uint64 =
     let p = cast[ptr uint64](unsafeAddr src[srco])[]
     beSwap64(p)
 
-template beStore32*(dst: var openarray[byte], so: int, v: uint32) =
+template beStore32*(dst: var openArray[byte], so: int, v: uint32) =
   when nimvm:
     dst[so + 0] = byte((v shr 24) and 0xFF'u32)
     dst[so + 1] = byte((v shr 16) and 0xFF'u32)
@@ -372,7 +372,7 @@ template beStore32*(dst: var openarray[byte], so: int, v: uint32) =
   else:
     cast[ptr uint32](addr dst[so])[] = leSwap32(v)
 
-template beStore64*(dst: var openarray[byte], so: int, v: uint64) =
+template beStore64*(dst: var openArray[byte], so: int, v: uint64) =
   when nimvm:
     dst[so + 0] = byte((v shr 56) and 0xFF'u64)
     dst[so + 1] = byte((v shr 48) and 0xFF'u64)
@@ -385,7 +385,7 @@ template beStore64*(dst: var openarray[byte], so: int, v: uint64) =
   else:
     cast[ptr uint64](addr dst[so])[] = leSwap64(v)
 
-template leStore32*(dst: var openarray[byte], so: int, v: uint32) =
+template leStore32*(dst: var openArray[byte], so: int, v: uint32) =
   when nimvm:
     dst[so + 0] = byte(v and 0xFF'u32)
     dst[so + 1] = byte((v shr 8) and 0xFF'u32)
@@ -394,7 +394,7 @@ template leStore32*(dst: var openarray[byte], so: int, v: uint32) =
   else:
     cast[ptr uint32](addr dst[so])[] = beSwap32(v)
 
-template leStore64*(dst: var openarray[byte], so: int, v: uint64) =
+template leStore64*(dst: var openArray[byte], so: int, v: uint64) =
   when nimvm:
     dst[so + 0] = byte(v and 0xFF'u64)
     dst[so + 1] = byte((v shr 8) and 0xFF'u64)
@@ -407,8 +407,8 @@ template leStore64*(dst: var openarray[byte], so: int, v: uint64) =
   else:
     cast[ptr uint64](addr dst[so])[] = beSwap64(v)
 
-template copyMem*[A, B](dst: var openarray[A], dsto: int,
-                        src: openarray[B], srco: int,
+template copyMem*[A, B](dst: var openArray[A], dsto: int,
+                        src: openArray[B], srco: int,
                         length: int) =
   when nimvm:
     for i in 0 ..< length:

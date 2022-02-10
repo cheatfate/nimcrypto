@@ -98,10 +98,10 @@ template sizeDigest*[T](h: HMAC[T]): uint =
   ## Size of HMAC digest in octets (bytes).
   uint(h.mdctx.sizeDigest)
 
-proc init*[T, M](hmctx: var HMAC[T], key: openarray[M]) =
+proc init*[T, M](hmctx: var HMAC[T], key: openArray[M]) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` array.
   ##
-  ## ``key`` supports ``openarray[byte]`` and ``openarray[char]`` only.
+  ## ``key`` supports ``openArray[byte]`` and ``openArray[char]`` only.
   mixin init, update, finish
 
   when not((M is byte) or (M is char)):
@@ -155,7 +155,7 @@ proc reset*(hmctx: var HMAC) =
   update(hmctx.mdctx, hmctx.ipad)
   update(hmctx.opadctx, hmctx.opad)
 
-proc update*[T: bchar](hmctx: var HMAC, data: openarray[T]) {.inline.} =
+proc update*[T: bchar](hmctx: var HMAC, data: openArray[T]) {.inline.} =
   ## Update HMAC context ``hmctx`` with data array ``data``. Repeated calls are
   ## equivalent to a single call with the concatenation of all ``data``
   ## arguments.
@@ -195,7 +195,7 @@ proc update*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint) {.inline.} =
   hmctx.update(ptrarr[].toOpenArray(0, int(nbytes) - 1))
 
 proc finish*[T: bchar](hmctx: var HMAC,
-                       data: var openarray[T]): uint {.inline.} =
+                       data: var openArray[T]): uint {.inline.} =
   ## Finalize HMAC context ``hmctx`` and store calculated digest to array
   ## ``data``. ``data`` length must be at least ``hmctx.sizeDigest`` octets
   ## (bytes).
@@ -218,8 +218,8 @@ proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   ## ``MDigest`` object.
   discard finish(hmctx, result.data)
 
-proc hmac*[A: bchar, B: bchar](HashType: typedesc, key: openarray[A],
-                               data: openarray[B]): MDigest[HashType.bits] =
+proc hmac*[A: bchar, B: bchar](HashType: typedesc, key: openArray[A],
+                               data: openArray[B]): MDigest[HashType.bits] =
   ## Perform HMAC computation with hash algorithm ``HashType`` using key ``key``
   ## of data ``data``.
   ##

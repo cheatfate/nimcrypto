@@ -60,27 +60,27 @@ type
 # then 256 registers and so it is not enough for it to perform round in
 # template.
 when nimvm:
-  proc THETA1(a: var openarray[uint64], b: openarray[uint64],
+  proc THETA1(a: var openArray[uint64], b: openArray[uint64],
               c: int) {.inline.} =
     a[c] = b[c] xor b[c + 5] xor b[c + 10] xor b[c + 15] xor b[c + 20]
 
-  proc THETA2(a: var uint64, b: openarray[uint64], c: int) {.inline.} =
+  proc THETA2(a: var uint64, b: openArray[uint64], c: int) {.inline.} =
     a = b[(c + 4) mod 5] xor ROL(uint64(b[(c + 1) mod 5]), 1)
 
-  proc THETA3(a: var openarray[uint64], b: int, c: uint64) {.inline.} =
+  proc THETA3(a: var openArray[uint64], b: int, c: uint64) {.inline.} =
     a[b] = a[b] xor c
     a[b + 5] = a[b + 5] xor c
     a[b + 10] = a[b + 10] xor c
     a[b + 15] = a[b + 15] xor c
     a[b + 20] = a[b + 20] xor c
 
-  proc RHOPI(a: var openarray[uint64], b: var openarray[uint64], c: var uint64,
+  proc RHOPI(a: var openArray[uint64], b: var openArray[uint64], c: var uint64,
              d, e: int) {.inline.} =
     a[0] = b[d]
     b[d] = ROL(c, e)
     c = uint64(a[0])
 
-  proc CHI(a: var openarray[uint64], b: var openarray[uint64],
+  proc CHI(a: var openArray[uint64], b: var openArray[uint64],
            c: int) {.inline.} =
     a[0] = b[c]
     a[1] = b[c + 1]
@@ -94,7 +94,7 @@ when nimvm:
     b[c + 4] = b[c + 4] xor (not(a[0]) and a[1])
 
 
-  proc KECCAKROUNDP(a: var openarray[uint64], b: var openarray[uint64],
+  proc KECCAKROUNDP(a: var openArray[uint64], b: var openArray[uint64],
                     c: var uint64, r: int) {.inline.} =
     THETA1(b, a, 0)
     THETA1(b, a, 1)
@@ -364,7 +364,7 @@ proc reset*(ctx: var KeccakContext) {.inline.} =
   init(ctx)
 
 proc update*[T: bchar](ctx: var KeccakContext,
-                       data: openarray[T]) {.inline.} =
+                       data: openArray[T]) {.inline.} =
   var j = ctx.pt
   if len(data) > 0:
     for i in 0 ..< len(data):
@@ -392,7 +392,7 @@ proc xof*(ctx: var KeccakContext) {.inline.} =
   ctx.pt = 0
 
 proc output*(ctx: var KeccakContext,
-             data: var openarray[byte]): uint {.inline.} =
+             data: var openArray[byte]): uint {.inline.} =
   when ctx.kind != Shake:
     {.error: "Only `Shake128` and `Shake256` types are supported".}
   var j = ctx.pt
@@ -412,7 +412,7 @@ proc output*(ctx: var KeccakContext, pbytes: ptr byte,
   result = ctx.output(ptrarr[].toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var KeccakContext,
-             data: var openarray[byte]): uint {.inline, discardable.} =
+             data: var openArray[byte]): uint {.inline, discardable.} =
   when ctx.kind == Sha3:
     ctx.q[ctx.pt] = ctx.q[ctx.pt] xor 0x06'u8
   else:

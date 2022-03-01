@@ -17,7 +17,7 @@ suite "RipeMD Tests":
        1234567890123456789012345678901234567890"""
   ]
 
-  const RipeMD128C = [
+  const Ripemd128C = [
     "CDF26213A150DC3ECB610F18F6B38B46", "86BE7AFA339D0FC7CFC785E72F578D33",
     "C14A12199C66E4BA84636B0F69144C77", "9E327B3D6E523062AFC1132D7DF9D1B8",
     "FD2AA607F71DC8F510714922B371834E", "A1AA0689D0FAFA2DDC22E88B49133A06",
@@ -126,11 +126,11 @@ suite "RipeMD Tests":
       octx256.update(a)
       octx320.update(a)
       check:
-        $ctx128.finish() == stripSpaces(RipeMD128C[i])
+        $ctx128.finish() == stripSpaces(Ripemd128C[i])
         $ctx160.finish() == stripSpaces(RipeMD160C[i])
         $ctx256.finish() == stripSpaces(RipeMD256C[i])
         $ctx320.finish() == stripSpaces(RipeMD320C[i])
-        $octx128.finish() == stripSpaces(RipeMD128C[i])
+        $octx128.finish() == stripSpaces(Ripemd128C[i])
         $octx160.finish() == stripSpaces(RipeMD160C[i])
         $octx256.finish() == stripSpaces(RipeMD256C[i])
         $octx320.finish() == stripSpaces(RipeMD320C[i])
@@ -157,7 +157,7 @@ suite "RipeMD Tests":
         var dcheck256 = $ripemd256.digest(nil, 0'u)
         var dcheck320 = $ripemd320.digest(nil, 0'u)
         check:
-          $dcheck128 == stripSpaces(RipeMD128C[i])
+          $dcheck128 == stripSpaces(Ripemd128C[i])
           $dcheck160 == stripSpaces(RipeMD160C[i])
           $dcheck256 == stripSpaces(RipeMD256C[i])
           $dcheck320 == stripSpaces(RipeMD320C[i])
@@ -171,11 +171,11 @@ suite "RipeMD Tests":
         var dcheck320 = $ripemd320.digest(cast [ptr uint8](addr a[0]),
                                           uint(len(a)))
         check:
-          $dcheck128 == stripSpaces(RipeMD128C[i])
+          $dcheck128 == stripSpaces(Ripemd128C[i])
           $dcheck160 == stripSpaces(RipeMD160C[i])
           $dcheck256 == stripSpaces(RipeMD256C[i])
           $dcheck320 == stripSpaces(RipeMD320C[i])
-          $ripemd128.digest(a) == stripSpaces(RipeMD128C[i])
+          $ripemd128.digest(a) == stripSpaces(Ripemd128C[i])
           $ripemd160.digest(a) == stripSpaces(RipeMD160C[i])
           $ripemd256.digest(a) == stripSpaces(RipeMD256C[i])
           $ripemd320.digest(a) == stripSpaces(RipeMD320C[i])
@@ -185,7 +185,7 @@ suite "RipeMD Tests":
   test "RIPEMD 128/160/256/320 empty update test":
     var msg = cast[seq[byte]](vectors[2])
     var emsg: seq[byte]
-    var edigest128 = fromHex(stripSpaces(RipeMD128C[2]))
+    var edigest128 = fromHex(stripSpaces(Ripemd128C[2]))
     var edigest160 = fromHex(stripSpaces(RipeMD160C[2]))
     var edigest256 = fromHex(stripSpaces(RipeMD256C[2]))
     var edigest320 = fromHex(stripSpaces(RipeMD320C[2]))
@@ -262,14 +262,14 @@ suite "RipeMD Tests":
       check3208 = $ripemd320.digest(stripSpaces(vectors[7]))
 
     check:
-      check1281 == RipeMD128C[0]
-      check1282 == RipeMD128C[1]
-      check1283 == RipeMD128C[2]
-      check1284 == RipeMD128C[3]
-      check1285 == RipeMD128C[4]
-      check1286 == RipeMD128C[5]
-      check1287 == RipeMD128C[6]
-      check1288 == RipeMD128C[7]
+      check1281 == Ripemd128C[0]
+      check1282 == Ripemd128C[1]
+      check1283 == Ripemd128C[2]
+      check1284 == Ripemd128C[3]
+      check1285 == Ripemd128C[4]
+      check1286 == Ripemd128C[5]
+      check1287 == Ripemd128C[6]
+      check1288 == Ripemd128C[7]
 
       check2561 == RipeMD256C[0]
       check2562 == RipeMD256C[1]
@@ -318,11 +318,11 @@ suite "RipeMD Tests":
       octx256.update(am)
       octx320.update(am)
     check:
-      $ctx128.finish() == stripSpaces(RipeMD128C[8])
+      $ctx128.finish() == stripSpaces(Ripemd128C[8])
       $ctx160.finish() == stripSpaces(RipeMD160C[8])
       $ctx256.finish() == stripSpaces(RipeMD256C[8])
       $ctx320.finish() == stripSpaces(RipeMD320C[8])
-      $octx128.finish() == stripSpaces(RipeMD128C[8])
+      $octx128.finish() == stripSpaces(Ripemd128C[8])
       $octx160.finish() == stripSpaces(RipeMD160C[8])
       $octx256.finish() == stripSpaces(RipeMD256C[8])
       $octx320.finish() == stripSpaces(RipeMD320C[8])

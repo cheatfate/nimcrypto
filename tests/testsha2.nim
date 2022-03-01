@@ -86,8 +86,8 @@ suite "SHA2 Tests":
   var ctx256: sha256
   var ctx384: sha384
   var ctx512: sha512
-  var ctx512_224: sha512_224
-  var ctx512_256: sha512_256
+  var ctx512224: sha512_224
+  var ctx512256: sha512_256
   var i = 0
 
   test "SHA2 224/256/384/512/512_224/512-256 block sizes":
@@ -102,8 +102,8 @@ suite "SHA2 Tests":
       ctx256.sizeBlock == 64
       ctx384.sizeBlock == 128
       ctx512.sizeBlock == 128
-      ctx512_224.sizeBlock == 128
-      ctx512_256.sizeBlock == 128
+      ctx512224.sizeBlock == 128
+      ctx512256.sizeBlock == 128
 
   test "SHA2 224/256/384/512/224_512/256_512 digest sizes":
     check:
@@ -117,8 +117,8 @@ suite "SHA2 Tests":
       ctx256.sizeDigest == 32
       ctx384.sizeDigest == 48
       ctx512.sizeDigest == 64
-      ctx512_224.sizeDigest == 28
-      ctx512_256.sizeDigest == 32
+      ctx512224.sizeDigest == 28
+      ctx512256.sizeDigest == 32
 
   test "SHA2-224 compile-time test vectors":
     const
@@ -354,23 +354,23 @@ suite "SHA2 Tests":
     while i < len(code512_224):
       var plaintext = stripSpaces(code512_224[i])
       var digest = stripSpaces(digest512_224[i])
-      ctx512_224.init()
-      ctx512_224.update(cast[ptr uint8](addr plaintext[0]),
+      ctx512224.init()
+      ctx512224.update(cast[ptr uint8](addr plaintext[0]),
                         uint(len(plaintext)))
-      var check1 = $ctx512_224.finish()
+      var check1 = $ctx512224.finish()
       var check2 = $sha512_224.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_224.digest(plaintext)
-      ctx512_224.init()
-      ctx512_224.update(plaintext)
-      var check4 = $ctx512_224.finish()
-      ctx512_224.clear()
+      ctx512224.init()
+      ctx512224.update(plaintext)
+      var check4 = $ctx512224.finish()
+      ctx512224.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
-        ctx512_224.isFullZero() == true
+        ctx512224.isFullZero() == true
       inc(i)
 
   test "SHA2-512/224 empty update() test":
@@ -401,23 +401,23 @@ suite "SHA2 Tests":
     while i < len(code512_256):
       var plaintext = stripSpaces(code512_256[i])
       var digest = stripSpaces(digest512_256[i])
-      ctx512_256.init()
-      ctx512_256.update(cast[ptr uint8](addr plaintext[0]),
+      ctx512256.init()
+      ctx512256.update(cast[ptr uint8](addr plaintext[0]),
                         uint(len(plaintext)))
-      var check1 = $ctx512_256.finish()
+      var check1 = $ctx512256.finish()
       var check2 = $sha512_256.digest(cast[ptr uint8](addr plaintext[0]),
                                       uint(len(plaintext)))
       var check3 = $sha512_256.digest(plaintext)
-      ctx512_256.init()
-      ctx512_256.update(plaintext)
-      var check4 = $ctx512_256.finish()
-      ctx512_256.clear()
+      ctx512256.init()
+      ctx512256.update(plaintext)
+      var check4 = $ctx512256.finish()
+      ctx512256.clear()
       check:
         check1 == digest
         check2 == digest
         check3 == digest
         check4 == digest
-        ctx512_256.isFullZero() == true
+        ctx512256.isFullZero() == true
       inc(i)
 
   test "SHA2-512/256 empty update() test":

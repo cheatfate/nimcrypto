@@ -52,7 +52,7 @@ when defined(posix):
 when defined(openbsd):
   import posix, os
 
-  proc getentropy(pbytes: pointer, nbytes: int): cint
+  proc getentropy(pBytes: pointer, nBytes: int): cint
        {.importc: "getentropy", header: "<unistd.h>".}
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
@@ -109,7 +109,7 @@ elif defined(linux):
 
   var gSystemRng {.threadvar.}: SystemRng ## System thread global RNG
 
-  proc newSystemRng(): SystemRng =
+  proc newSystemRNG(): SystemRng =
     result = SystemRng()
 
     if SYS_getrandom != 0:
@@ -122,7 +122,7 @@ elif defined(linux):
           result.getRandomPresent = false
 
   proc getSystemRNG(): SystemRng =
-    if gSystemRng.isNil: gSystemRng = newSystemRng()
+    if gSystemRng.isNil: gSystemRng = newSystemRNG()
     result = gSystemRng
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
@@ -233,7 +233,7 @@ elif defined(windows):
     mask = verSetConditionMask(mask, VER_SERVICEPACKMINOR, VER_GREATER_EQUAL)
     return (verifyVersionInfo(addr ov, typeMask, mask) == 1)
 
-  proc newSystemRng(): SystemRng =
+  proc newSystemRNG(): SystemRng =
     result = SystemRng()
     if isEqualOrHigher(6, 0, 0):
       if isEqualOrHigher(6, 0, 1):
@@ -251,7 +251,7 @@ elif defined(windows):
       result.hIntel = hp
 
   proc getSystemRNG(): SystemRng =
-    if gSystemRng.isNil: gSystemRng = newSystemRng()
+    if gSystemRng.isNil: gSystemRng = newSystemRNG()
     result = gSystemRng
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =

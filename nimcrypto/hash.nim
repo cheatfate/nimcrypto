@@ -68,7 +68,7 @@ proc digest*(HashType: typedesc, data: ptr byte,
   ctx.clear()
 
 proc digest*[T: bchar](HashType: typedesc,
-                       data: openarray[T]): MDigest[HashType.bits] =
+                       data: openArray[T]): MDigest[HashType.bits] =
   ## Calculate and return digest using algorithm ``HashType`` of data ``data``
   ##
   ##  .. code-block::nim
@@ -92,7 +92,7 @@ proc digest*[T: bchar](HashType: typedesc,
   result = ctx.finish()
   ctx.clear()
 
-proc digest*[T](HashType: typedesc, data: openarray[T],
+proc digest*[T](HashType: typedesc, data: openArray[T],
                 ostart: int, ofinish = -1): MDigest[HashType.bits] {.
      deprecated: "Use digest(data.toOpenArray()) instead", inline.} =
   if ofinish < 0:

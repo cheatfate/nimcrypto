@@ -470,7 +470,7 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
            D7"""
       ]
 
-  proc compare(x: openarray[byte], y: openarray[byte]): bool =
+  proc compare(x: openArray[byte], y: openArray[byte]): bool =
     result = false
     if len(x) == len(y):
       result = equalMem(unsafeAddr x[0], unsafeAddr y[0], len(x))

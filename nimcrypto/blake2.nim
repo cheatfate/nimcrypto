@@ -285,7 +285,7 @@ template sizeBlock*(r: typedesc[blake2]): int =
   else:
     (128)
 
-proc init*[T: bchar](ctx: var Blake2Context, key: openarray[T]) {.inline.} =
+proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
   when ctx is Blake2sContext:
     when nimvm:
       for i in 0 ..< 64:
@@ -382,7 +382,7 @@ proc reset*(ctx: var Blake2Context) {.inline.} =
   ctx.t[1] = ctx.tb[1]
   ctx.c = ctx.cb
 
-proc update*[T: bchar](ctx: var Blake2Context, data: openarray[T]) {.inline.} =
+proc update*[T: bchar](ctx: var Blake2Context, data: openArray[T]) {.inline.} =
   var i = 0
   while i < len(data):
     if ctx.c == int(ctx.sizeBlock):
@@ -409,7 +409,7 @@ proc update*(ctx: var Blake2Context, pbytes: ptr byte,
   ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
 
 proc finish*(ctx: var Blake2sContext,
-             data: var openarray[byte]): uint {.inline, discardable.} =
+             data: var openArray[byte]): uint {.inline, discardable.} =
   ctx.t[0] = ctx.t[0] + uint32(ctx.c)
   if ctx.t[0] < uint32(ctx.c):
     ctx.t[1] = ctx.t[1] + 1
@@ -423,7 +423,7 @@ proc finish*(ctx: var Blake2sContext,
     data[i] = byte((ctx.h[i shr 2] shr (8 * (i and 3))) and 0xFF'u32)
 
 proc finish*(ctx: var Blake2bContext,
-             data: var openarray[byte]): uint {.inline, discardable.} =
+             data: var openArray[byte]): uint {.inline, discardable.} =
   ctx.t[0] = ctx.t[0] + uint64(ctx.c)
   if ctx.t[0] < uint64(ctx.c):
     ctx.t[1] = ctx.t[1] + 1'u64

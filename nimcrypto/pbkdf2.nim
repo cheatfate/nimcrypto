@@ -15,9 +15,9 @@
 import hmac, utils
 export hmac
 
-proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
-                      salt: openarray[N], c: int,
-                      output: var openarray[byte]): int =
+proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openArray[M],
+                      salt: openArray[N], c: int,
+                      output: var openArray[byte]): int =
   ## Calculate PBKDF2 result using HMAC algorithm `ctx`.
   ##
   ## ``ctx``      - HMAC[T] context
@@ -74,9 +74,9 @@ proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
   ctx.clear()
   int(glength)
 
-proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
-                      salt: openarray[N], c: int,
-                      output: var openarray[byte], outlen: int): int {.
+proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openArray[M],
+                      salt: openArray[N], c: int,
+                      output: var openArray[byte], outlen: int): int {.
      deprecated: "Use pbkdf2() with output.toOpenArray()", inline.} =
   ## Calculate PBKDF2 result using HMAC algorithm `ctx`.
   ##
@@ -93,8 +93,8 @@ proc pbkdf2*[T, M, N](ctx: var HMAC[T], password: openarray[M],
   else:
     pbkdf2(ctx, password, salt, c, output.toOpenArray(0, outlen))
 
-proc pbkdf2*[T, M](hashtype: typedesc, password: openarray[T],
-                   salt: openarray[M], c: int,
+proc pbkdf2*[T, M](hashtype: typedesc, password: openArray[T],
+                   salt: openArray[M], c: int,
                    outlen: int): seq[byte] {.inline.} =
   ## Calculate PBKDF2 result using HMAC[``hashtype``] algorithm.
   ##

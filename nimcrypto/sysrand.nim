@@ -281,7 +281,7 @@ else:
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
     result = urandomRead(pbytes, nbytes)
 
-proc randomBytes*[T](bytes: var openarray[T]): int =
+proc randomBytes*[T](bytes: var openArray[T]): int =
   let length = len(bytes) * sizeof(T)
   if length > 0:
     result = randomBytes(addr bytes[0], length)

@@ -126,5 +126,8 @@ jobs:
         shell: bash
         working-directory: nimcrypto
         run: |
+          gcc --version
+          nim --version
+          nimble --version
           nimble install -y
           nimble test

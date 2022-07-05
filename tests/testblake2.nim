@@ -209,7 +209,7 @@ suite "BLAKE2B/BLAKE2S Tests":
         "E6C8125637438D0905B749F46560AC89FD471CF8692E28FAB982F73F019B83A9"
       ]
 
-    proc keyDigest(a: openarray[byte]): string =
+    proc keyDigest(a: openArray[byte]): string =
       var ctx: blake2_256
       ctx.init(fromHex(stripSpaces(keys[0])))
       ctx.update(a)
@@ -306,7 +306,7 @@ suite "BLAKE2B/BLAKE2S Tests":
            E2228152A3C4BBBE72FC3B12629528CFBB09FE630F0474339F54ABF453E2ED52"""
       ]
 
-    proc keyDigest(a: openarray[byte]): string =
+    proc keyDigest(a: openArray[byte]): string =
       var ctx: blake2_512
       ctx.init(fromHex(stripSpaces(keys[0])))
       ctx.update(a)

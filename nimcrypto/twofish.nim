@@ -313,8 +313,8 @@ template DEC_ROUND(CTX, R0, R1, R2, R3, round) =
   R2 = ROL(R2, 1) xor (T0 + T1 + CTX.K[2 * round + 8])
   R3 = ROR(R3 xor (T0 + 2'u32 * T1 + CTX.K[2 * round + 9]), 1)
 
-proc twofishEncrypt(ctx: var TwofishContext, inp: openarray[byte],
-                    oup: var openarray[byte]) {.inline.} =
+proc twofishEncrypt(ctx: var TwofishContext, inp: openArray[byte],
+                    oup: var openArray[byte]) {.inline.} =
   var T0, T1: uint32
 
   var r3 = ctx.K[3] xor leLoad32(inp, 12)
@@ -344,8 +344,8 @@ proc twofishEncrypt(ctx: var TwofishContext, inp: openarray[byte],
   leStore32(oup, 4, r3 xor ctx.K[5])
   leStore32(oup, 0, r2 xor ctx.K[4])
 
-proc twofishDecrypt(ctx: var TwofishContext, inp: openarray[byte],
-                    oup: var openarray[byte]) {.inline.} =
+proc twofishDecrypt(ctx: var TwofishContext, inp: openArray[byte],
+                    oup: var openArray[byte]) {.inline.} =
   var T0, T1: uint32
 
   var r3 = ctx.K[7] xor leLoad32(inp, 12)
@@ -376,7 +376,7 @@ proc twofishDecrypt(ctx: var TwofishContext, inp: openarray[byte],
   leStore32(oup, 0, r2 xor ctx.K[0])
 
 proc initTwofishContext(ctx: var TwofishContext, N: int,
-                        key: openarray[byte]) =
+                        key: openArray[byte]) =
   var
     A, B: uint32
 
@@ -421,7 +421,7 @@ template sizeKey*(r: typedesc[twofish]): int =
 template sizeBlock*(r: typedesc[twofish]): int =
   (16)
 
-proc init*(ctx: var TwofishContext, key: openarray[byte]) {.inline.} =
+proc init*(ctx: var TwofishContext, key: openArray[byte]) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)
 
 proc init*(ctx: var TwofishContext, key: ptr byte, nkey: int = 0) {.inline.} =
@@ -432,12 +432,12 @@ proc init*(ctx: var TwofishContext, key: ptr byte, nkey: int = 0) {.inline.} =
 proc clear*(ctx: var TwofishContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var TwofishContext, input: openarray[byte],
-              output: var openarray[byte]) {.inline.} =
+proc encrypt*(ctx: var TwofishContext, input: openArray[byte],
+              output: var openArray[byte]) {.inline.} =
   twofishEncrypt(ctx, input, output)
 
-proc decrypt*(ctx: var TwofishContext, input: openarray[byte],
-              output: var openarray[byte]) {.inline.} =
+proc decrypt*(ctx: var TwofishContext, input: openArray[byte],
+              output: var openArray[byte]) {.inline.} =
   twofishDecrypt(ctx, input, output)
 
 proc encrypt*(ctx: var TwofishContext, inbytes: ptr byte,

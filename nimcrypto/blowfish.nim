@@ -336,8 +336,8 @@ template f(ctx: var BlowfishContext, x: uint32): uint32 =
   vy = vy + ctx.S[3][d]
   vy
 
-proc blowfishEncrypt*(ctx: var BlowfishContext, inp: openarray[byte],
-                      oup: var openarray[byte]) =
+proc blowfishEncrypt*(ctx: var BlowfishContext, inp: openArray[byte],
+                      oup: var openArray[byte]) =
   var nxl = leLoad32(inp, 0)
   var nxr = leLoad32(inp, 4)
 
@@ -362,8 +362,8 @@ proc blowfishEncrypt*(ctx: var BlowfishContext, inp: openarray[byte],
   leStore32(oup, 0, nxl)
   leStore32(oup, 4, nxr)
 
-proc blowfishDecrypt*(ctx: var BlowfishContext, inp: openarray[byte],
-                      oup: var openarray[byte]) =
+proc blowfishDecrypt*(ctx: var BlowfishContext, inp: openArray[byte],
+                      oup: var openArray[byte]) =
 
   var nxl = leLoad32(inp, 0)
   var nxr = leLoad32(inp, 4)
@@ -388,7 +388,7 @@ proc blowfishDecrypt*(ctx: var BlowfishContext, inp: openarray[byte],
   leStore32(oup, 0, nxl)
   leStore32(oup, 4, nxr)
 
-proc initBlowfishContext*(ctx: var BlowfishContext, key: openarray[byte],
+proc initBlowfishContext*(ctx: var BlowfishContext, key: openArray[byte],
                           nkey: int) =
   var i = 0
   var j = 0
@@ -448,7 +448,7 @@ template sizeKey*(r: typedesc[blowfish]): int =
 template sizeBlock*(r: typedesc[blowfish]): int =
   (8)
 
-proc init*(ctx: var BlowfishContext, key: openarray[byte]) {.inline.} =
+proc init*(ctx: var BlowfishContext, key: openArray[byte]) {.inline.} =
   ctx.sizeKey = len(key) shl 3
   initBlowfishContext(ctx, key, ctx.sizeKey)
 
@@ -461,12 +461,12 @@ proc init*(ctx: var BlowfishContext, key: ptr byte, nkey: int) {.inline.} =
 proc clear*(ctx: var BlowfishContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var BlowfishContext, input: openarray[byte],
-              output: var openarray[byte]) {.inline.} =
+proc encrypt*(ctx: var BlowfishContext, input: openArray[byte],
+              output: var openArray[byte]) {.inline.} =
   blowfishEncrypt(ctx, input, output)
 
-proc decrypt*(ctx: var BlowfishContext, input: openarray[byte],
-              output: var openarray[byte]) {.inline.} =
+proc decrypt*(ctx: var BlowfishContext, input: openArray[byte],
+              output: var openArray[byte]) {.inline.} =
   blowfishDecrypt(ctx, input, output)
 
 proc encrypt*(ctx: var BlowfishContext, inbytes: ptr byte,

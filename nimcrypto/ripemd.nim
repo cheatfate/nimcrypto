@@ -465,7 +465,7 @@ template RROUND160N5(a, b, c, d, e, x): void =
   FFF160(c, d, e, a, b, x[ 9] , 11)
   FFF160(b, c, d, e, a, x[11] , 11)
 
-proc ripemd128Transform(state: var array[4, uint32], data: openarray[byte]) =
+proc ripemd128Transform(state: var array[4, uint32], data: openArray[byte]) =
   var
     aa = state[0]
     bb = state[1]
@@ -502,7 +502,7 @@ proc ripemd128Transform(state: var array[4, uint32], data: openarray[byte]) =
   state[3] = state[0] + bb + ccc
   state[0] = ddd
 
-proc ripemd256Transform(state: var array[8, uint32], data: openarray[byte]) =
+proc ripemd256Transform(state: var array[8, uint32], data: openArray[byte]) =
   var
     aa = state[0]
     bb = state[1]
@@ -547,7 +547,7 @@ proc ripemd256Transform(state: var array[8, uint32], data: openarray[byte]) =
   state[7] = state[7] + ddd
 
 proc ripemd160Transform(state: var array[5, uint32],
-                        data: openarray[byte]) {.inline.} =
+                        data: openArray[byte]) {.inline.} =
   var
     aa = state[0]
     bb = state[1]
@@ -590,7 +590,7 @@ proc ripemd160Transform(state: var array[5, uint32],
   state[0] = ddd
 
 proc ripemd320Transform(state: var array[10, uint32],
-                        data: openarray[byte]) {.inline.} =
+                        data: openArray[byte]) {.inline.} =
   var
     aa = state[0]
     bb = state[1]
@@ -745,7 +745,7 @@ proc clear*(ctx: var RipemdContext) {.inline.} =
 proc reset*(ctx: var RipemdContext) {.inline.} =
   init(ctx)
 
-proc update*[T: bchar](ctx: var RipemdContext, data: openarray[T]) {.inline.} =
+proc update*[T: bchar](ctx: var RipemdContext, data: openArray[T]) {.inline.} =
   var pos = 0
   var length = len(data)
 
@@ -810,7 +810,7 @@ proc finalize(ctx: var RipemdContext) {.inline.} =
     ripemd320Transform(ctx.state, ctx.buffer)
 
 proc finish*(ctx: var RipemdContext,
-             data: var openarray[byte]): uint {.inline, discardable.} =
+             data: var openArray[byte]): uint {.inline, discardable.} =
   result = 0
   finalize(ctx)
   when ctx.bits == 128:

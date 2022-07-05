@@ -14,7 +14,7 @@ var aliceKey = "Alice Key"
 var aliceData = "Alice hidden secret"
 
 block:
-  ## Nim's way API using openarray[byte].
+  ## Nim's way API using openArray[byte].
 
   var ectx, dctx: ECB[aes256]
   var key: array[aes256.sizeKey, byte]

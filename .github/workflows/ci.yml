@@ -7,7 +7,7 @@ on:
     branches:
       - master
   schedule:
-    - cron '00 23 * * *'
+    - cron: "00 23 * * *" # Runs at 23:00 UTC every day
 
 jobs:
   build:

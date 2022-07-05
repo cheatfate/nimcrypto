@@ -5,8 +5,6 @@ on:
       - master
   pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: "00 23 * * *" # Runs at 23:00 UTC every day
 
 jobs:
   build:

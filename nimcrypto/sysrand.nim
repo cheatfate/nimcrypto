@@ -13,8 +13,8 @@
 ## ``Windows`` using BCryptGenRandom (if available),
 ## CryptGenRandom(PROV_INTEL_SEC) (if available), RtlGenRandom.
 ##
-## RtlGenRandom (available from Windows XP)
-## BCryptGenRandom (available from Windows Vista SP1)
+## RtlGenRandom (available since Windows XP)
+## BCryptGenRandom (available since Windows Vista SP1)
 ## CryptGenRandom(PROV_INTEL_SEC) (only when Intel SandyBridge
 ## CPU is available).
 ##
@@ -25,60 +25,63 @@
 ## ``NetBSD``, ``FreeBSD``, ``MacOS``, ``Solaris`` using `/dev/urandom`.
 
 {.deadCodeElim:on.}
+{.push raises: [].}
 
 when defined(posix):
   import os, posix
 
   proc urandomRead(pbytes: pointer, nbytes: int): int =
-    result = -1
     var st: Stat
     let fd = posix.open("/dev/urandom", posix.O_RDONLY)
-    if fd != -1:
-      if posix.fstat(fd, st) != -1 and S_ISCHR(st.st_mode):
-        result = 0
-        while result < nbytes:
-          var p = cast[pointer](cast[uint]((pbytes)) + uint(result))
-          var res = posix.read(fd, p, nbytes - result)
-          if res > 0:
-            result += res
-          elif res == 0:
-            break
-          else:
-            if osLastError().int32 != EINTR:
-              result = -1
-              break
+    if fd == -1:
+      return -1
+    if posix.fstat(fd, st) == -1 or not(S_ISCHR(st.st_mode)):
       discard posix.close(fd)
+      return -1
+
+    var res = 0
+    while res < nbytes:
+      var p = cast[pointer](cast[uint]((pbytes)) + uint(res))
+      var bytesRead = posix.read(fd, p, nbytes - res)
+      if bytesRead > 0:
+        res += bytesRead
+      elif bytesRead == 0:
+        break
+      else:
+        if osLastError() != OSErrorCode(EINTR):
+          break
+    discard posix.close(fd)
+    res
 
 when defined(openbsd):
-  import posix, os
 
-  proc getentropy(pBytes: pointer, nBytes: int): cint
+  proc getentropy(pbytes: pointer, nbytes: int): cint
        {.importc: "getentropy", header: "<unistd.h>".}
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
     var p: pointer
-    while result < nbytes:
-      p = cast[pointer](cast[uint](pbytes) + uint(result))
-      let res = getentropy(p, nbytes - result)
-      if res > 0:
-        result += res
-      elif res == 0:
+    var res = 0
+    while res < nbytes:
+      p = cast[pointer](cast[uint](pbytes) + uint(res))
+      let bytesRead = getentropy(p, nbytes - res)
+      if bytesRead > 0:
+        res += bytesRead
+      elif bytesRead == 0:
         break
       else:
-        if osLastError().int32 != EINTR:
-          result = -1
+        if osLastError() != OSErrorCode(EINTR):
           break
 
-    if result == -1:
-      result = urandomRead(pbytes, nbytes)
-    elif result < nbytes:
-      p = cast[pointer](cast[uint](pbytes) + uint(result))
-      let res = urandomRead(p, nbytes - result)
-      if res != -1:
-        result += res
+    if res <= 0:
+      res = urandomRead(pbytes, nbytes)
+    elif res < nbytes:
+      p = cast[pointer](cast[uint](pbytes) + uint(res))
+      let bytesRead = urandomRead(p, nbytes - res)
+      if bytesRead != -1:
+        res += bytesRead
+    res
 
 elif defined(linux):
-  import posix, os
   when defined(i386):
     const SYS_getrandom = 355
   elif defined(powerpc64) or defined(powerpc64el) or defined(powerpc):
@@ -109,47 +112,50 @@ elif defined(linux):
 
   var gSystemRng {.threadvar.}: SystemRng ## System thread global RNG
 
-  proc newSystemRNG(): SystemRng =
-    result = SystemRng()
-
+  proc newSystemRng(): SystemRng =
+    var rng = SystemRng()
     if SYS_getrandom != 0:
       var data: int
-      result.getRandomPresent = true
+      rng.getRandomPresent = true
       let res = syscall(SYS_getrandom, addr data, 1, GRND_NONBLOCK)
       if res == -1:
-        let err = osLastError().int32
-        if err == ENOSYS or err == EPERM:
-          result.getRandomPresent = false
+        let err = osLastError()
+        if err == OSErrorCode(ENOSYS) or err == OSErrorCode(EPERM):
+          rng.getRandomPresent = false
+    rng
 
-  proc getSystemRNG(): SystemRng =
-    if gSystemRng.isNil: gSystemRng = newSystemRng()
-    result = gSystemRng
+  proc getSystemRng(): SystemRng =
+    if isNil(gSystemRng):
+      gSystemRng = newSystemRng()
+    gSystemRng
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
     var p: pointer
-    let srng = getSystemRNG()
+    let srng = getSystemRng()
+
     if srng.getRandomPresent:
-      while result < nbytes:
-        p = cast[pointer](cast[uint](pbytes) + uint(result))
-        let res = syscall(SYS_getrandom, pBytes, nBytes - result, 0)
-        if res > 0:
-          result += res
-        elif res == 0:
+      var res = 0
+      while res < nbytes:
+        p = cast[pointer](cast[uint](pbytes) + uint(res))
+        let bytesRead = syscall(SYS_getrandom, pbytes, nbytes - res, 0)
+        if bytesRead > 0:
+          res += bytesRead
+        elif bytesRead == 0:
           break
         else:
           if osLastError().int32 != EINTR:
-            result = -1
             break
 
-      if result == -1:
-        result = urandomRead(pbytes, nbytes)
-      elif result < nbytes:
-        p = cast[pointer](cast[uint](pbytes) + uint(result))
-        let res = urandomRead(p, nbytes - result)
-        if res != -1:
-          result += res
+      if res <= 0:
+        res = urandomRead(pbytes, nbytes)
+      elif res < nbytes:
+        p = cast[pointer](cast[uint](pbytes) + uint(res))
+        let bytesRead = urandomRead(p, nbytes - res)
+        if bytesRead != -1:
+          res += bytesRead
+      res
     else:
-      result = urandomRead(pbytes, nbytes)
+      urandomRead(pbytes, nbytes)
 
 elif defined(windows):
   import os, winlean, dynlib
@@ -219,71 +225,73 @@ elif defined(windows):
 
   proc isEqualOrHigher(major: int, minor: int, servicePack: int): bool =
     var mask = 0'u64
-    var ov = OSVERSIONINFOEXW()
-    ov.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW).DWORD
-    ov.dwMajorVersion = major.DWORD
-    ov.dwMinorVersion = minor.DWORD
-    ov.wServicePackMajor = servicePack.uint16
-    ov.wServicePackMinor = 0
-    var typeMask = (VER_MAJORVERSION or VER_MINORVERSION or
-                   VER_SERVICEPACKMAJOR or VER_SERVICEPACKMINOR).DWORD
+    var ov = OSVERSIONINFOEXW(
+      dwOSVersionInfoSize: DWORD(sizeof(OSVERSIONINFOEXW)),
+      dwMajorVersion: DWORD(major),
+      dwMinorVersion: DWORD(minor),
+      wServicePackMajor: uint16(servicePack),
+      wServicePackMinor: 0
+    )
+    let typeMask =
+      DWORD(VER_MAJORVERSION or VER_MINORVERSION or
+            VER_SERVICEPACKMAJOR or VER_SERVICEPACKMINOR)
     mask = verSetConditionMask(mask, VER_MAJORVERSION, VER_GREATER_EQUAL)
     mask = verSetConditionMask(mask, VER_MINORVERSION, VER_GREATER_EQUAL)
     mask = verSetConditionMask(mask, VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL)
     mask = verSetConditionMask(mask, VER_SERVICEPACKMINOR, VER_GREATER_EQUAL)
-    return (verifyVersionInfo(addr ov, typeMask, mask) == 1)
+    verifyVersionInfo(addr ov, typeMask, mask) == 1
 
-  proc newSystemRNG(): SystemRng =
-    result = SystemRng()
+  proc newSystemRng(): SystemRng =
+    var rng = SystemRng()
     if isEqualOrHigher(6, 0, 0):
       if isEqualOrHigher(6, 0, 1):
         let lib = loadLib("bcrypt.dll")
         if lib != nil:
           var lProc = cast[BCGRMPROC](symAddr(lib, "BCryptGenRandom"))
           if not isNil(lProc):
-            result.bCryptGenRandom = lProc
-
+            rng.bCryptGenRandom = lProc
     var hp: HCRYPTPROV = 0
     let intelDef = newWideCString(INTEL_DEF_PROV)
-    let res1 = cryptAcquireContext(addr hp, nil, intelDef, PROV_INTEL_SEC,
-                                   CRYPT_VERIFYCONTEXT or CRYPT_SILENT).bool
-    if res1:
-      result.hIntel = hp
+    let res = cryptAcquireContext(addr hp, nil, intelDef, PROV_INTEL_SEC,
+                                  CRYPT_VERIFYCONTEXT or CRYPT_SILENT).bool
+    if res:
+      rng.hIntel = hp
+    rng
 
-  proc getSystemRNG(): SystemRng =
-    if gSystemRng.isNil: gSystemRng = newSystemRng()
-    result = gSystemRng
+  proc getSystemRng(): SystemRng =
+    if isNil(gSystemRng):
+      gSystemRng = newSystemRng()
+    gSystemRng
 
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
-    let srng = getSystemRNG()
-    result = -1
+    let srng = getSystemRng()
+
     if not isNil(srng.bCryptGenRandom):
-      if srng.bCryptGenRandom(nil, pbytes, nbytes.ULONG,
+      if srng.bCryptGenRandom(nil, pbytes, ULONG(nbytes),
                               BCRYPT_USE_SYSTEM_PREFERRED_RNG) == 0:
-        result = nbytes
-
-    if srng.hIntel != 0 and result == -1:
-      if cryptGenRandom(srng.hIntel, nbytes.DWORD, pbytes) != 0:
-        result = nbytes
-
-    if result == -1:
-      if rtlGenRandom(pBytes, nbytes.ULONG) != 0:
-        result = nbytes
+        return nbytes
+    if srng.hIntel != 0:
+      if cryptGenRandom(srng.hIntel, DWORD(nbytes), pbytes) != 0:
+        return nbytes
+    if rtlGenRandom(pbytes, ULONG(nbytes)) != 0:
+      return nbytes
+    -1
 
   proc randomClose*() =
-    let srng = getSystemRNG()
+    let srng = getSystemRng()
     if srng.hIntel != 0:
-      if cryptReleaseContext(srng.hIntel, 0) == 0:
-        raiseOsError(osLastError())
-else:
-  import posix
+      discard cryptReleaseContext(srng.hIntel, 0)
 
+else:
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
-    result = urandomRead(pbytes, nbytes)
+    urandomRead(pbytes, nbytes)
 
 proc randomBytes*[T](bytes: var openArray[T]): int =
   let length = len(bytes) * sizeof(T)
-  if length > 0:
-    result = randomBytes(addr bytes[0], length)
-    if result != -1:
-      result = result div sizeof(T)
+  if length == 0:
+    return 0
+  let res = randomBytes(addr bytes[0], length)
+  if res != -1:
+    res div sizeof(T)
+  else:
+    res

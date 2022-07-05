@@ -31,11 +31,11 @@ jobs:
               os: windows
             builder: windows-2019
 
-    name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-nim-${{ matrix.target.nim_branch }} (${{ matrix.branch }})'
+    name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-nim-${{ matrix.nim_branch }} (${{ matrix.branch }})'
     runs-on: ${{ matrix.builder }}
     env:
-      NIM_DIR: nim-${{ matrix.target.nim_branch }}-${{ matrix.target.cpu }}
-      NIM_BRANCH: ${{ matrix.target.nim_branch }}
+      NIM_DIR: nim-${{ matrix.nim_branch }}-${{ matrix.target.cpu }}
+      NIM_BRANCH: ${{ matrix.nim_branch }}
       NIM_ARCH: ${{ matrix.target.cpu }}
     steps:
       - name: Checkout nimcrypto
@@ -99,12 +99,12 @@ jobs:
       - name: Restore Nim from cache
         if: >
           steps.nim-compiler-cache.outputs.cache-hit != 'true' &&
-          matrix.target.nim_branch != 'devel'
+          matrix.nim_branch != 'devel'
         id: nim-compiler-cache
         uses: actions/cache@v2
         with:
-          path: '${{ github.workspace }}/nim-${{ matrix.target.nim_branch }}-${{ matrix.target.cpu }}'
-          key: 'nim-${{ matrix.target.cpu }}-${{ matrix.target.nim_branch }}'
+          path: '${{ github.workspace }}/nim-${{ matrix.nim_branch }}-${{ matrix.target.cpu }}'
+          key: 'nim-${{ matrix.target.cpu }}-${{ matrix.nim_branch }}'
 
       - name: Build Nim and associated tools
         shell: bash

@@ -29,7 +29,7 @@ ECHO Building Nim [%NIM_BRANCH%] (%NIM_ARCH%) in %NIM_DIR%
 git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
 IF NOT "%NIM_BRANCH%" == "devel" (
-  git checkout "tags/%NIM_BRANCH%" -b "%NIM_BRANCH%"
+  git checkout "%NIM_BRANCH%"
 ) ELSE (
   git checkout devel
 )

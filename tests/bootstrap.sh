@@ -17,7 +17,7 @@ function build_nim {
   if [ "${NIM_BRANCH}" = "devel" ]; then
     git checkout devel
   else
-    git checkout "tags/${NIM_BRANCH}" -b "${NIM_BRANCH}"
+    git checkout "${NIM_BRANCH}"
   fi
   git clone --depth 1 https://github.com/nim-lang/csources_v1
   cd csources_v1 && sh build.sh

@@ -11,49 +11,15 @@ jobs:
         target:
           - os: linux
             cpu: amd64
-            nim_branch: devel
-          - os: linux
-            cpu: amd64
-            nim_branch: v1.2.12
-          - os: linux
-            cpu: amd64
-            nim_branch: v1.0.10
           - os: linux
             cpu: i386
-            nim_branch: devel
-          - os: linux
-            cpu: i386
-            nim_branch: v1.2.12
-          - os: linux
-            cpu: i386
-            nim_branch: v1.0.10
           - os: macos
             cpu: amd64
-            nim_branch: devel
-          - os: macos
-            cpu: amd64
-            nim_branch: v1.2.12
-          - os: macos
-            cpu: amd64
-            nim_branch: v1.0.10
           - os: windows
             cpu: amd64
-            nim_branch: devel
-          - os: windows
-            cpu: amd64
-            nim_branch: v1.2.12
-          - os: windows
-            cpu: amd64
-            nim_branch: v1.0.10
           - os: windows
             cpu: i386
-            nim_branch: devel
-          - os: windows
-            cpu: i386
-            nim_branch: v1.2.12
-          - os: windows
-            cpu: i386
-            nim_branch: v1.0.10
+        nim_branch: [version-1-0, version-1-2, version-1-4, version-1-6, devel]
         include:
           - target:
               os: linux
@@ -65,11 +31,11 @@ jobs:
               os: windows
             builder: windows-2019
 
-    name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-nim-${{ matrix.target.nim_branch }} (${{ matrix.branch }})'
+    name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-nim-${{ matrix.nim_branch }} (${{ matrix.branch }})'
     runs-on: ${{ matrix.builder }}
     env:
-      NIM_DIR: nim-${{ matrix.target.nim_branch }}-${{ matrix.target.cpu }}
-      NIM_BRANCH: ${{ matrix.target.nim_branch }}
+      NIM_DIR: nim-${{ matrix.nim_branch }}-${{ matrix.target.cpu }}
+      NIM_BRANCH: ${{ matrix.nim_branch }}
       NIM_ARCH: ${{ matrix.target.cpu }}
     steps:
       - name: Checkout nimcrypto
@@ -133,12 +99,12 @@ jobs:
       - name: Restore Nim from cache
         if: >
           steps.nim-compiler-cache.outputs.cache-hit != 'true' &&
-          matrix.target.nim_branch != 'devel'
+          matrix.nim_branch != 'devel'
         id: nim-compiler-cache
         uses: actions/cache@v2
         with:
-          path: '${{ github.workspace }}/nim-${{ matrix.target.nim_branch }}-${{ matrix.target.cpu }}'
-          key: 'nim-${{ matrix.target.cpu }}-${{ matrix.target.nim_branch }}'
+          path: '${{ github.workspace }}/nim-${{ matrix.nim_branch }}-${{ matrix.target.cpu }}'
+          key: 'nim-${{ matrix.target.cpu }}-${{ matrix.nim_branch }}'
 
       - name: Build Nim and associated tools
         shell: bash
@@ -160,5 +126,8 @@ jobs:
         shell: bash
         working-directory: nimcrypto
         run: |
+          gcc --version
+          nim --version
+          nimble --version
           nimble install -y
           nimble test

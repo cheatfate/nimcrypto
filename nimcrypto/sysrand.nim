@@ -54,7 +54,6 @@ when defined(posix):
     res
 
 when defined(openbsd):
-  import posix, os
 
   proc getentropy(pbytes: pointer, nbytes: int): cint
        {.importc: "getentropy", header: "<unistd.h>".}
@@ -83,7 +82,6 @@ when defined(openbsd):
     res
 
 elif defined(linux):
-  import posix, os
   when defined(i386):
     const SYS_getrandom = 355
   elif defined(powerpc64) or defined(powerpc64el) or defined(powerpc):
@@ -285,8 +283,6 @@ elif defined(windows):
       discard cryptReleaseContext(srng.hIntel, 0)
 
 else:
-  import posix
-
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
     urandomRead(pbytes, nbytes)
 

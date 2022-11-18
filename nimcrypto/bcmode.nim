@@ -121,7 +121,7 @@ proc init*[T](ctx: var ECB[T], key: ptr byte) =
   ## octets (bytes).
   assert(not isNil(key))
   var p = cast[ptr UncheckedArray[byte]](key)
-  init(ctx.cipher, toOpenArray(p[], 0, ctx.sizeKey() - 1))
+  init(ctx.cipher, toOpenArray(p, 0, ctx.sizeKey() - 1))
 
 proc clear*[T](ctx: var ECB[T]) {.inline.} =
   ## Clear ``ECB[T]`` context ``ctx``.
@@ -208,8 +208,8 @@ proc encrypt*[T](ctx: var ECB[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  encrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc decrypt*[T](ctx: var ECB[T], inp: ptr byte, oup: ptr byte,
@@ -225,8 +225,8 @@ proc decrypt*[T](ctx: var ECB[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  decrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  decrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 ## CBC (Cipher Block Chaining) Mode
@@ -287,8 +287,8 @@ proc init*[T](ctx: var CBC[T], key: ptr byte, iv: ptr byte) =
   assert(not isNil(key) and not isNil(iv))
   var pkey = cast[ptr UncheckedArray[byte]](key)
   var piv = cast[ptr UncheckedArray[byte]](iv)
-  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
-            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
+  init(ctx, toOpenArray(pkey, 0, ctx.sizeKey() - 1),
+            toOpenArray(piv, 0, ctx.sizeBlock() - 1))
 
 proc clear*[T](ctx: var CBC[T]) {.inline.} =
   ## Clear ``CBC[T]`` context ``ctx``.
@@ -331,8 +331,8 @@ proc encrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  encrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc encrypt*[T](ctx: var CBC[T], input: openArray[char],
@@ -386,8 +386,8 @@ proc decrypt*[T](ctx: var CBC[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  decrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  decrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc decrypt*[T](ctx: var CBC[T], input: openArray[char],
@@ -470,8 +470,8 @@ proc init*[T](ctx: var CTR[T], key: ptr byte, iv: ptr byte) =
   assert(not isNil(key) and not isNil(iv))
   var pkey = cast[ptr UncheckedArray[byte]](key)
   var piv = cast[ptr UncheckedArray[byte]](iv)
-  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
-            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
+  init(ctx, toOpenArray(pkey, 0, ctx.sizeKey() - 1),
+            toOpenArray(piv, 0, ctx.sizeBlock() - 1))
 
 proc init*[T](ctx: var CTR[T], key: openArray[char],
               iv: openArray[char]) {.inline.} =
@@ -536,8 +536,8 @@ proc encrypt*[T](ctx: var CTR[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  encrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc decrypt*[T](ctx: var CTR[T], input: openArray[byte],
@@ -558,8 +558,8 @@ proc decrypt*[T](ctx: var CTR[T], inp: ptr byte, oup: ptr byte,
   ## Procedures returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  encrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc decrypt*[T](ctx: var CTR[T], input: openArray[char],
@@ -616,8 +616,8 @@ proc init*[T](ctx: var OFB[T], key: ptr byte, iv: ptr byte) =
   assert(not isNil(key) and not isNil(iv))
   var pkey = cast[ptr UncheckedArray[byte]](key)
   var piv = cast[ptr UncheckedArray[byte]](iv)
-  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
-            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
+  init(ctx, toOpenArray(pkey, 0, ctx.sizeKey() - 1),
+            toOpenArray(piv, 0, ctx.sizeBlock() - 1))
 
 proc init*[T](ctx: var OFB[T], key: openArray[char], iv: openArray[char]) =
   ## Initialize ``OFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -664,8 +664,8 @@ proc encrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  encrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc encrypt*[T](ctx: var OFB[T], input: openArray[char],
@@ -696,8 +696,8 @@ proc decrypt*[T](ctx: var OFB[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  encrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc decrypt*[T](ctx: var OFB[T], input: openArray[char],
@@ -754,8 +754,8 @@ proc init*[T](ctx: var CFB[T], key: ptr byte, iv: ptr byte) =
   assert(not isNil(key) and not isNil(iv))
   var pkey = cast[ptr UncheckedArray[byte]](key)
   var piv = cast[ptr UncheckedArray[byte]](iv)
-  init(ctx, toOpenArray(pkey[], 0, ctx.sizeKey() - 1),
-            toOpenArray(piv[], 0, ctx.sizeBlock() - 1))
+  init(ctx, toOpenArray(pkey, 0, ctx.sizeKey() - 1),
+            toOpenArray(piv, 0, ctx.sizeBlock() - 1))
 
 proc init*[T](ctx: var CFB[T], key: openArray[char], iv: openArray[char]) =
   ## Initialize ``CFB[T]`` with encryption key ``key`` and initial vector (IV)
@@ -803,8 +803,8 @@ proc encrypt*[T](ctx: var CFB[T], inp: ptr byte, oup: ptr byte,
   ## Procedure returns number of processed octets (bytes).
   var ip = cast[ptr UncheckedArray[byte]](inp)
   var op = cast[ptr UncheckedArray[byte]](oup)
-  encrypt(ctx, toOpenArray(ip[], 0, int(length - 1)),
-               toOpenArray(op[], 0, int(length - 1)))
+  encrypt(ctx, toOpenArray(ip, 0, int(length - 1)),
+               toOpenArray(op, 0, int(length - 1)))
   result = length
 
 proc encrypt*[T](ctx: var CFB[T], input: openArray[char],

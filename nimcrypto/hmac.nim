@@ -132,8 +132,8 @@ proc init*[T](hmctx: var HMAC[T], key: ptr byte, keylen: uint) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` of size
   ## ``keylen``.
   mixin init
-  var ptrarr = cast[ptr array[0, byte]](key)
-  init(hmctx, ptrarr[].toOpenArray(0, int(keylen) - 1))
+  var ptrarr = cast[ptr UncheckedArray[byte]](key)
+  init(hmctx, ptrarr.toOpenArray(0, int(keylen) - 1))
 
 proc clear*(hmctx: var HMAC) =
   ## Clear HMAC context ``hmctx``.
@@ -191,8 +191,8 @@ proc update*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint) {.inline.} =
   ##      ctx.update(addr source[0], len(source))
   ##    echo $ctx.finish()
   ##
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
-  hmctx.update(ptrarr[].toOpenArray(0, int(nbytes) - 1))
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
+  hmctx.update(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*[T: bchar](hmctx: var HMAC,
                        data: var openArray[T]): uint {.inline.} =
@@ -210,8 +210,8 @@ proc finish*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint): uint {.inline.} =
   ## Finalize HMAC context ``hmctx`` and store calculated digest to address
   ## pointed by ``pbytes`` of length ``nbytes``. ``pbytes`` must be able to
   ## hold at ``hmctx.sizeDigest`` octets (bytes).
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
-  result = hmctx.finish(ptrarr[].toOpenArray(0, int(nbytes) - 1))
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
+  result = hmctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   ## Finalize HMAC context ``hmctx`` and return calculated digest as
@@ -269,7 +269,7 @@ proc hmac*(HashType: typedesc, key: ptr byte, klen: uint,
   ##    echo keccak256.hmac(key, keylen, data, datalen)
   ##    # Print HMAC[RIPEMD160](key = "AliceKey", data = "Hello World!")
   ##    echo ripemd160.hmac(key, keylen, data, datalen)
-  var keyarr = cast[ptr array[0, byte]](key)
-  var dataarr = cast[ptr array[0, byte]](data)
-  result = hmac(HashType, keyarr[].toOpenArray(0, int(klen) - 1),
-                dataarr[].toOpenArray(0, int(ulen) - 1))
+  var keyarr = cast[ptr UncheckedArray[byte]](key)
+  var dataarr = cast[ptr UncheckedArray[byte]](data)
+  result = hmac(HashType, keyarr.toOpenArray(0, int(klen) - 1),
+                dataarr.toOpenArray(0, int(ulen) - 1))

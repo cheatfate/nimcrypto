@@ -425,9 +425,9 @@ proc init*(ctx: var TwofishContext, key: openArray[byte]) {.inline.} =
   initTwofishContext(ctx, ctx.bits, key)
 
 proc init*(ctx: var TwofishContext, key: ptr byte, nkey: int = 0) {.inline.} =
-  var p = cast[ptr array[0, byte]](key)
+  var p = cast[ptr UncheckedArray[byte]](key)
   initTwofishContext(ctx, ctx.bits,
-                     toOpenArray(p[], 0, int(ctx.sizeKey()) - 1))
+                     toOpenArray(p, 0, int(ctx.sizeKey()) - 1))
 
 proc clear*(ctx: var TwofishContext) {.inline.} =
   burnMem(ctx)
@@ -442,14 +442,14 @@ proc decrypt*(ctx: var TwofishContext, input: openArray[byte],
 
 proc encrypt*(ctx: var TwofishContext, inbytes: ptr byte,
               outbytes: ptr byte) {.inline.} =
-  var ip = cast[ptr array[0, byte]](inbytes)
-  var op = cast[ptr array[0, byte]](outbytes)
-  twofishEncrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
-                      toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+  var ip = cast[ptr UncheckedArray[byte]](inbytes)
+  var op = cast[ptr UncheckedArray[byte]](outbytes)
+  twofishEncrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
+                      toOpenArray(op, 0, ctx.sizeBlock() - 1))
 
 proc decrypt*(ctx: var TwofishContext, inbytes: ptr byte,
               outbytes: ptr byte) {.inline.} =
-  var ip = cast[ptr array[0, byte]](inbytes)
-  var op = cast[ptr array[0, byte]](outbytes)
-  twofishDecrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
-                      toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+  var ip = cast[ptr UncheckedArray[byte]](inbytes)
+  var op = cast[ptr UncheckedArray[byte]](outbytes)
+  twofishDecrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
+                      toOpenArray(op, 0, ctx.sizeBlock() - 1))

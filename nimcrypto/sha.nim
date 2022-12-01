@@ -222,8 +222,8 @@ proc update*[T: bchar](ctx: var Sha1Context, data: openArray[T]) {.inline.} =
 
 proc update*(ctx: var Sha1Context, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr array[0, byte]](pbytes)
-  ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
+  var p = cast[ptr UncheckedArray[byte]](pbytes)
+  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc finish*(ctx: var Sha1Context,
              data: var openArray[byte]): uint {.inline, discardable.} =
@@ -247,8 +247,8 @@ proc finish*(ctx: var Sha1Context,
 
 proc finish*(ctx: var Sha1Context, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
-  result = ctx.finish(ptrarr[].toOpenArray(0, int(nbytes) - 1))
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
+  result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var Sha1Context): MDigest[ctx.bits] =
   discard finish(ctx, result.data)

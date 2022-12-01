@@ -770,8 +770,8 @@ proc update*[T: bchar](ctx: var RipemdContext, data: openArray[T]) {.inline.} =
 
 proc update*(ctx: var RipemdContext, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr array[0, byte]](pbytes)
-  ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
+  var p = cast[ptr UncheckedArray[byte]](pbytes)
+  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc finalize(ctx: var RipemdContext) {.inline.} =
   let size = int(ctx.count[0] and 0x3F'u32)
@@ -855,8 +855,8 @@ proc finish*(ctx: var RipemdContext,
 
 proc finish*(ctx: var RipemdContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
-  result = ctx.finish(ptrarr[].toOpenArray(0, int(nbytes) - 1))
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
+  result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
   discard finish(ctx, result.data)

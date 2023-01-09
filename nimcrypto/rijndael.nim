@@ -1092,22 +1092,22 @@ proc init*(ctx: var RijndaelContext, key: openArray[byte]) {.inline.} =
   keySchedule(ctx, key)
 
 proc init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =
-  var p = cast[ptr array[0, byte]](key)
-  keySchedule(ctx, toOpenArray(p[], 0, int(ctx.sizeKey()) - 1))
+  var p = cast[ptr UncheckedArray[byte]](key)
+  keySchedule(ctx, toOpenArray(p, 0, int(ctx.sizeKey()) - 1))
 
 proc clear*(ctx: var RijndaelContext) {.inline.} =
   burnMem(ctx)
 
 proc encrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
               outbytes: ptr byte) {.inline.} =
-  var ip = cast[ptr array[0, byte]](inbytes)
-  var op = cast[ptr array[0, byte]](outbytes)
-  encrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
-               toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+  var ip = cast[ptr UncheckedArray[byte]](inbytes)
+  var op = cast[ptr UncheckedArray[byte]](outbytes)
+  encrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
+               toOpenArray(op, 0, ctx.sizeBlock() - 1))
 
 proc decrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
               outbytes: ptr byte) {.inline.} =
-  var ip = cast[ptr array[0, byte]](inbytes)
-  var op = cast[ptr array[0, byte]](outbytes)
-  decrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
-               toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+  var ip = cast[ptr UncheckedArray[byte]](inbytes)
+  var op = cast[ptr UncheckedArray[byte]](outbytes)
+  decrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
+               toOpenArray(op, 0, ctx.sizeBlock() - 1))

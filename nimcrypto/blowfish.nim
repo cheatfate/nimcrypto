@@ -454,8 +454,8 @@ proc init*(ctx: var BlowfishContext, key: openArray[byte]) {.inline.} =
 
 proc init*(ctx: var BlowfishContext, key: ptr byte, nkey: int) {.inline.} =
   ctx.sizeKey = nkey shl 3
-  var p = cast[ptr array[0, byte]](key)
-  initBlowfishContext(ctx, toOpenArray(p[], 0, (nkey shl 3) - 1),
+  var p = cast[ptr UncheckedArray[byte]](key)
+  initBlowfishContext(ctx, toOpenArray(p, 0, (nkey shl 3) - 1),
                       ctx.sizeKey)
 
 proc clear*(ctx: var BlowfishContext) {.inline.} =
@@ -471,14 +471,14 @@ proc decrypt*(ctx: var BlowfishContext, input: openArray[byte],
 
 proc encrypt*(ctx: var BlowfishContext, inbytes: ptr byte,
               outbytes: ptr byte) {.inline.} =
-  var ip = cast[ptr array[0, byte]](inbytes)
-  var op = cast[ptr array[0, byte]](outbytes)
-  blowfishEncrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
-                       toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+  var ip = cast[ptr UncheckedArray[byte]](inbytes)
+  var op = cast[ptr UncheckedArray[byte]](outbytes)
+  blowfishEncrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
+                       toOpenArray(op, 0, ctx.sizeBlock() - 1))
 
 proc decrypt*(ctx: var BlowfishContext, inbytes: ptr byte,
               outbytes: ptr byte) {.inline.} =
-  var ip = cast[ptr array[0, byte]](inbytes)
-  var op = cast[ptr array[0, byte]](outbytes)
-  blowfishDecrypt(ctx, toOpenArray(ip[], 0, ctx.sizeBlock() - 1),
-                       toOpenArray(op[], 0, ctx.sizeBlock() - 1))
+  var ip = cast[ptr UncheckedArray[byte]](inbytes)
+  var op = cast[ptr UncheckedArray[byte]](outbytes)
+  blowfishDecrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
+                       toOpenArray(op, 0, ctx.sizeBlock() - 1))

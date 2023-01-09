@@ -380,8 +380,8 @@ proc update*[T: bchar](ctx: var KeccakContext,
 
 proc update*(ctx: var KeccakContext, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr array[0, byte]](pbytes)
-  ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
+  var p = cast[ptr UncheckedArray[byte]](pbytes)
+  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc xof*(ctx: var KeccakContext) {.inline.} =
   when ctx.kind != Shake:
@@ -408,8 +408,8 @@ proc output*(ctx: var KeccakContext,
 
 proc output*(ctx: var KeccakContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
-  result = ctx.output(ptrarr[].toOpenArray(0, int(nbytes) - 1))
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
+  result = ctx.output(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var KeccakContext,
              data: var openArray[byte]): uint {.inline, discardable.} =
@@ -426,8 +426,8 @@ proc finish*(ctx: var KeccakContext,
 
 proc finish*(ctx: var KeccakContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
-  result = ctx.finish(ptrarr[].toOpenArray(0, int(nbytes) - 1))
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
+  result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] {.inline.} =
   discard finish(ctx, result.data)

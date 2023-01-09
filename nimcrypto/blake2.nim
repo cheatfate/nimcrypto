@@ -341,8 +341,8 @@ proc init*(ctx: var Blake2Context) {.inline.} =
 proc init*(ctx: var Blake2Context, key: ptr byte, keylen: uint) {.inline.} =
   var zeroKey: array[0, byte]
   if not isNil(key) and keylen > 0'u:
-    var ptrarr = cast[ptr array[0, byte]](key)
-    ctx.init(ptrarr[].toOpenArray(0, int(keylen) - 1))
+    var ptrarr = cast[ptr UncheckedArray[byte]](key)
+    ctx.init(ptrarr.toOpenArray(0, int(keylen) - 1))
   else:
     ctx.init(zeroKey)
 
@@ -405,8 +405,8 @@ proc update*[T: bchar](ctx: var Blake2Context, data: openArray[T]) {.inline.} =
 
 proc update*(ctx: var Blake2Context, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr array[0, byte]](pbytes)
-  ctx.update(toOpenArray(p[], 0, int(nbytes) - 1))
+  var p = cast[ptr UncheckedArray[byte]](pbytes)
+  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc finish*(ctx: var Blake2sContext,
              data: var openArray[byte]): uint {.inline, discardable.} =
@@ -438,12 +438,12 @@ proc finish*(ctx: var Blake2bContext,
 
 proc finish*(ctx: var Blake2sContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var Blake2bContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
-  var ptrarr = cast[ptr array[0, byte]](pbytes)
+  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var Blake2sContext): MDigest[ctx.bits] =

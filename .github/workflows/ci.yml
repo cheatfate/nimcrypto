@@ -31,7 +31,7 @@ jobs:
               os: windows
             builder: windows-2019
 
-    name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-nim-${{ matrix.nim_branch }} (${{ matrix.branch }})'
+    name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-nim-${{ matrix.nim_branch }}'
     runs-on: ${{ matrix.builder }}
     env:
       NIM_DIR: nim-${{ matrix.nim_branch }}-${{ matrix.target.cpu }}

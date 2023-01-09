@@ -16,13 +16,15 @@ function build_nim {
   cd "${NIM_DIR}"
   if [ "${NIM_BRANCH}" = "devel" ]; then
     git checkout devel
+    git clone --depth 1 https://github.com/nim-lang/csources_v2
+    cd csources_v2 && sh build.sh
   else
     git checkout "${NIM_BRANCH}"
+    git clone --depth 1 https://github.com/nim-lang/csources_v1
+    cd csources_v1 && sh build.sh
   fi
-  git clone --depth 1 https://github.com/nim-lang/csources_v1
-  cd csources_v1 && sh build.sh
   cd ..
-  bin/nim c -d:release koch
+  bin/nim c --skipParentCfg --noNimblePath --skipUserCfg -d:release koch
   ./koch boot -d:release
   ./koch nimble -d:release
   cd ..

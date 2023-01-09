@@ -192,11 +192,11 @@ template b3(x: uint32): byte =
   cast[byte](x shr 24)
 
 template BYTEARRAY_TO_U32(arr): uint32 =
-  ((cast[uint32](arr[0]) shl 24) xor (cast[uint32](arr[1]) shl 16) xor
-   (cast[uint32](arr[2]) shl 8) xor (cast[uint32](arr[3])))
+  ((uint32(arr[0]) shl 24) xor (uint32(arr[1]) shl 16) xor
+   (uint32(arr[2]) shl 8) xor (uint32(arr[3])))
 template BYTES_TO_U32(r0, r1, r2, r3): uint32 =
-  ((cast[uint32](r0) shl 24) xor (cast[uint32](r1) shl 16) xor
-   (cast[uint32](r2) shl 8) xor (cast[uint32](r3)))
+  ((uint32(r0) shl 24) xor (uint32(r1) shl 16) xor
+   (uint32(r2) shl 8) xor (uint32(r3)))
 
 proc polyMult(a, b: uint32): uint32 =
   result = 0'u32

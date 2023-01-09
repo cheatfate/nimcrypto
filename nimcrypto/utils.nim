@@ -238,14 +238,10 @@ proc big64ToCpu*(p: ptr byte, offset: int): uint64 {.deprecated, inline.} =
     result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
   else:
     var pp = cast[ptr UncheckedArray[byte]](p)
-    result = cast[uint64](pp[offset + 0] shl 56) or
-             cast[uint64](pp[offset + 1] shl 48) or
-             cast[uint64](pp[offset + 2] shl 40) or
-             cast[uint64](pp[offset + 3] shl 32) or
-             cast[uint64](pp[offset + 4] shl 24) or
-             cast[uint64](pp[offset + 5] shl 16) or
-             cast[uint64](pp[offset + 6] shl 8) or
-             cast[uint64](pp[offset + 7])
+    (uint64(pp[offset + 0]) shl 56) or (uint64(pp[offset + 1]) shl 48) or
+      (uint64(pp[offset + 2]) shl 40) or (uint64(pp[offset + 3]) shl 32) or
+      (uint64(pp[offset + 4]) shl 24) or (uint64(pp[offset + 5]) shl 16) or
+      (uint64(pp[offset + 6]) shl 8) or uint64(pp[offset + 7])
 
 proc cpuToLit64*(p: ptr byte, offset: int, v: uint64) {.deprecated, inline.} =
   ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in

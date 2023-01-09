@@ -30,16 +30,18 @@ git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
 IF NOT "%NIM_BRANCH%" == "devel" (
   git checkout "%NIM_BRANCH%"
+  git clone --depth 1 https://github.com/nim-lang/csources_v1
+  CD csources_v1
 ) ELSE (
   git checkout devel
+  git clone --depth 1 https://github.com/nim-lang/csources_v2
+  CD csources_v2
 )
-git clone --depth 1 https://github.com/nim-lang/csources_v1
-CD csources_v1
 
 IF "%NIM_ARCH%" == "amd64" (CALL build64.bat) ELSE (CALL build32.bat)
 CD ..
 ECHO CSOURCES NIM DONE
-bin\nim c --skipParentCfg -d:release koch
+bin\nim c --skipParentCfg --noNimblePath --skipUserCfg -d:release koch
 koch boot -d:release --skipParentCfg
 koch nimble --skipParentCfg
 CD ..

@@ -12,21 +12,23 @@ requires "nim > 0.18.0"
 
 # Tests
 
+let nimc = getEnv("NIMC", "nim") # Which nim compiler to use
+
 task test, "Runs the test suite":
   var testCommands = @[
-    "nim c -f -r tests/",
-    "nim c -f -d:danger -r tests/",
-    "nim c -f -d:danger --threads:on -r tests/",
+    nimc & " c -f -r tests/",
+    nimc & " c -f -d:danger -r tests/",
+    nimc & " c -f -d:danger --threads:on -r tests/",
   ]
 
   when (NimMajor, NimMinor) >= (1, 5):
-    testCommands.add "nim c -f --gc:orc --threads:on -r tests/"
+    testCommands.add(nimc & " c -f --gc:orc --threads:on -r tests/")
 
   let exampleFiles = @[
     "ecb", "cbc", "ofb", "cfb", "ctr", "gcm"
   ]
   var exampleCommands = @[
-      "nim c -f -r --threads:on examples/",
+      nimc & " c -f -r --threads:on examples/",
   ]
 
   when (NimMajor, NimMinor) >= (1, 5):
@@ -43,6 +45,6 @@ task test, "Runs the test suite":
       exec cmd & efile
       rmFile("examples/" & efile.toExe())
 
-  exec("nim c -f -r -d:nimcryptoLowercase tests/testapi")
-  exec("nim c -f -r -d:nimcrypto0xPrefix tests/testapi")
-  exec("nim c -f -r -d:nimcrypto0xPrefix -d:nimcryptoLowercase tests/testapi")
+  exec(nimc & " c -f -r -d:nimcryptoLowercase tests/testapi")
+  exec(nimc & " c -f -r -d:nimcrypto0xPrefix tests/testapi")
+  exec(nimc & " c -f -r -d:nimcrypto0xPrefix -d:nimcryptoLowercase tests/testapi")

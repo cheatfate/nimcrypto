@@ -28,7 +28,7 @@ EXIT /B 0
 ECHO Building Nim [%NIM_BRANCH%] (%NIM_ARCH%) in %NIM_DIR%
 git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
-IF NOT "%NIM_BRANCH%" == "devel" (
+IF "%NIM_BRANCH%" == "version-1-6" (
   git checkout "%NIM_BRANCH%"
   git clone --depth 1 https://github.com/nim-lang/csources_v1
   CD csources_v1

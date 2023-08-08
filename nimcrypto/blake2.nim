@@ -405,8 +405,9 @@ proc update*[T: bchar](ctx: var Blake2Context, data: openArray[T]) {.inline.} =
 
 proc update*(ctx: var Blake2Context, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr UncheckedArray[byte]](pbytes)
-  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
+  if not(isNil(pbytes)) and (nbytes > 0'u):
+    var p = cast[ptr UncheckedArray[byte]](pbytes)
+    ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc finish*(ctx: var Blake2sContext,
              data: var openArray[byte]): uint {.inline, discardable.} =

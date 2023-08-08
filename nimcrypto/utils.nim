@@ -14,8 +14,6 @@
 ## decent library "Constant-Time Toolkit" (https://github.com/pornin/CTTK)
 ## Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
 
-{.deadCodeElim:on.}
-
 type
   HexFlags* {.pure.} = enum
     LowerCase,  ## Produce lowercase hexadecimal characters
@@ -215,66 +213,6 @@ proc isFullZero*[T](a: openArray[T]): bool {.inline.} =
 proc isFullZero*[T](a: T): bool {.inline.} =
   result = isFullZero(unsafeAddr a, sizeof(T))
 
-proc lit64ToCpu*(p: ptr byte, offset: int): uint64 {.deprecated, inline.} =
-  ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
-  ## stored in little-endian order.
-  when cpuEndian == bigEndian:
-    var pp = cast[ptr UncheckedArray[byte]](p)
-    result = cast[uint64](pp[offset + 0] shl 56) or
-             cast[uint64](pp[offset + 1] shl 48) or
-             cast[uint64](pp[offset + 2] shl 40) or
-             cast[uint64](pp[offset + 3] shl 32) or
-             cast[uint64](pp[offset + 4] shl 24) or
-             cast[uint64](pp[offset + 5] shl 16) or
-             cast[uint64](pp[offset + 6] shl 8) or
-             cast[uint64](pp[offset + 7])
-  elif cpuEndian == littleEndian:
-    result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
-
-proc big64ToCpu*(p: ptr byte, offset: int): uint64 {.deprecated, inline.} =
-  ## Get uint64 integer from pointer ``p`` and offset ``o`` which must be
-  ## stored in big-endian order.
-  when cpuEndian == bigEndian:
-    result = cast[ptr uint64](cast[uint](p) + cast[uint](offset))[]
-  else:
-    var pp = cast[ptr UncheckedArray[byte]](p)
-    (uint64(pp[offset + 0]) shl 56) or (uint64(pp[offset + 1]) shl 48) or
-      (uint64(pp[offset + 2]) shl 40) or (uint64(pp[offset + 3]) shl 32) or
-      (uint64(pp[offset + 4]) shl 24) or (uint64(pp[offset + 5]) shl 16) or
-      (uint64(pp[offset + 6]) shl 8) or uint64(pp[offset + 7])
-
-proc cpuToLit64*(p: ptr byte, offset: int, v: uint64) {.deprecated, inline.} =
-  ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
-  ## little-endian order.
-  when cpuEndian == bigEndian:
-    var pp = cast[ptr UncheckedArray[byte]](p)
-    pp[0] = cast[byte](v shr 56)
-    pp[1] = cast[byte](v shr 48)
-    pp[2] = cast[byte](v shr 40)
-    pp[3] = cast[byte](v shr 32)
-    pp[4] = cast[byte](v shr 24)
-    pp[5] = cast[byte](v shr 16)
-    pp[6] = cast[byte](v shr 8)
-    pp[7] = cast[byte](v)
-  elif cpuEndian == littleEndian:
-    cast[ptr uint64](cast[uint](p) + cast[uint](offset))[] = v
-
-proc cpuToBig64*(p: ptr byte, offset: int, v: uint64) {.deprecated, inline.} =
-  ## Store uint64 integer ``v`` to pointer ``p`` and offset ``o`` in
-  ## big-endian order.
-  when cpuEndian == bigEndian:
-    cast[ptr uint64](cast[uint](p) + cast[uint](offset))[] = v
-  elif cpuEndian == littleEndian:
-    var pp = cast[ptr UncheckedArray[byte]](p)
-    pp[0] = cast[byte](v shr 56)
-    pp[1] = cast[byte](v shr 48)
-    pp[2] = cast[byte](v shr 40)
-    pp[3] = cast[byte](v shr 32)
-    pp[4] = cast[byte](v shr 24)
-    pp[5] = cast[byte](v shr 16)
-    pp[6] = cast[byte](v shr 8)
-    pp[7] = cast[byte](v)
-
 when defined(gcc) or defined(llvm_gcc) or defined(clang):
   func swapBytesBuiltin(x: uint8): uint8 = x
   func swapBytesBuiltin(x: uint16): uint16 {.
@@ -328,7 +266,8 @@ template beLoad32*[T: byte|char](src: openArray[T], srco: int): uint32 =
     (uint32(src[srco + 0]) shl 24) or (uint32(src[srco + 1]) shl 16) or
       (uint32(src[srco + 2]) shl 8) or uint32(src[srco + 3])
   else:
-    let p = cast[ptr uint32](unsafeAddr src[srco])[]
+    var p: uint32
+    copyMem(addr p, unsafeAddr src[srco], sizeof(uint32))
     leSwap32(p)
 
 template leLoad32*[T: byte|char](src: openArray[T], srco: int): uint32 =
@@ -336,7 +275,8 @@ template leLoad32*[T: byte|char](src: openArray[T], srco: int): uint32 =
     (uint32(src[srco + 3]) shl 24) or (uint32(src[srco + 2]) shl 16) or
       (uint32(src[srco + 1]) shl 8) or uint32(src[srco + 0])
   else:
-    let p = cast[ptr uint32](unsafeAddr src[srco])[]
+    var p: uint32
+    copyMem(addr p, unsafeAddr src[srco], sizeof(uint32))
     beSwap32(p)
 
 template beLoad64*[T: byte|char](src: openArray[T], srco: int): uint64 =
@@ -346,7 +286,8 @@ template beLoad64*[T: byte|char](src: openArray[T], srco: int): uint64 =
       (uint64(src[srco + 4]) shl 24) or (uint64(src[srco + 5]) shl 16) or
       (uint64(src[srco + 6]) shl 8) or uint64(src[srco + 7])
   else:
-    let p = cast[ptr uint64](unsafeAddr src[srco])[]
+    var p: uint64
+    copyMem(addr p, unsafeAddr src[srco], sizeof(uint64))
     leSwap64(p)
 
 template leLoad64*[T: byte|char](src: openArray[T], srco: int): uint64 =
@@ -356,7 +297,8 @@ template leLoad64*[T: byte|char](src: openArray[T], srco: int): uint64 =
       (uint64(src[srco + 3]) shl 24) or (uint64(src[srco + 2]) shl 16) or
       (uint64(src[srco + 1]) shl 8) or uint64(src[srco + 0])
   else:
-    let p = cast[ptr uint64](unsafeAddr src[srco])[]
+    var p: uint64
+    copyMem(addr p, unsafeAddr src[srco], sizeof(uint64))
     beSwap64(p)
 
 template beStore32*(dst: var openArray[byte], so: int, v: uint32) =
@@ -366,7 +308,8 @@ template beStore32*(dst: var openArray[byte], so: int, v: uint32) =
     dst[so + 2] = byte((v shr 8) and 0xFF'u32)
     dst[so + 3] = byte(v and 0xFF'u32)
   else:
-    cast[ptr uint32](addr dst[so])[] = leSwap32(v)
+    let p = leSwap32(v)
+    copyMem(addr dst[so], unsafeAddr p, sizeof(uint32))
 
 template beStore64*(dst: var openArray[byte], so: int, v: uint64) =
   when nimvm:
@@ -379,7 +322,8 @@ template beStore64*(dst: var openArray[byte], so: int, v: uint64) =
     dst[so + 6] = byte((v shr 8) and 0xFF'u64)
     dst[so + 7] = byte(v and 0xFF'u64)
   else:
-    cast[ptr uint64](addr dst[so])[] = leSwap64(v)
+    let p = leSwap64(v)
+    copyMem(addr dst[so], unsafeAddr p, sizeof(uint64))
 
 template leStore32*(dst: var openArray[byte], so: int, v: uint32) =
   when nimvm:
@@ -388,7 +332,8 @@ template leStore32*(dst: var openArray[byte], so: int, v: uint32) =
     dst[so + 2] = byte((v shr 16) and 0xFF'u32)
     dst[so + 3] = byte((v shr 24) and 0xFF'u32)
   else:
-    cast[ptr uint32](addr dst[so])[] = beSwap32(v)
+    let p = beSwap32(v)
+    copyMem(addr dst[so], unsafeAddr p, sizeof(uint32))
 
 template leStore64*(dst: var openArray[byte], so: int, v: uint64) =
   when nimvm:
@@ -401,7 +346,8 @@ template leStore64*(dst: var openArray[byte], so: int, v: uint64) =
     dst[so + 6] = byte((v shr 48) and 0xFF'u64)
     dst[so + 7] = byte((v shr 56) and 0xFF'u64)
   else:
-    cast[ptr uint64](addr dst[so])[] = beSwap64(v)
+    let p = beSwap64(v)
+    copyMem(addr dst[so], unsafeAddr p, sizeof(uint64))
 
 template copyMem*[A, B](dst: var openArray[A], dsto: int,
                         src: openArray[B], srco: int,

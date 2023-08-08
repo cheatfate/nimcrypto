@@ -59,8 +59,6 @@ import utils
 import sha, sha2, ripemd, keccak, blake2, hash
 export sha, sha2, ripemd, keccak, blake2, hash
 
-{.deadCodeElim:on.}
-
 template hmacSizeBlock*(h: typedesc): int =
   mixin sizeBlock
   when (h is Sha1Context) or (h is Sha2Context) or (h is RipemdContext) or
@@ -191,8 +189,9 @@ proc update*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint) {.inline.} =
   ##      ctx.update(addr source[0], len(source))
   ##    echo $ctx.finish()
   ##
-  var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
-  hmctx.update(ptrarr.toOpenArray(0, int(nbytes) - 1))
+  if not(isNil(pbytes)) and (nbytes > 0'u):
+    var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
+    hmctx.update(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*[T: bchar](hmctx: var HMAC,
                        data: var openArray[T]): uint {.inline.} =

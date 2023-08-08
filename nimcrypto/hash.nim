@@ -11,8 +11,6 @@
 ## supported by `nimcrypto` library.
 import utils
 
-{.deadCodeElim:on.}
-
 const
   MaxMDigestLength* = 64
     ## Maximum size of generated digests by `nimcrypto` library is 64 octets.

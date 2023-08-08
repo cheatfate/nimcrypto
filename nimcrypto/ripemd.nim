@@ -22,8 +22,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim: on.}
-
 type
   RipemdContext*[bits: static[int]] = object
     count: array[2, uint32]
@@ -770,8 +768,9 @@ proc update*[T: bchar](ctx: var RipemdContext, data: openArray[T]) {.inline.} =
 
 proc update*(ctx: var RipemdContext, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr UncheckedArray[byte]](pbytes)
-  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
+  if not(isNil(pbytes)) and (nbytes > 0'u):
+    var p = cast[ptr UncheckedArray[byte]](pbytes)
+    ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc finalize(ctx: var RipemdContext) {.inline.} =
   let size = int(ctx.count[0] and 0x3F'u32)

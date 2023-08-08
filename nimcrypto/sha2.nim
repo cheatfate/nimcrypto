@@ -16,8 +16,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim:on.}
-
 const
   K0 = [
     0x428a2f98'u32, 0x71374491'u32, 0xb5c0fbcf'u32, 0xe9b5dba5'u32,
@@ -486,8 +484,9 @@ proc update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.inline.} =
         sha512Transform(ctx.state, ctx.buffer)
 
 proc update*(ctx: var Sha2Context, pbytes: ptr byte, nbytes: uint) {.inline.} =
-  var p = cast[ptr UncheckedArray[byte]](pbytes)
-  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
+  if not(isNil(pbytes)) and (nbytes > 0'u):
+    var p = cast[ptr UncheckedArray[byte]](pbytes)
+    ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc finalize256(ctx: var Sha2Context) {.inline.} =
   var j = int(ctx.count[0] and 0x3F'u32)

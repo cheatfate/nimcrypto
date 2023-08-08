@@ -21,8 +21,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim:on.}
-
 const RNDC = [
   0x0000000000000001'u64, 0x0000000000008082'u64, 0x800000000000808A'u64,
   0x8000000080008000'u64, 0x000000000000808B'u64, 0x0000000080000001'u64,
@@ -380,8 +378,9 @@ proc update*[T: bchar](ctx: var KeccakContext,
 
 proc update*(ctx: var KeccakContext, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr UncheckedArray[byte]](pbytes)
-  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
+  if not(isNil(pbytes)) and (nbytes > 0'u):
+    var p = cast[ptr UncheckedArray[byte]](pbytes)
+    ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc xof*(ctx: var KeccakContext) {.inline.} =
   when ctx.kind != Shake:

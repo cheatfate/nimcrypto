@@ -12,8 +12,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim:on.}
-
 template SHA_MIX(t: int): uint32 =
   ROL(arr[(t + 13) and 15] xor arr[(t + 8) and 15] xor
       arr[(t + 2)  and 15] xor arr[t and 15], 1)
@@ -222,8 +220,9 @@ proc update*[T: bchar](ctx: var Sha1Context, data: openArray[T]) {.inline.} =
 
 proc update*(ctx: var Sha1Context, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
-  var p = cast[ptr UncheckedArray[byte]](pbytes)
-  ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
+  if not(isNil(pbytes)) and (nbytes > 0'u):
+    var p = cast[ptr UncheckedArray[byte]](pbytes)
+    ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
 proc finish*(ctx: var Sha1Context,
              data: var openArray[byte]): uint {.inline, discardable.} =

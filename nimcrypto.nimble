@@ -19,6 +19,7 @@ task test, "Runs the test suite":
     nimc & " c -f -r tests/",
     nimc & " c -f -d:danger -r tests/",
     nimc & " c -f -d:danger --threads:on -r tests/",
+    nimc & " c -f --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/"
   ]
 
   when (NimMajor, NimMinor) >= (1, 5):

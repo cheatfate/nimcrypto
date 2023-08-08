@@ -14,10 +14,7 @@
 ##
 ## Tests made according to official test vectors
 ## [https://www.schneier.com/code/ecb_ival.txt].
-
 import utils
-
-{.deadCodeElim:on.}
 
 const
   RS_MOD = 0x14D

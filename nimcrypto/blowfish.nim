@@ -34,10 +34,7 @@
 ## Warning #6:  This code is susceptible to timing attacks.
 ## Warning #7:  Security engineering is risky and non-intuitive.  Have someone
 ## check your work. If you don't know what you are doing, get help.
-
 import utils
-
-{.deadCodeElim:on.}
 
 const
   N = 16

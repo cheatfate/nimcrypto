@@ -59,8 +59,6 @@ import utils
 import sha, sha2, ripemd, keccak, blake2, hash
 export sha, sha2, ripemd, keccak, blake2, hash
 
-{.deadCodeElim:on.}
-
 template hmacSizeBlock*(h: typedesc): int =
   mixin sizeBlock
   when (h is Sha1Context) or (h is Sha2Context) or (h is RipemdContext) or

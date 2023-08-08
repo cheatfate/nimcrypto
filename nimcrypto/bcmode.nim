@@ -31,8 +31,6 @@
 ## https://github.com/majek/openssl/blob/master/crypto/evp/evptests.txt
 import utils
 
-{.deadCodeElim:on.}
-
 const
   MaxBlockSize = 256
   MaxBlockBytesSize = MaxBlockSize shr 3

@@ -16,8 +16,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim:on.}
-
 const
   K0 = [
     0x428a2f98'u32, 0x71374491'u32, 0xb5c0fbcf'u32, 0xe9b5dba5'u32,

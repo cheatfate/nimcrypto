@@ -6,12 +6,12 @@
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
 #
-import utils, hmac, pbkdf2
-export hmac
 
 ## This module implements
 ## The scrypt Password-Based Key Derivation Function
 ## https://tools.ietf.org/html/rfc7914
+import utils, hmac, pbkdf2
+export hmac
 
 proc salsaXor(tmp: var openArray[uint32],
   src: openArray[uint32], srco: int, dest: var openArray[uint32], dsto: int) =

@@ -14,8 +14,6 @@
 ## decent library "Constant-Time Toolkit" (https://github.com/pornin/CTTK)
 ## Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
 
-{.deadCodeElim:on.}
-
 type
   HexFlags* {.pure.} = enum
     LowerCase,  ## Produce lowercase hexadecimal characters

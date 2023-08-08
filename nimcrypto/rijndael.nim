@@ -18,8 +18,6 @@
 ## [http://csrc.nist.gov/groups/STM/cavp/documents/aes/AESAVS.pdf].
 import utils
 
-{.deadCodeElim:on.}
-
 when sizeof(int) == 4:
   type
     RijndaelContext[bits: static[uint]] = object

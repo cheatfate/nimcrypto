@@ -12,8 +12,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim:on.}
-
 template SHA_MIX(t: int): uint32 =
   ROL(arr[(t + 13) and 15] xor arr[(t + 8) and 15] xor
       arr[(t + 2)  and 15] xor arr[t and 15], 1)

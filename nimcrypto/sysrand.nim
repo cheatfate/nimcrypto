@@ -24,7 +24,6 @@
 ##
 ## ``NetBSD``, ``FreeBSD``, ``MacOS``, ``Solaris`` using `/dev/urandom`.
 
-{.deadCodeElim:on.}
 {.push raises: [].}
 
 when defined(posix):

@@ -17,8 +17,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim: on.}
-
 type
   Blake2bContext*[bits: static[int]] = object
     b: array[128, byte]

@@ -22,8 +22,6 @@
 import hash, utils
 export hash
 
-{.deadCodeElim: on.}
-
 type
   RipemdContext*[bits: static[int]] = object
     count: array[2, uint32]

@@ -21,11 +21,51 @@ const
     ## Compile your project with ``-d:nimcrypto0xPrefix`` to set all
     ## hexadecimal output to be prefixed with ``0x``.
 
-type
-  MDigest*[bits: static[int]] = object
-    ## Message digest type
-    data*: array[bits div 8, byte]
+  MDigestAlignment* = when defined(nimMemAlignTiny): 4
+    elif defined(useMalloc):
+      when defined(amd64): 16
+      else: 8
+    else: 16
+    ## Aligning the digest to a reasonable boundary allows for more efficient
+    ## copying and zero:ing - however, we cannot over-align the type with
+    ## respect to the dynamic memory allocator or heap-based instances might
+    ## end up causing unaligned reads with aligned instructions.
+    ##
+    ## See also:
+    ## https://github.com/nim-lang/Nim/blob/v1.6.14/lib/system/bitmasks.nim#L22
+    ## https://en.cppreference.com/w/cpp/types/max_align_t
+  MDigestAligned* = (NimMajor, NimMinor) >= (1, 6)
 
+when MDigestAligned:
+  type
+    MDigest*[bits: static[int]] = object
+      ## Message digest type
+      # TODO https://github.com/nim-lang/Nim/issues/22474 prevents `else` and
+      # any kind of template evaluation in when.. including >=! *sigh*
+      # The point of the below when:s is to pick one data field only while
+      # at the same time avoid alignments that would introduce postfix padding
+      when ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16)):
+        data* {.align: 16.}: array[bits div 8, byte]
+      when ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and not (MDigestAlignment < 8)) and not (
+          ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16))):
+        data* {.align: 8.}: array[bits div 8, byte]
+      when ((bits div 8) mod 4 == 0 and not ((bits div 8) < 4) and not (MDigestAlignment < 4)) and not (
+          ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16)) or
+          ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and not (MDigestAlignment < 8))):
+        data* {.align: 4.}: array[bits div 8, byte]
+      when not (
+          ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16)) or
+          ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and not (MDigestAlignment < 8)) or
+          ((bits div 8) mod 4 == 0 and not ((bits div 8) < 4) and not (MDigestAlignment < 4))):
+        data*: array[bits div 8, byte]
+
+else:
+  type
+    MDigest*[bits: static[int]] = object
+      ## Message digest type
+      data*: array[bits div 8, byte]
+
+type
   bchar* = byte | char
 
 proc `$`*(digest: MDigest): string =

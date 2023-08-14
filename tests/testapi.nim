@@ -79,3 +79,28 @@ suite "Test API":
       """
     var h = keccak256.digest("")
     check $h == strip(vector)
+
+  when MDigestAligned:
+    test "Alignment":
+      proc f() =
+        var dummy: byte
+        var d: MDigest[256]
+
+        check:
+          cast[uint](addr dummy) != cast[uint](addr d) # use dummy
+          cast[uint](addr d.data[0]) mod MDigestAlignment == 0
+
+          alignof(MDigest[32 * 8]) == min(MDigestAlignment, 32)
+          alignof(MDigest[16 * 8]) == min(MDigestAlignment, 16)
+          alignof(MDigest[8 * 8]) == min(MDigestAlignment, 8)
+          alignof(MDigest[4 * 8]) == min(MDigestAlignment, 4)
+
+          sizeof(array[2, MDigest[32 * 8]]) == 2 * 32
+          sizeof(array[2, MDigest[16 * 8]]) == 2 * 16
+          sizeof(array[2, MDigest[8 * 8]]) == 2 * 8
+          sizeof(array[2, MDigest[4 * 8]]) == 2 * 4
+
+          # Alignment should not introduce array padding
+          sizeof(array[2, MDigest[7 * 8]]) == 2 * 7
+
+      f()

@@ -22,10 +22,8 @@ const
     ## hexadecimal output to be prefixed with ``0x``.
 
   MDigestAlignment* = when defined(nimMemAlignTiny): 4
-    elif defined(useMalloc):
-      when defined(amd64): 16
-      else: 8
-    else: 16
+    elif sizeof(int) == 8: 16
+    else: 8
     ## Aligning the digest to a reasonable boundary allows for more efficient
     ## copying and zero:ing - however, we cannot over-align the type with
     ## respect to the dynamic memory allocator or heap-based instances might
@@ -34,6 +32,9 @@ const
     ## See also:
     ## https://github.com/nim-lang/Nim/blob/v1.6.14/lib/system/bitmasks.nim#L22
     ## https://en.cppreference.com/w/cpp/types/max_align_t
+    # TODO https://github.com/nim-lang/Nim/issues/22482 (on 32-bit refc, `new`
+    #      incorrectly aligns to 8)
+
   MDigestAligned* = (NimMajor, NimMinor) >= (1, 6)
 
 when MDigestAligned:

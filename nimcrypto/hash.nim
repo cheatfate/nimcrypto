@@ -40,23 +40,22 @@ when MDigestAligned:
   type
     MDigest*[bits: static[int]] = object
       ## Message digest type
-      # TODO https://github.com/nim-lang/Nim/issues/22474 prevents `else` and
-      # any kind of template evaluation in when.. including >=! *sigh*
-      # The point of the below when:s is to pick one data field only while
-      # at the same time avoid alignments that would introduce postfix padding
-      when ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16)):
+      # We want the largest alignment such that:
+      # * the alignment evenly divides the size of the type (to avoid padding)
+      # * the alignment is not greater than the type (to avoid padding)
+      # * the alignment isn't greater than what `new` guaranteees
+      # TODO https://github.com/nim-lang/Nim/issues/22474 any kind of template
+      # evaluation in when.. including >=! *sigh*
+      when ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and
+          not (MDigestAlignment < 16)):
         data* {.align: 16.}: array[bits div 8, byte]
-      when ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and not (MDigestAlignment < 8)) and not (
-          ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16))):
+      elif ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and
+          not (MDigestAlignment < 8)):
         data* {.align: 8.}: array[bits div 8, byte]
-      when ((bits div 8) mod 4 == 0 and not ((bits div 8) < 4) and not (MDigestAlignment < 4)) and not (
-          ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16)) or
-          ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and not (MDigestAlignment < 8))):
+      elif ((bits div 8) mod 4 == 0 and not ((bits div 8) < 4) and
+          not (MDigestAlignment < 4)):
         data* {.align: 4.}: array[bits div 8, byte]
-      when not (
-          ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and not (MDigestAlignment < 16)) or
-          ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and not (MDigestAlignment < 8)) or
-          ((bits div 8) mod 4 == 0 and not ((bits div 8) < 4) and not (MDigestAlignment < 4))):
+      else:
         data*: array[bits div 8, byte]
 
 else:

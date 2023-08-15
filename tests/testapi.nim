@@ -83,12 +83,17 @@ suite "Test API":
   when MDigestAligned:
     test "Alignment":
       proc f() =
-        var dummy: byte
-        var d: MDigest[256]
+        type Fields = object
+          dummy: byte
+          d: MDigest[256]
+        var fields: Fields
+
+        var fieldsRef = new Fields
 
         check:
-          cast[uint](addr dummy) != cast[uint](addr d) # use dummy
-          cast[uint](addr d.data[0]) mod MDigestAlignment == 0
+          cast[uint](addr fields.dummy) != cast[uint](addr fields.d) # use dummy
+          cast[uint](addr fields.d.data[0]) mod MDigestAlignment == 0
+          cast[uint](addr fieldsRef[].d.data[0]) mod MDigestAlignment == 0
 
           alignof(MDigest[32 * 8]) == min(MDigestAlignment, 32)
           alignof(MDigest[16 * 8]) == min(MDigestAlignment, 16)

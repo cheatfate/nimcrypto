@@ -21,11 +21,51 @@ const
     ## Compile your project with ``-d:nimcrypto0xPrefix`` to set all
     ## hexadecimal output to be prefixed with ``0x``.
 
-type
-  MDigest*[bits: static[int]] = object
-    ## Message digest type
-    data*: array[bits div 8, byte]
+  MDigestAlignment* = when defined(nimMemAlignTiny): 4
+    elif sizeof(int) == 8: 16
+    else: 8
+    ## Aligning the digest to a reasonable boundary allows for more efficient
+    ## copying and zero:ing - however, we cannot over-align the type with
+    ## respect to the dynamic memory allocator or heap-based instances might
+    ## end up causing unaligned reads with aligned instructions.
+    ##
+    ## See also:
+    ## https://github.com/nim-lang/Nim/blob/v1.6.14/lib/system/bitmasks.nim#L22
+    ## https://en.cppreference.com/w/cpp/types/max_align_t
+    # TODO https://github.com/nim-lang/Nim/issues/22482 (on 32-bit refc, `new`
+    #      incorrectly aligns to 8)
 
+  MDigestAligned* = (NimMajor, NimMinor) >= (1, 6)
+
+when MDigestAligned:
+  type
+    MDigest*[bits: static[int]] = object
+      ## Message digest type
+      # We want the largest alignment such that:
+      # * the alignment evenly divides the size of the type (to avoid padding)
+      # * the alignment is not greater than the type (to avoid padding)
+      # * the alignment isn't greater than what `new` guaranteees
+      # TODO https://github.com/nim-lang/Nim/issues/22474 any kind of template
+      # evaluation in when.. including >=! *sigh*
+      when ((bits div 8) mod 16 == 0 and not ((bits div 8) < 16) and
+          not (MDigestAlignment < 16)):
+        data* {.align: 16.}: array[bits div 8, byte]
+      elif ((bits div 8) mod 8 == 0 and not ((bits div 8) < 8) and
+          not (MDigestAlignment < 8)):
+        data* {.align: 8.}: array[bits div 8, byte]
+      elif ((bits div 8) mod 4 == 0 and not ((bits div 8) < 4) and
+          not (MDigestAlignment < 4)):
+        data* {.align: 4.}: array[bits div 8, byte]
+      else:
+        data*: array[bits div 8, byte]
+
+else:
+  type
+    MDigest*[bits: static[int]] = object
+      ## Message digest type
+      data*: array[bits div 8, byte]
+
+type
   bchar* = byte | char
 
 proc `$`*(digest: MDigest): string =

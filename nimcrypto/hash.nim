@@ -34,8 +34,9 @@ const
     ## https://en.cppreference.com/w/cpp/types/max_align_t
     # TODO https://github.com/nim-lang/Nim/issues/22482 (on 32-bit refc, `new`
     #      incorrectly aligns to 8)
+    #      https://github.com/cheatfate/nimcrypto/issues/69 1.6.12 has debilitating bugs
 
-  MDigestAligned* = (NimMajor, NimMinor) >= (1, 6)
+  MDigestAligned* = (NimMajor, NimMinor, NimPatch) >= (1, 6, 14)
 
 when MDigestAligned:
   type

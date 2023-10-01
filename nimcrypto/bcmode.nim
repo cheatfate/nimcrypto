@@ -9,7 +9,7 @@
 
 ## This module implements various Block Cipher Modes.
 ##
-## The five modes currently supported:
+## The six modes currently supported:
 ## * ECB (Electronic Code Book)
 ## * CBC (Cipher Block Chaining)
 ## * CFB (Cipher FeedBack)
@@ -982,6 +982,11 @@ proc init*[T](ctx: var GCM[T], key: openArray[byte], iv: openArray[byte],
   ## Initialize ``GCM[T]`` with encryption key ``key``, initial vector (IV)
   ## ``iv`` and additional authentication data (AAD) ``aad``.
   ##
+  ## NOTE: The IVs in GCM must fulfill the following “uniqueness” requirement:
+  ## The probability that the authenticated encryption function ever will be
+  ## invoked with the same IV and the same key on two (or more) distinct sets
+  ## of input data shall be no greater than 2^-32.
+  ##
   ## Size of ``key`` must be at least ``ctx.sizeKey()`` octets (bytes).
   ## Size of cipher ``T`` block must be 128 bits (16 bytes).
   ##
@@ -1075,6 +1080,34 @@ proc getTag*[T](ctx: var GCM[T]): array[16, byte] {.noinit.} =
   ## Obtain authentication tag from ``GCM[T]`` context ``ctx`` and return it as
   ## result array.
   getTag(ctx, result)
+
+proc encrypt*[T](ctx: var GCM[T], input: openArray[byte],
+                 output: var openArray[byte], tag: var openArray[byte]) =
+  ## Perform authenticated encryption of data ``input`` and store encrypted
+  ## data to array ``output`` and authentication tag to array ``tag`` using
+  ## ``GCM[T]`` context ``ctx``.
+  ##
+  ## Note that length of ``input`` must be less or equal to length of
+  ## ``output``. Length of ``input`` must not be zero.
+  ctx.encrypt(input, output)
+  ctx.getTag(tag)
+
+proc decrypt*[T](ctx: var GCM[T], input: openArray[byte],
+                 output: var openArray[byte],
+                 tag: openArray[byte]): bool =
+  ## Perform authenticated decryption of data ``input`` with authentication tag
+  ## ``tag`` and store decrypted data to array ``output``.
+  ##
+  ## Procedure returns ``true`` if data succesfully authenticated with
+  ## authentication tag ``tag``.
+  ##
+  ## Note that length of ``input`` must be less or equal to length of
+  ## ``output``. Length of ``input`` must not be zero.
+  var dataTag: array[16, byte]
+  let uselen = min(len(tag), 16)
+  ctx.decrypt(input, output)
+  ctx.getTag(dataTag.toOpenArray(0, uselen - 1))
+  compareMem(tag.toOpenArray(0, uselen - 1), dataTag.toOpenArray(0, uselen - 1))
 
 proc clear*[T](ctx: var GCM[T]) {.inline.} =
   ## Clear ``GCM[T]`` context ``ctx``.

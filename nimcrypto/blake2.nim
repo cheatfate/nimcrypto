@@ -292,7 +292,7 @@ template sizeBlock*(r: typedesc[blake2]): int =
     (128)
 
 proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T],
-                     digestSize = int(ctx.sizeDigest())) {.inline.} =
+                     digestSize: int) {.inline.} =
   doAssert(digestSize > 0)
   when ctx is Blake2sContext:
     when nimvm:
@@ -342,9 +342,12 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T],
   ctx.tb[1] = ctx.t[1]
   ctx.cb = ctx.c
 
+proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
+  ctx.init(key, ctx.sizeDigest())
+
 proc init*(ctx: var Blake2Context) {.inline.} =
   var zeroKey: array[0, byte]
-  ctx.init(zeroKey)
+  ctx.init(zeroKey, ctx.sizeDigest())
 
 proc init*(ctx: var Blake2Context, digestSize: int) {.inline.} =
   var zeroKey: array[0, byte]

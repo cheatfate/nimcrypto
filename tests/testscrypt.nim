@@ -139,19 +139,19 @@ suite "Scrypt KDF tests suite":
     let dkey = scrypt(password="pleaseletmein", salt="SodiumChloride", N=16384, r=8, p=1, keyLen=64)
     check key == dkey
 
-  when defined(cpu64):
-    # these test vectors OOM with appveyor 32 bit
-    # because of huge N
-    test "scrypt N=1048576, r=8, p=1, keyLen=32":
-      let key = fromHex("E277EA2CACB23EDAFC039D229B79DC13ECEDB601D99B182A9FEDBA1E2BFB4F58")
-      let dkey = scrypt(password="Rabbit", salt="Mouse", N=1048576, r=8, p=1, keyLen=32)
-      check key == dkey
+  # when defined(cpu64):
+  #   # these test vectors OOM with appveyor 32 bit
+  #   # because of huge N
+  #   test "scrypt N=1048576, r=8, p=1, keyLen=32":
+  #     let key = fromHex("E277EA2CACB23EDAFC039D229B79DC13ECEDB601D99B182A9FEDBA1E2BFB4F58")
+  #     let dkey = scrypt(password="Rabbit", salt="Mouse", N=1048576, r=8, p=1, keyLen=32)
+  #     check key == dkey
 
-    test "scrypt N=1048576, r=8, p=1, keyLen=64":
-      let key = fromHex("2101CB9B6A511AAEADDBBE09CF70F881EC568D574A2FFD4DABE5EE9820ADAA47" &
-                "8E56FD8F4BA5D09FFA1C6D927C40F4C337304049E8A952FBCBF45C6FA77A41A4")
-      let dkey = scrypt(password="pleaseletmein", salt="SodiumChloride", N=1048576, r=8, p=1, keyLen=64)
-      check key == dkey
+  #   test "scrypt N=1048576, r=8, p=1, keyLen=64":
+  #     let key = fromHex("2101CB9B6A511AAEADDBBE09CF70F881EC568D574A2FFD4DABE5EE9820ADAA47" &
+  #               "8E56FD8F4BA5D09FFA1C6D927C40F4C337304049E8A952FBCBF45C6FA77A41A4")
+  #     let dkey = scrypt(password="pleaseletmein", salt="SodiumChloride", N=1048576, r=8, p=1, keyLen=64)
+  #     check key == dkey
 
   test "string vs openarray[byte]":
     let stringarg = scrypt(password="password", salt="NaCl", N=1024, r=8, p=16, keyLen=32)

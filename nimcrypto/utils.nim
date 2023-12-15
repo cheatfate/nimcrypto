@@ -31,7 +31,7 @@ template ROR*(x: uint32, n: int): uint32 =
   (x shr uint32(n and 0x1F)) or (x shl uint32(32 - (n and 0x1F)))
 
 template ROR*(x: uint64, n: int): uint64 =
-  (x shr uint64(n and 0x3F)) or (x shl uint64(64 - (n and 0x3F)))
+  (x shr n) or (x shl (64 - n))
 
 proc `-`(x: uint32): uint32 {.inline.} =
   result = (0xFFFF_FFFF'u32 - x) + 1'u32

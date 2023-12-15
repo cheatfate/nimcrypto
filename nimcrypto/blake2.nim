@@ -343,11 +343,11 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T],
   ctx.cb = ctx.c
 
 proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
-  ctx.init(key, ctx.sizeDigest())
+  ctx.init(key, int(ctx.sizeDigest()))
 
 proc init*(ctx: var Blake2Context) {.inline.} =
   var zeroKey: array[0, byte]
-  ctx.init(zeroKey, ctx.sizeDigest())
+  ctx.init(zeroKey, int(ctx.sizeDigest()))
 
 proc init*(ctx: var Blake2Context, digestSize: int) {.inline.} =
   var zeroKey: array[0, byte]

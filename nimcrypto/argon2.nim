@@ -593,8 +593,6 @@ proc allocate(ctx: var Argon2Kdf) =
       cast[Argon2BlocksMap](allocMem(size))
 
   initialHash(ctx, blockhash)
-  burnMem(blockhash.toOpenArray(ARGON2_PREHASH_DIGEST_LENGTH,
-                                ARGON2_PREHASH_SEED_LENGTH - 1))
   fillFirstBlocks(ctx, blockhash)
 
 proc finalize(ctx: var Argon2Kdf, outBytes: var openArray[byte]) =

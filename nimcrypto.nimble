@@ -26,7 +26,8 @@ task test, "Runs the test suite":
     nimc & " c -f -d:danger -r tests/",
     nimc & " c -f -d:danger --threads:on -r tests/",
     nimc & " c -f --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/",
-    nimc & " c -f " & mmopt & " --threads:on -r tests/"
+    # Multithreaded ORC is broken right now, so we use -d:useMalloc
+    nimc & " c -f " & mmopt & " -d:useMalloc --threads:on -r tests/"
   ]
 
   let exampleFiles = @[

@@ -97,7 +97,7 @@ type
   Argon2ThreadDataPtr = ptr Argon2ThreadData
 
 proc allocMem(size: Natural): pointer =
-  allocShared(size)
+  allocShared0(size)
 
 proc freeMem(data: pointer) =
   freeShared(cast[ptr byte](data))

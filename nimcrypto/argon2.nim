@@ -56,15 +56,12 @@ type
   Argon2Type* {.pure.} = enum
     TypeD = 0, TypeI = 1, TypeID = 2
 
-  Argon2ContextKind {.pure.} = enum
-    CompileTime, RunTime
-
   Argon2Pos = object of RootObj
     pass: uint32
     lane: uint32
     slice: uint8
 
-  Argon2Kdf = object of RootObj
+  Argon2KdfSHM = object of RootObj
     kind: Argon2Type
     version: Argon2Version
     outLength: uint32
@@ -76,22 +73,34 @@ type
     threads: uint32
     mCost: uint32
     tCost: uint32
-    case contextKind: Argon2ContextKind
-    of Argon2ContextKind.CompileTime:
-      passwordSeq: seq[byte]
-      saltSeq: seq[byte]
-      secretSeq: seq[byte]
-      adSeq: seq[byte]
-      memorySeq: seq[Argon2Block]
-    of Argon2ContextKind.RunTime:
-      passwordPtr: Argon2BytesArrayPtr
-      saltPtr: Argon2BytesArrayPtr
-      secretPtr: Argon2BytesArrayPtr
-      adPtr: Argon2BytesArrayPtr
-      memoryPtr: Argon2BlocksMap
+    passwordPtr: Argon2BytesArrayPtr
+    saltPtr: Argon2BytesArrayPtr
+    secretPtr: Argon2BytesArrayPtr
+    adPtr: Argon2BytesArrayPtr
+    memoryPtr: Argon2BlocksMap
+
+  Argon2KdfGCM = object of RootObj
+    kind: Argon2Type
+    version: Argon2Version
+    outLength: uint32
+    lanes: uint32
+    segmentLength: uint32
+    memoryBlocks: uint32
+    laneLength: uint32
+    passes: uint32
+    threads: uint32
+    mCost: uint32
+    tCost: uint32
+    passwordSeq: seq[byte]
+    saltSeq: seq[byte]
+    secretSeq: seq[byte]
+    adSeq: seq[byte]
+    memorySeq: seq[Argon2Block]
+
+  Argon2Kdf = Argon2KdfSHM | Argon2KdfGCM
 
   Argon2ThreadData = object
-    context: Argon2Kdf
+    context: Argon2KdfSHM
     position: Argon2Pos
 
   Argon2ThreadDataPtr = ptr Argon2ThreadData
@@ -102,25 +111,22 @@ proc allocMem(size: Natural): pointer =
 proc freeMem(data: pointer) =
   freeShared(cast[ptr byte](data))
 
-template mul32(x, y: uint64): uint64 =
-  (x and 0xFFFF_FFFF'u64) * (y and 0xFFFF_FFFF'u64)
-
-template transformG(a, b, c, d: untyped) =
-  a = a + b + 2 * mul32(a, b)
+proc transformG(a, b, c, d: var uint64) =
+  a = a + b + 2 * (a and 0xFFFF_FFFF'u64) * (b and 0xFFFF_FFFF'u64)
   let da1 = d xor a
   d = ROR(da1, 32)
-  c = c + d + 2 * mul32(c, d)
+  c = c + d + 2 * (c and 0xFFFF_FFFF'u64) * (d and 0xFFFF_FFFF'u64)
   let bc1 = b xor c
   b = ROR(bc1, 24)
-  a = a + b + 2 * mul32(a, b)
+  a = a + b + 2 * (a and 0xFFFF_FFFF'u64) * (b and 0xFFFF_FFFF'u64)
   let da2 = d xor a
   d = ROR(da2, 16)
-  c = c + d + 2 * mul32(c, d)
+  c = c + d + 2 * (c and 0xFFFF_FFFF'u64) * (d and 0xFFFF_FFFF'u64)
   let bc2 = b xor c
   b = ROR(bc2, 63)
 
-template permutationP(v0, v1, v2, v3, v4, v5, v6, v7, v8,
-                      v9, v10, v11, v12, v13, v14, v15: untyped) =
+proc permutationP(v0, v1, v2, v3, v4, v5, v6, v7, v8,
+                  v9, v10, v11, v12, v13, v14, v15: var uint64) =
   transformG(v0, v4, v8, v12)
   transformG(v1, v5, v9, v13)
   transformG(v2, v6, v10, v14)
@@ -130,19 +136,59 @@ template permutationP(v0, v1, v2, v3, v4, v5, v6, v7, v8,
   transformG(v2, v7, v8, v13)
   transformG(v3, v4, v9, v14)
 
-template permutationPcol(x, i: untyped) =
+proc permutationPcol(x: var array[ARGON2_QWORDS_IN_BLOCK, uint64], i: int) =
   let base = 16 * i
   permutationP(x[base + 0], x[base + 1], x[base + 2], x[base + 3],
                x[base + 4], x[base + 5], x[base + 6], x[base + 7],
                x[base + 8], x[base + 9], x[base + 10], x[base + 11],
                x[base + 12], x[base + 13], x[base + 14], x[base + 15])
 
-template permutationProw(x, i: untyped) =
+proc permutationProw(x: var array[ARGON2_QWORDS_IN_BLOCK, uint64], i: int) =
   let base = 2 * i
   permutationP(x[base + 0], x[base + 1], x[base + 16], x[base + 17],
                x[base + 32], x[base + 33], x[base + 48], x[base + 49],
                x[base + 64], x[base + 65], x[base + 80], x[base + 81],
                x[base + 96], x[base + 97], x[base + 112], x[base + 113])
+
+# else:
+#   template transformG(a, b, c, d: untyped) =
+#     a = a + b + 2 * (a and 0xFFFF_FFFF'u64) * (b and 0xFFFF_FFFF'u64)
+#     let da1 = d xor a
+#     d = ROR(da1, 32)
+#     c = c + d + 2 * (c and 0xFFFF_FFFF'u64) * (d and 0xFFFF_FFFF'u64)
+#     let bc1 = b xor c
+#     b = ROR(bc1, 24)
+#     a = a + b + 2 * (a and 0xFFFF_FFFF'u64) * (b and 0xFFFF_FFFF'u64)
+#     let da2 = d xor a
+#     d = ROR(da2, 16)
+#     c = c + d + 2 * (c and 0xFFFF_FFFF'u64) * (d and 0xFFFF_FFFF'u64)
+#     let bc2 = b xor c
+#     b = ROR(bc2, 63)
+
+#   template permutationP(v0, v1, v2, v3, v4, v5, v6, v7, v8,
+#                         v9, v10, v11, v12, v13, v14, v15: untyped) =
+#     transformG(v0, v4, v8, v12)
+#     transformG(v1, v5, v9, v13)
+#     transformG(v2, v6, v10, v14)
+#     transformG(v3, v7, v11, v15)
+#     transformG(v0, v5, v10, v15)
+#     transformG(v1, v6, v11, v12)
+#     transformG(v2, v7, v8, v13)
+#     transformG(v3, v4, v9, v14)
+
+#   template permutationPcol(x, i: untyped) =
+#     let base = 16 * i
+#     permutationP(x[base + 0], x[base + 1], x[base + 2], x[base + 3],
+#                  x[base + 4], x[base + 5], x[base + 6], x[base + 7],
+#                  x[base + 8], x[base + 9], x[base + 10], x[base + 11],
+#                  x[base + 12], x[base + 13], x[base + 14], x[base + 15])
+
+#   template permutationProw(x, i: untyped) =
+#     let base = 2 * i
+#     permutationP(x[base + 0], x[base + 1], x[base + 16], x[base + 17],
+#                  x[base + 32], x[base + 33], x[base + 48], x[base + 49],
+#                  x[base + 64], x[base + 65], x[base + 80], x[base + 81],
+#                  x[base + 96], x[base + 97], x[base + 112], x[base + 113])
 
 func init(t: typedesc[Argon2Block]): Argon2Block {.noinit.} =
   Argon2Block()
@@ -215,14 +261,13 @@ proc fillFirstBlocks(ctx: var Argon2Kdf, blockhash: var openArray[byte]) =
     leStore32(blockhash, ARGON2_PREHASH_DIGEST_LENGTH + 4, uint32(i))
     blake2bLong(blockhashBytes,
                 blockhash.toOpenArray(0, ARGON2_PREHASH_SEED_LENGTH - 1))
-    case ctx.contextKind
-    of Argon2ContextKind.CompileTime:
+    when ctx is Argon2KdfGCM:
       loadBlock(ctx.memorySeq[i * ctx.laneLength + 0], blockhashBytes)
       leStore32(blockhash, ARGON2_PREHASH_DIGEST_LENGTH, 1'u32)
       blake2bLong(blockhashBytes,
                   blockhash.toOpenArray(0, ARGON2_PREHASH_SEED_LENGTH - 1))
       loadBlock(ctx.memorySeq[i * ctx.laneLength + 1], blockhashBytes)
-    of Argon2ContextKind.RunTime:
+    else:
       loadBlock(ctx.memoryPtr[i * ctx.laneLength + 0], blockhashBytes)
       leStore32(blockhash, ARGON2_PREHASH_DIGEST_LENGTH, 1'u32)
       blake2bLong(blockhashBytes,
@@ -344,10 +389,9 @@ proc fillSegment(ctx: var Argon2Kdf, pass: uint32, lane: uint32,
             nextAddresses(addressBlock, inputBlock, zeroBlock)
           addressBlock.value[int(j mod ARGON2_ADDRESSES_IN_BLOCK)]
         else:
-          case ctx.contextKind
-          of Argon2ContextKind.CompileTime:
+          when ctx is Argon2KdfGCM:
             ctx.memorySeq[prevOffset].value[0]
-          of Argon2ContextKind.RunTime:
+          else:
             ctx.memoryPtr[prevOffset].value[0]
       refLane =
         if (pass == 0'u32) and (slice == 0'u32):
@@ -362,30 +406,27 @@ proc fillSegment(ctx: var Argon2Kdf, pass: uint32, lane: uint32,
       cindex = currentOffset
 
     if ctx.version == Argon2Version.V10:
-      case ctx.contextKind
-      of Argon2ContextKind.CompileTime:
+      when ctx is Argon2KdfGCM:
         fillBlock(ctx.memorySeq[prevOffset], ctx.memorySeq[rindex],
                   ctx.memorySeq[cindex], false)
-      of Argon2ContextKind.RunTime:
+      else:
         fillBlock(ctx.memoryPtr[prevOffset], ctx.memoryPtr[rindex],
                   ctx.memoryPtr[cindex], false)
       continue
 
     if pass == 0:
-      case ctx.contextKind
-      of Argon2ContextKind.CompileTime:
+      when ctx is Argon2KdfGCM:
         fillBlock(ctx.memorySeq[prevOffset], ctx.memorySeq[rindex],
                   ctx.memorySeq[cindex], false)
-      of Argon2ContextKind.RunTime:
+      else:
         fillBlock(ctx.memoryPtr[prevOffset], ctx.memoryPtr[rindex],
                   ctx.memoryPtr[cindex], false)
 
     else:
-      case ctx.contextKind
-      of Argon2ContextKind.CompileTime:
+      when ctx is Argon2KdfGCM:
         fillBlock(ctx.memorySeq[prevOffset], ctx.memorySeq[rindex],
                   ctx.memorySeq[cindex], true)
-      of Argon2ContextKind.RunTime:
+      else:
         fillBlock(ctx.memoryPtr[prevOffset], ctx.memoryPtr[rindex],
                   ctx.memoryPtr[cindex], true)
     inc(currentOffset)
@@ -396,7 +437,7 @@ proc fillSegmentThr(arg: Argon2ThreadDataPtr) {.thread, nimcall.} =
   let position = arg[].position
   ctx.fillSegment(position.pass, position.lane, position.slice)
 
-proc fillMemoryBlocksMT(ctx: var Argon2Kdf) =
+proc fillMemoryBlocksMT(ctx: var Argon2KdfSHM) =
   when compileOption("threads"):
     let
       lanes = int(ctx.lanes)
@@ -439,11 +480,15 @@ proc fillMemoryBlocksST(ctx: var Argon2Kdf) =
       for j in 0'u32 ..< ctx.lanes:
         fillSegment(ctx, r, j, s)
 
-proc fillMemoryBlocks(ctx: var Argon2Kdf) =
-  if ctx.threads == 1'u32:
-    ctx.fillMemoryBlocksST()
-  else:
+proc fillMemoryBlocks(ctx: var Argon2KdfGCM) =
+  doAssert(ctx.threads == 1'u32)
+  ctx.fillMemoryBlocksST()
+
+proc fillMemoryBlocks(ctx: var Argon2KdfSHM) =
+  if ctx.threads > 1'u32:
     ctx.fillMemoryBlocksMT()
+  else:
+    ctx.fillMemoryBlocksST()
 
 proc initialHash(actx: var Argon2Kdf, blockhash: var openArray[byte]) =
   var
@@ -464,33 +509,28 @@ proc initialHash(actx: var Argon2Kdf, blockhash: var openArray[byte]) =
     leStore32(value, 0, args[i])
     bctx.update(value)
 
-  case actx.contextKind
-  of Argon2ContextKind.CompileTime:
+  when actx is Argon2KdfGCM:
     template hashBytesField(argname: untyped) =
       leStore32(value, 0, uint32(len(argname)))
       bctx.update(value)
       if len(argname) > 0:
         bctx.update(argname)
-
     hashBytesField(actx.passwordSeq)
     hashBytesField(actx.saltSeq)
     hashBytesField(actx.secretSeq)
     hashBytesField(actx.adSeq)
-  of Argon2ContextKind.RunTime:
-    when nimvm:
-      discard
-    else:
-      template hashBytesField(argname: untyped) =
-        leStore32(value, 0, (argname)[].size)
-        bctx.update(value)
-        if not(isNil(argname)):
-          bctx.update(cast[ptr byte](addr argname[].data[0]), (argname)[].size)
-          freeMem(cast[pointer](argname))
-          argname = nil
-      hashBytesField(actx.passwordPtr)
-      hashBytesField(actx.saltPtr)
-      hashBytesField(actx.secretPtr)
-      hashBytesField(actx.adPtr)
+  else:
+    template hashBytesField(argname: untyped) =
+      leStore32(value, 0, (argname)[].size)
+      bctx.update(value)
+      if not(isNil(argname)):
+        bctx.update(cast[ptr byte](addr argname[].data[0]), (argname)[].size)
+        freeMem(cast[pointer](argname))
+        argname = nil
+    hashBytesField(actx.passwordPtr)
+    hashBytesField(actx.saltPtr)
+    hashBytesField(actx.secretPtr)
+    hashBytesField(actx.adPtr)
 
   discard bctx.finish(
     blockhash.toOpenArray(0, ARGON2_PREHASH_DIGEST_LENGTH - 1))
@@ -515,7 +555,7 @@ proc toBytesArrayPtr[T](data: openArray[T]): Argon2BytesArrayPtr =
     nil
 
 proc init[K, L, M, N](
-       t: typedesc[Argon2Kdf],
+       t: typedesc[Argon2KdfGCM],
        kind: Argon2Type,
        password: openArray[K],
        salt: openArray[L],
@@ -527,41 +567,51 @@ proc init[K, L, M, N](
        lanes: uint32,
        threads: uint32,
        outputLength: uint32,
-     ): Argon2Kdf =
-  when nimvm:
-    Argon2Kdf(
-      contextKind: Argon2ContextKind.CompileTime,
-      passwordSeq: password.toSeqByte(),
-      saltSeq: salt.toSeqByte(),
-      adSeq: ad.toSeqByte(),
-      secretSeq: secret.toSeqByte(),
-      outLength: outputLength,
-      tCost: tCost,
-      mCost: mCost,
-      lanes: lanes,
-      threads: threads,
-      version: version,
-      kind: kind
-    )
-  else:
-    Argon2Kdf(
-      contextKind: Argon2ContextKind.RunTime,
-      passwordPtr: password.toBytesArrayPtr(),
-      saltPtr: salt.toBytesArrayPtr(),
-      adPtr: ad.toBytesArrayPtr(),
-      secretPtr: secret.toBytesArrayPtr(),
-      outLength: outputLength,
-      tCost: tCost,
-      mCost: mCost,
-      lanes: lanes,
-      threads: threads,
-      version: version,
-      kind: kind
-    )
+     ): Argon2KdfGCM =
+  Argon2KdfGCM(
+    passwordSeq: password.toSeqByte(),
+    saltSeq: salt.toSeqByte(),
+    adSeq: ad.toSeqByte(),
+    secretSeq: secret.toSeqByte(),
+    outLength: outputLength,
+    tCost: tCost,
+    mCost: mCost,
+    lanes: lanes,
+    threads: threads,
+    version: version,
+    kind: kind
+  )
+
+proc init[K, L, M, N](
+       t: typedesc[Argon2KdfSHM],
+       kind: Argon2Type,
+       password: openArray[K],
+       salt: openArray[L],
+       ad: openArray[M],
+       secret: openArray[N],
+       version: Argon2Version,
+       tCost: uint32,
+       mCost: uint32,
+       lanes: uint32,
+       threads: uint32,
+       outputLength: uint32,
+     ): Argon2KdfSHM =
+  Argon2KdfSHM(
+    passwordPtr: password.toBytesArrayPtr(),
+    saltPtr: salt.toBytesArrayPtr(),
+    adPtr: ad.toBytesArrayPtr(),
+    secretPtr: secret.toBytesArrayPtr(),
+    outLength: outputLength,
+    tCost: tCost,
+    mCost: mCost,
+    lanes: lanes,
+    threads: threads,
+    version: version,
+    kind: kind
+  )
 
 proc free(ctx: var Argon2Kdf) =
-  case ctx.contextKind
-  of Argon2ContextKind.CompileTime:
+  when ctx is Argon2KdfGCM:
     template freeSecret(argname: untyped) =
       if len(argname) > 0:
         argname.reset()
@@ -570,7 +620,7 @@ proc free(ctx: var Argon2Kdf) =
     ctx.secretSeq.freeSecret()
     ctx.adSeq.freeSecret()
     ctx.memorySeq.reset()
-  of Argon2ContextKind.RunTime:
+  else:
     template freeSecret(argname: untyped) =
       if not(isNil(argname)):
         freeMem(cast[pointer](argname))
@@ -584,14 +634,12 @@ proc free(ctx: var Argon2Kdf) =
 
 proc allocate(ctx: var Argon2Kdf) =
   var blockhash: array[ARGON2_PREHASH_SEED_LENGTH, byte]
-  case ctx.contextKind
-  of Argon2ContextKind.CompileTime:
+  when ctx is Argon2KdfGCM:
     ctx.memorySeq = newSeq[Argon2Block](ctx.memoryBlocks)
-  of Argon2ContextKind.RunTime:
+  else:
     let size = Natural(ctx.memoryBlocks) * sizeof(Argon2Block)
     ctx.memoryPtr =
       cast[Argon2BlocksMap](allocMem(size))
-
   initialHash(ctx, blockhash)
   fillFirstBlocks(ctx, blockhash)
 
@@ -600,13 +648,12 @@ proc finalize(ctx: var Argon2Kdf, outBytes: var openArray[byte]) =
     blockhash: Argon2Block
     blockhashBytes: array[ARGON2_BLOCK_SIZE, byte]
 
-  case ctx.contextKind
-  of Argon2ContextKind.CompileTime:
+  when ctx is Argon2KdfGCM:
     copyBlock(blockhash, ctx.memorySeq[ctx.laneLength - 1])
     for j in 1 ..< ctx.lanes:
       let lastBlockInLane = j * ctx.laneLength + (ctx.laneLength - 1)
       xorBlock(blockhash, ctx.memorySeq[lastBlockInLane])
-  of Argon2ContextKind.RunTime:
+  else:
     copyBlock(blockhash, ctx.memoryPtr[ctx.laneLength - 1])
     for j in 1 ..< ctx.lanes:
       let lastBlockInLane = j * ctx.laneLength + (ctx.laneLength - 1)
@@ -673,12 +720,20 @@ proc argon2*[K, L, M, N](
            "Memory cost should greater or equal than 8 times the number " &
            "of lanes")
 
-  var ctx = Argon2Kdf.init(kind, password, salt, ad, secret, version,
-                           passes, memoryCost, parallelism, threads,
-                           uint32(len(output)))
-  ctx.derive(output)
-  ctx.free()
-  len(output)
+  when nimvm:
+    var ctx1 = Argon2KdfGCM.init(kind, password, salt, ad, secret, version,
+                                passes, memoryCost, parallelism, threads,
+                                uint32(len(output)))
+    ctx1.derive(output)
+    ctx1.free()
+    len(output)
+  else:
+    var ctx2 = Argon2KdfSHM.init(kind, password, salt, ad, secret, version,
+                                passes, memoryCost, parallelism, threads,
+                                uint32(len(output)))
+    ctx2.derive(output)
+    ctx2.free()
+    len(output)
 
 proc argon2*[K, L, M, N](
        kind: Argon2Type,

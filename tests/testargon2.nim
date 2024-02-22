@@ -38,18 +38,18 @@ proc test2(argonType: Argon2Type, threadsCount: int): seq[byte] =
   var res = @output
   res
 
-const
-  password = utils.fromHex(
-    "0101010101010101010101010101010101010101010101010101010101010101")
-  salt = utils.fromHex(
-    "02020202020202020202020202020202")
-  secret = utils.fromHex(
-    "0303030303030303")
-  ad = utils.fromHex(
-    "040404040404040404040404")
+# const
+#   password = utils.fromHex(
+#     "0101010101010101010101010101010101010101010101010101010101010101")
+#   salt = utils.fromHex(
+#     "02020202020202020202020202020202")
+#   secret = utils.fromHex(
+#     "0303030303030303")
+#   ad = utils.fromHex(
+#     "040404040404040404040404")
 
-  argon2Output = argon2(Argon2Type.TypeID, password, salt, ad, secret, 32,
-                        3'u32, 4'u32, 32'u32, 1'u32)
+#   argon2Output = argon2(Argon2Type.TypeID, password, salt, ad, secret, 32,
+#                         3'u32, 4'u32, 32'u32, 1'u32)
 
 suite "ARGON2 Tests":
   test "Argon2id singlethreaded test vector":

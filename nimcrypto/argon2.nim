@@ -193,10 +193,6 @@ proc permutationProw(x: var array[ARGON2_QWORDS_IN_BLOCK, uint64], i: int) =
 func init(t: typedesc[Argon2Block]): Argon2Block {.noinit.} =
   Argon2Block()
 
-func init(blck: var Argon2Block) {.noinit.} =
-  for i in 0 ..< len(blck.value):
-    blck.value[i] = 0'u64
-
 proc copyBlock(dst: var Argon2Block, src: Argon2Block) =
   copyMem(dst.value, 0, src.value, 0, ARGON2_QWORDS_IN_BLOCK)
 
@@ -344,22 +340,17 @@ proc indexAlpha(ctx: Argon2Kdf, pass: uint32, slice: uint8, index: uint32,
 proc fillSegment(ctx: var Argon2Kdf, pass: uint32, lane: uint32,
                  slice: uint8) {.noinit.} =
   var
-    addressBlock: Argon2Block
-    zeroBlock: Argon2Block
-    inputBlock: Argon2Block
+    addressBlock {.align(32).} : Argon2Block
+    zeroBlock {.align(32).} = Argon2Block.init()
+    inputBlock {.align(32).} = Argon2Block.init()
 
   if dataIndepAddressing(ctx, pass, slice):
-    init(zeroBlock)
-    init(inputBlock)
-
     inputBlock.value[0] = pass;
     inputBlock.value[1] = lane;
     inputBlock.value[2] = slice;
     inputBlock.value[3] = ctx.memoryBlocks
     inputBlock.value[4] = ctx.passes
     inputBlock.value[5] = uint32(ctx.kind)
-  else:
-    init(inputBlock)
 
   let
     startIndex =

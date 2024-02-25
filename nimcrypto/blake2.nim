@@ -74,23 +74,31 @@ const B2SIV = [
 
 template B2B_G(v, a, b, c, d, x, y: untyped) =
   v[a] = v[a] + v[b] + x
-  v[d] = ROR(v[d] xor v[a], 32)
+  let da1 = v[d] xor v[a]
+  v[d] = ROR(da1, 32)
   v[c] = v[c] + v[d]
-  v[b] = ROR(v[b] xor v[c], 24)
+  let bc1 = v[b] xor v[c]
+  v[b] = ROR(bc1, 24)
   v[a] = v[a] + v[b] + y
-  v[d] = ROR(v[d] xor v[a], 16)
+  let da2 = v[d] xor v[a]
+  v[d] = ROR(da2, 16)
   v[c] = v[c] + v[d]
-  v[b] = ROR(v[b] xor v[c], 63)
+  let bc2 = v[b] xor v[c]
+  v[b] = ROR(bc2, 63)
 
 template B2S_G(v, a, b, c, d, x, y: untyped) =
   v[a] = v[a] + v[b] + x
-  v[d] = ROR(v[d] xor v[a], 16)
+  let da1 = v[d] xor v[a]
+  v[d] = ROR(da1, 16)
   v[c] = v[c] + v[d]
-  v[b] = ROR(v[b] xor v[c], 12)
+  let bc1 = v[b] xor v[c]
+  v[b] = ROR(bc1, 12)
   v[a] = v[a] + v[b] + y
-  v[d] = ROR(v[d] xor v[a], 8)
+  let da2 = v[d] xor v[a]
+  v[d] = ROR(da2, 8)
   v[c] = v[c] + v[d]
-  v[b] = ROR(v[b] xor v[c], 7)
+  let bc2 = v[b] xor v[c]
+  v[b] = ROR(bc2, 7)
 
 # This difference in implementation was made because Nim VM do not support more
 # then 256 registers and so it is not enough for it to perform round in
@@ -136,7 +144,7 @@ else:
     B2S_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
     B2S_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
 
-proc blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
+proc blake2Transform(ctx: var Blake2bContext, last: bool) {.noinit, inline.} =
   var v {.noinit.}: array[16, uint64]
   var m {.noinit.}: array[16, uint64]
 
@@ -283,7 +291,9 @@ template sizeBlock*(r: typedesc[blake2]): int =
   else:
     (128)
 
-proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
+proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T],
+                     digestSize: int) {.inline.} =
+  doAssert(digestSize > 0)
   when ctx is Blake2sContext:
     when nimvm:
       for i in 0 ..< 64:
@@ -300,7 +310,7 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
     ctx.t[0] = 0x00'u32
     ctx.t[1] = 0x00'u32
     let value = 0x01010000'u32 xor (uint32(len(key)) shl 8) xor
-                uint32(ctx.sizeDigest)
+                uint32(digestSize)
   else:
     when nimvm:
       for i in 0 ..< 128:
@@ -317,7 +327,7 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
     ctx.t[0] = 0x00'u64
     ctx.t[1] = 0x00'u64
     let value = 0x01010000'u64 xor (uint64(len(key)) shl 8) xor
-                uint64(ctx.sizeDigest)
+                uint64(digestSize)
 
   ctx.h[0] = ctx.h[0] xor value
   ctx.c = 0
@@ -332,9 +342,16 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
   ctx.tb[1] = ctx.t[1]
   ctx.cb = ctx.c
 
+proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
+  ctx.init(key, int(ctx.sizeDigest()))
+
 proc init*(ctx: var Blake2Context) {.inline.} =
   var zeroKey: array[0, byte]
-  ctx.init(zeroKey)
+  ctx.init(zeroKey, int(ctx.sizeDigest()))
+
+proc init*(ctx: var Blake2Context, digestSize: int) {.inline.} =
+  var zeroKey: array[0, byte]
+  ctx.init(zeroKey, digestSize)
 
 proc init*(ctx: var Blake2Context, key: ptr byte, keylen: uint) {.inline.} =
   var zeroKey: array[0, byte]
@@ -344,30 +361,39 @@ proc init*(ctx: var Blake2Context, key: ptr byte, keylen: uint) {.inline.} =
   else:
     ctx.init(zeroKey)
 
+proc init*(ctx: var Blake2Context, key: ptr byte, keylen: uint,
+           digestSize: int) {.inline.} =
+  var zeroKey: array[0, byte]
+  if not isNil(key) and keylen > 0'u:
+    var ptrarr = cast[ptr UncheckedArray[byte]](key)
+    ctx.init(ptrarr.toOpenArray(0, int(keylen) - 1), digestSize)
+  else:
+    ctx.init(zeroKey, digestSize)
+
 proc clear*(ctx: var Blake2Context) {.inline.} =
   when nimvm:
     when ctx is Blake2sContext:
       for i in 0 ..< 64:
-        ctx.b[i] = 0x00'u8
-        ctx.bb[i] = 0x00'u8
+        ctx.b[i] = 0'u8
+        ctx.bb[i] = 0'u8
       for i in 0 ..< 8:
-        ctx.h[i] = 0x00'u32
-        ctx.hb[i] = 0x00'u32
-      ctx.t[0] = 0x00'u32
-      ctx.t[1] = 0x00'u32
-      ctx.tb[0] = 0x00'u32
-      ctx.tb[1] = 0x00'u32
+        ctx.h[i] = 0'u32
+        ctx.hb[i] = 0'u32
+      ctx.t[0] = 0'u32
+      ctx.t[1] = 0'u32
+      ctx.tb[0] = 0'u32
+      ctx.tb[1] = 0'u32
     elif ctx is Blake2bContext:
       for i in 0 ..< 128:
-        ctx.b[i] = 0x00'u8
-        ctx.bb[i] = 0x00'u8
+        ctx.b[i] = 0'u8
+        ctx.bb[i] = 0'u8
       for i in 0 ..< 8:
-        ctx.h[i] = 0x00'u64
-        ctx.hb[i] = 0x00'u64
-      ctx.t[0] = 0x00'u64
-      ctx.t[1] = 0x00'u64
-      ctx.tb[0] = 0x00'u64
-      ctx.tb[1] = 0x00'u64
+        ctx.h[i] = 0'u64
+        ctx.hb[i] = 0'u64
+      ctx.t[0] = 0'u64
+      ctx.t[1] = 0'u64
+      ctx.tb[0] = 0'u64
+      ctx.tb[1] = 0'u64
     ctx.c = 0
     ctx.cb = 0
   else:
@@ -417,9 +443,9 @@ proc finish*(ctx: var Blake2sContext,
     inc(ctx.c)
   ctx.blake2Transform(true)
   let length = min(int(ctx.sizeDigest), len(data))
-  result = uint(length)
   for i in 0 ..< length:
     data[i] = byte((ctx.h[i shr 2] shr (8 * (i and 3))) and 0xFF'u32)
+  uint(length)
 
 proc finish*(ctx: var Blake2bContext,
              data: var openArray[byte]): uint {.inline, discardable.} =
@@ -431,22 +457,26 @@ proc finish*(ctx: var Blake2bContext,
     inc(ctx.c)
   ctx.blake2Transform(true)
   let length = min(int(ctx.sizeDigest), len(data))
-  result = uint(length)
   for i in 0 ..< length:
     data[i] = byte((ctx.h[i shr 3] shr (8 * (i and 7))) and 0xFF'u64)
+  uint(length)
 
 proc finish*(ctx: var Blake2sContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
-  result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
+  ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var Blake2bContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
-  result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
+  ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(ctx: var Blake2sContext): MDigest[ctx.bits] =
-  discard finish(ctx, result.data)
+  var res: MDigest[ctx.bits]
+  discard finish(ctx, res.data)
+  res
 
 proc finish*(ctx: var Blake2bContext): MDigest[ctx.bits] =
-  discard finish(ctx, result.data)
+  var res: MDigest[ctx.bits]
+  discard finish(ctx, res.data)
+  res

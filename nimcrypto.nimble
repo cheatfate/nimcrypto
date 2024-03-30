@@ -14,11 +14,6 @@ requires "nim >= 1.6"
 
 let
   nimc = getEnv("NIMC", "nim") # Which nim compiler to use
-  mmopt =
-    when (NimMajor, NimMinor) >= (2, 0):
-      "--mm:orc"
-    else:
-      "--gc:orc"
 
 task test, "Runs the test suite":
   var testCommands = @[
@@ -26,15 +21,20 @@ task test, "Runs the test suite":
     nimc & " c -f -d:danger -r tests/",
     nimc & " c -f -d:danger --threads:on -r tests/",
     nimc & " c -f --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/",
-    nimc & " c -f " & mmopt & " --threads:on -r tests/"
+    nimc & " c -f --mm:orc --threads:on -r tests/"
   ]
+  when (NimMajor, NimMinor) >= (2, 0):
+    testCommands.add nimc & " c -f --mm:refc --threads:off --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/"
+    testCommands.add nimc & " c -f --mm:refc --threads:on --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/"
+    testCommands.add nimc & " c -f --mm:refc --threads:off -r tests/"
+    testCommands.add nimc & " c -f --mm:refc --threads:on -r tests/"
 
   let exampleFiles = @[
     "ecb", "cbc", "ofb", "cfb", "ctr", "gcm"
   ]
   var exampleCommands = @[
       nimc & " c -f -r --threads:on examples/",
-      nimc & " c -f " & mmopt & " --threads:on -r examples/"
+      nimc & " c -f --mm:orc --threads:on -r examples/"
   ]
 
   for cmd in testCommands:

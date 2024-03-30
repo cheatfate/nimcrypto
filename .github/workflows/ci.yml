@@ -23,10 +23,10 @@ jobs:
         include:
           - target:
               os: linux
-            builder: ubuntu-20.04
+            builder: ubuntu-latest
           - target:
               os: macos
-            builder: macos-12
+            builder: macos-latest
           - target:
               os: windows
             builder: windows-2019

@@ -21,11 +21,10 @@
 ## https://doi.org/10.1007/s13389-012-0037-z
 
 {.push raises: [].}
-
-import "."/sha2_common
+{.used.}
 
 when defined(amd64):
-  import sha2_avx
+  import "."/[sha2_common, sha2_avx]
 
   {.passC:"-mavx2".}
 

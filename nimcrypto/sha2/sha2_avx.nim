@@ -21,10 +21,11 @@
 ## https://doi.org/10.1007/s13389-012-0037-z
 
 {.push raises: [].}
-
-import "."/sha2_common
+{.used.}
 
 when defined(amd64):
+  import "."/sha2_common
+
   {.passC:"-msse2".}
 
   when defined(vcc):

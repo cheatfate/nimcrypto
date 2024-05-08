@@ -217,9 +217,9 @@ func validateParam(N, r, p: int): bool =
 # and p=1. The parameters N, r, and p should be increased as memory latency and
 # CPU parallelism increases; consider setting N to the highest power of 2 you
 # can derive within 100 milliseconds. Remember to get a good random salt.
-func scrypt*[T, M](password: openArray[T], salt: openArray[M],
-             N, r, p: int, xyv: var openArray[uint32],
-             b, output: var openArray[byte]): int =
+proc scrypt*[T, M](password: openArray[T], salt: openArray[M],
+                   N, r, p: int, xyv: var openArray[uint32],
+                   b, output: var openArray[byte]): int =
 
   when not((M is byte) or (M is char)):
     {.fatal: "Choosen password type is not supported!".}

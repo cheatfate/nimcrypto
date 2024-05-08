@@ -107,7 +107,7 @@ suite "Scrypt KDF tests suite":
     var bb = utils.fromHex(bouthex)
     check b == bb
 
-  func scrypt[T, M](password: openArray[T], salt: openArray[M],
+  proc scrypt[T, M](password: openArray[T], salt: openArray[M],
                      N, r, p, keyLen: static[int]): array[keyLen, byte] =
     let (xyvLen, bLen) = scryptCalc(N, r, p)
     var xyv = newSeq[uint32](xyvLen)

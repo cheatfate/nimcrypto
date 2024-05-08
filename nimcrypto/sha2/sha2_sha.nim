@@ -16,10 +16,11 @@
 ## https://github.com/aws-samples/sha2-with-c-intrinsic/blob/master/src/sha256_compress_x86_64_sha_ext.c
 
 {.push raises: [].}
-
-import "."/sha2_common
+{.used.}
 
 when defined(amd64):
+  import "."/sha2_common
+
   {.passC:"-msha".}
   {.passC:"-msse2".}
 

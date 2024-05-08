@@ -250,25 +250,29 @@ when defined(amd64):
                        0x00010203'u32, 0x04050607'u32,
                        0x08090a0b'u32, 0x0c0d0e0f'u32)
 
-    x[0] = m256i.load(data, 64, data, 0)
-    x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
-    let y0 = mm256_add_epi32(x[0], m256i.load(K0x2, 0))
-    m256i.store(t2, 0, ms, 0, y0)
+    block:
+      x[0] = m256i.load(data, 64, data, 0)
+      x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
+      let y {.align(64).} = mm256_add_epi32(x[0], m256i.load(K0x2, 0))
+      m256i.store(t2, 0, ms, 0, y)
 
-    x[1] = m256i.load(data, 80, data, 16)
-    x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
-    let y1 = mm256_add_epi32(x[1], m256i.load(K0x2, 8))
-    m256i.store(t2, 4, ms, 4, y1)
+    block:
+      x[1] = m256i.load(data, 80, data, 16)
+      x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
+      let y {.align(64).} = mm256_add_epi32(x[1], m256i.load(K0x2, 8))
+      m256i.store(t2, 4, ms, 4, y)
 
-    x[2] = m256i.load(data, 96, data, 32)
-    x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
-    let y2 = mm256_add_epi32(x[2], m256i.load(K0x2, 16))
-    m256i.store(t2, 8, ms, 8, y2)
+    block:
+      x[2] = m256i.load(data, 96, data, 32)
+      x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
+      let y {.align(64).} = mm256_add_epi32(x[2], m256i.load(K0x2, 16))
+      m256i.store(t2, 8, ms, 8, y)
 
-    x[3] = m256i.load(data, 112, data, 48)
-    x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
-    let y3 = mm256_add_epi32(x[3], m256i.load(K0x2, 24))
-    m256i.store(t2, 12, ms, 12, y3)
+    block:
+      x[3] = m256i.load(data, 112, data, 48)
+      x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
+      let y {.align(64).} = mm256_add_epi32(x[3], m256i.load(K0x2, 24))
+      m256i.store(t2, 12, ms, 12, y)
 
   proc loadData64(x: var array[8, m256i],
                   ms: var array[16, uint64],
@@ -278,45 +282,53 @@ when defined(amd64):
       mm256_set_epi64x(0x08090a0b0c0d0e0f'u64, 0x0001020304050607'u64,
                        0x08090a0b0c0d0e0f'u64, 0x0001020304050607'u64)
 
-    x[0] = m256i.load(data, 128, data, 0)
-    x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
-    let y0 = mm256_add_epi64(x[0], m256i.load(K1x2, 0))
-    m256i.store(t2, 0, ms, 0, y0)
+    block:
+      x[0] = m256i.load(data, 128, data, 0)
+      x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
+      let y {.align(64).} = mm256_add_epi64(x[0], m256i.load(K1x2, 0))
+      m256i.store(t2, 0, ms, 0, y)
 
-    x[1] = m256i.load(data, 144, data, 16)
-    x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
-    let y1 = mm256_add_epi64(x[1], m256i.load(K1x2, 4))
-    m256i.store(t2, 2, ms, 2, y1)
+    block:
+      x[1] = m256i.load(data, 144, data, 16)
+      x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
+      let y = mm256_add_epi64(x[1], m256i.load(K1x2, 4))
+      m256i.store(t2, 2, ms, 2, y)
 
-    x[2] = m256i.load(data, 160, data, 32)
-    x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
-    let y2 = mm256_add_epi64(x[2], m256i.load(K1x2, 8))
-    m256i.store(t2, 4, ms, 4, y2)
+    block:
+      x[2] = m256i.load(data, 160, data, 32)
+      x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
+      let y = mm256_add_epi64(x[2], m256i.load(K1x2, 8))
+      m256i.store(t2, 4, ms, 4, y)
 
-    x[3] = m256i.load(data, 176, data, 48)
-    x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
-    let y3 = mm256_add_epi64(x[3], m256i.load(K1x2, 12))
-    m256i.store(t2, 6, ms, 6, y3)
+    block:
+      x[3] = m256i.load(data, 176, data, 48)
+      x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
+      let y = mm256_add_epi64(x[3], m256i.load(K1x2, 12))
+      m256i.store(t2, 6, ms, 6, y)
 
-    x[4] = m256i.load(data, 192, data, 64)
-    x[4] = mm256_shuffle_epi8(x[4], shuffleMask)
-    let y4 = mm256_add_epi64(x[4], m256i.load(K1x2, 16))
-    m256i.store(t2, 8, ms, 8, y4)
+    block:
+      x[4] = m256i.load(data, 192, data, 64)
+      x[4] = mm256_shuffle_epi8(x[4], shuffleMask)
+      let y = mm256_add_epi64(x[4], m256i.load(K1x2, 16))
+      m256i.store(t2, 8, ms, 8, y)
 
-    x[5] = m256i.load(data, 208, data, 80)
-    x[5] = mm256_shuffle_epi8(x[5], shuffleMask)
-    let y5 = mm256_add_epi64(x[5], m256i.load(K1x2, 20))
-    m256i.store(t2, 10, ms, 10, y5)
+    block:
+      x[5] = m256i.load(data, 208, data, 80)
+      x[5] = mm256_shuffle_epi8(x[5], shuffleMask)
+      let y = mm256_add_epi64(x[5], m256i.load(K1x2, 20))
+      m256i.store(t2, 10, ms, 10, y)
 
-    x[6] = m256i.load(data, 224, data, 96)
-    x[6] = mm256_shuffle_epi8(x[6], shuffleMask)
-    let y6 = mm256_add_epi64(x[6], m256i.load(K1x2, 24))
-    m256i.store(t2, 12, ms, 12, y6)
+    block:
+      x[6] = m256i.load(data, 224, data, 96)
+      x[6] = mm256_shuffle_epi8(x[6], shuffleMask)
+      let y = mm256_add_epi64(x[6], m256i.load(K1x2, 24))
+      m256i.store(t2, 12, ms, 12, y)
 
-    x[7] = m256i.load(data, 240, data, 112)
-    x[7] = mm256_shuffle_epi8(x[7], shuffleMask)
-    let y7 = mm256_add_epi64(x[7], m256i.load(K1x2, 28))
-    m256i.store(t2, 14, ms, 14, y7)
+    block:
+      x[7] = m256i.load(data, 240, data, 112)
+      x[7] = mm256_shuffle_epi8(x[7], shuffleMask)
+      let y = mm256_add_epi64(x[7], m256i.load(K1x2, 28))
+      m256i.store(t2, 14, ms, 14, y)
 
   proc sha256Compress*(state: var array[8, uint32],
                        data: openArray[byte],

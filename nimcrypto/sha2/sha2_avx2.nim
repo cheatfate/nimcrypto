@@ -162,9 +162,8 @@ when defined(amd64):
     w[7] = w[6]; w[6] = w[5]; w[5] = w[4]; w[4] = w[3]
     w[3] = w[2]; w[2] = w[1]; w[1] = w[0]; w[0] = tmp
 
-  proc sha256UpdateAvx2(x: var array[4, m256i], k256i: int,
-                        loMask, hiMask: m256i): m256i {.inline, noinit.} =
-    var t {.align(64).}: array[4, m256i]
+  template sha256UpdateAvx2(x, k256i, loMask, hiMask: untyped): m256i =
+    var t {.align(32).}: array[4, m256i]
 
     t[0] = mm256_alignr_epi8(x[1], x[0], 4)
     t[3] = mm256_alignr_epi8(x[3], x[2], 4)
@@ -202,9 +201,8 @@ when defined(amd64):
 
     mm256_add_epi32(x[3], m256i.load(K0x2, k256i))
 
-  proc sha512UpdateAvx2(x: var array[8, m256i], k512i: int): m256i {.
-       inline, noinit.} =
-    var t {.align(64).}: array[4, m256i]
+  template sha512UpdateAvx2(x, k512i: untyped): m256i =
+    var t {.align(32).}: array[4, m256i]
 
     t[0] = mm256_alignr_epi8(x[1], x[0], 8)
     t[3] = mm256_alignr_epi8(x[5], x[4], 8)
@@ -240,10 +238,8 @@ when defined(amd64):
 
     mm256_add_epi64(x[7], m256i.load(K1x2, k512i))
 
-  proc loadData32(x: var array[4, m256i],
-                  ms: var array[16, uint32],
-                  t2: var array[64, uint32],
-                  data: openArray[byte]) {.inline, noinit.} =
+  template loadData32(x, ms, t2: untyped,
+                      data: openArray[byte]) =
     let shuffleMask =
       mm256_setr_epi32(0x00010203'u32, 0x04050607'u32,
                        0x08090a0b'u32, 0x0c0d0e0f'u32,
@@ -253,105 +249,103 @@ when defined(amd64):
     block:
       x[0] = m256i.load(data, 64, data, 0)
       x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
-      let y {.align(64).} = mm256_add_epi32(x[0], m256i.load(K0x2, 0))
+      let y {.align(32).} = mm256_add_epi32(x[0], m256i.load(K0x2, 0))
       m256i.store(t2, 0, ms, 0, y)
 
     block:
       x[1] = m256i.load(data, 80, data, 16)
       x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
-      let y {.align(64).} = mm256_add_epi32(x[1], m256i.load(K0x2, 8))
+      let y {.align(32).} = mm256_add_epi32(x[1], m256i.load(K0x2, 8))
       m256i.store(t2, 4, ms, 4, y)
 
     block:
       x[2] = m256i.load(data, 96, data, 32)
       x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
-      let y {.align(64).} = mm256_add_epi32(x[2], m256i.load(K0x2, 16))
+      let y {.align(32).} = mm256_add_epi32(x[2], m256i.load(K0x2, 16))
       m256i.store(t2, 8, ms, 8, y)
 
     block:
       x[3] = m256i.load(data, 112, data, 48)
       x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
-      let y {.align(64).} = mm256_add_epi32(x[3], m256i.load(K0x2, 24))
+      let y {.align(32).} = mm256_add_epi32(x[3], m256i.load(K0x2, 24))
       m256i.store(t2, 12, ms, 12, y)
 
-  proc loadData64(x: var array[8, m256i],
-                  ms: var array[16, uint64],
-                  t2: var array[80, uint64],
-                  data: openArray[byte]) {.inline, noinit.} =
-    let shuffleMask =
+  template loadData64(x, ms, t2: untyped,
+                      data: openArray[byte]) =
+    let shuffleMask {.align(32).} =
       mm256_set_epi64x(0x08090a0b0c0d0e0f'u64, 0x0001020304050607'u64,
                        0x08090a0b0c0d0e0f'u64, 0x0001020304050607'u64)
 
     block:
       x[0] = m256i.load(data, 128, data, 0)
       x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
-      let y {.align(64).} = mm256_add_epi64(x[0], m256i.load(K1x2, 0))
+      let y {.align(32).} = mm256_add_epi64(x[0], m256i.load(K1x2, 0))
       m256i.store(t2, 0, ms, 0, y)
 
     block:
       x[1] = m256i.load(data, 144, data, 16)
       x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
-      let y = mm256_add_epi64(x[1], m256i.load(K1x2, 4))
+      let y {.align(32).} = mm256_add_epi64(x[1], m256i.load(K1x2, 4))
       m256i.store(t2, 2, ms, 2, y)
 
     block:
       x[2] = m256i.load(data, 160, data, 32)
       x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
-      let y = mm256_add_epi64(x[2], m256i.load(K1x2, 8))
+      let y {.align(32).} = mm256_add_epi64(x[2], m256i.load(K1x2, 8))
       m256i.store(t2, 4, ms, 4, y)
 
     block:
       x[3] = m256i.load(data, 176, data, 48)
       x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
-      let y = mm256_add_epi64(x[3], m256i.load(K1x2, 12))
+      let y {.align(32).} = mm256_add_epi64(x[3], m256i.load(K1x2, 12))
       m256i.store(t2, 6, ms, 6, y)
 
     block:
       x[4] = m256i.load(data, 192, data, 64)
       x[4] = mm256_shuffle_epi8(x[4], shuffleMask)
-      let y = mm256_add_epi64(x[4], m256i.load(K1x2, 16))
+      let y {.align(32).} = mm256_add_epi64(x[4], m256i.load(K1x2, 16))
       m256i.store(t2, 8, ms, 8, y)
 
     block:
       x[5] = m256i.load(data, 208, data, 80)
       x[5] = mm256_shuffle_epi8(x[5], shuffleMask)
-      let y = mm256_add_epi64(x[5], m256i.load(K1x2, 20))
+      let y {.align(32).} = mm256_add_epi64(x[5], m256i.load(K1x2, 20))
       m256i.store(t2, 10, ms, 10, y)
 
     block:
       x[6] = m256i.load(data, 224, data, 96)
       x[6] = mm256_shuffle_epi8(x[6], shuffleMask)
-      let y = mm256_add_epi64(x[6], m256i.load(K1x2, 24))
+      let y {.align(32).} = mm256_add_epi64(x[6], m256i.load(K1x2, 24))
       m256i.store(t2, 12, ms, 12, y)
 
     block:
       x[7] = m256i.load(data, 240, data, 112)
       x[7] = mm256_shuffle_epi8(x[7], shuffleMask)
-      let y = mm256_add_epi64(x[7], m256i.load(K1x2, 28))
+      let y {.align(32).} = mm256_add_epi64(x[7], m256i.load(K1x2, 28))
       m256i.store(t2, 14, ms, 14, y)
 
   proc sha256Compress*(state: var array[8, uint32],
                        data: openArray[byte],
                        blocks: int) {.inline, noinit.} =
+    var
+      x {.align(32).}: array[4, m256i]
+      ms {.align(32).}: array[16, uint32]
+      t2 {.align(32).}: array[64, uint32]
+      cs {.align(32).}: array[8, uint32]
+      blocksCount = blocks
+      offset = 0
+
     let
-      loMask =
+      loMask {.align(32).} =
         mm256_setr_epi32(0x03020100'u32, 0x0b0a0908'u32,
                          0xffffffff'u32, 0xffffffff'u32,
                          0x03020100'u32, 0x0b0a0908'u32,
                          0xffffffff'u32, 0xffffffff'u32)
-      hiMask =
+      hiMask {.align(32).} =
         mm256_setr_epi32(0xffffffff'u32, 0xffffffff'u32,
                          0x03020100'u32, 0x0b0a0908'u32,
                          0xffffffff'u32, 0xffffffff'u32,
                          0x03020100'u32, 0x0b0a0908'u32)
-
-    var
-      ms {.align(64).}: array[16, uint32]
-      t2 {.align(64).}: array[64, uint32]
-      x {.align(64).}: array[4, m256i]
-      cs {.align(64).}: array[8, uint32]
-      blocksCount = blocks
-      offset = 0
 
     if (blocksCount and 1) == 1:
       sha2_avx.sha256Compress(state, data, 1)
@@ -366,28 +360,28 @@ when defined(amd64):
                  data.toOpenArray(offset, offset + 2 * sha256.sizeBlock() - 1))
 
       block:
-        let s0 = sha256UpdateAvx2(x, 32, loMask, hiMask)
+        let s0 {.align(32).} = sha256UpdateAvx2(x, 32, loMask, hiMask)
         ROUND256(cs, ms[0])
         ROUND256(cs, ms[1])
         ROUND256(cs, ms[2])
         ROUND256(cs, ms[3])
         m256i.store(t2, 16, ms, 0, s0)
 
-        let s1 = sha256UpdateAvx2(x, 40, loMask, hiMask)
+        let s1 {.align(32).} = sha256UpdateAvx2(x, 40, loMask, hiMask)
         ROUND256(cs, ms[4])
         ROUND256(cs, ms[5])
         ROUND256(cs, ms[6])
         ROUND256(cs, ms[7])
         m256i.store(t2, 20, ms, 4, s1)
 
-        let s2 = sha256UpdateAvx2(x, 48, loMask, hiMask)
+        let s2 {.align(32).} = sha256UpdateAvx2(x, 48, loMask, hiMask)
         ROUND256(cs, ms[8])
         ROUND256(cs, ms[9])
         ROUND256(cs, ms[10])
         ROUND256(cs, ms[11])
         m256i.store(t2, 24, ms, 8, s2)
 
-        let s3 = sha256UpdateAvx2(x, 56, loMask, hiMask)
+        let s3 {.align(32).} = sha256UpdateAvx2(x, 56, loMask, hiMask)
         ROUND256(cs, ms[12])
         ROUND256(cs, ms[13])
         ROUND256(cs, ms[14])
@@ -395,28 +389,28 @@ when defined(amd64):
         m256i.store(t2, 28, ms, 12, s3)
 
       block:
-        let s0 = sha256UpdateAvx2(x, 64, loMask, hiMask)
+        let s0 {.align(32).} = sha256UpdateAvx2(x, 64, loMask, hiMask)
         ROUND256(cs, ms[0])
         ROUND256(cs, ms[1])
         ROUND256(cs, ms[2])
         ROUND256(cs, ms[3])
         m256i.store(t2, 32, ms, 0, s0)
 
-        let s1 = sha256UpdateAvx2(x, 72, loMask, hiMask)
+        let s1 {.align(32).} = sha256UpdateAvx2(x, 72, loMask, hiMask)
         ROUND256(cs, ms[4])
         ROUND256(cs, ms[5])
         ROUND256(cs, ms[6])
         ROUND256(cs, ms[7])
         m256i.store(t2, 36, ms, 4, s1)
 
-        let s2 = sha256UpdateAvx2(x, 80, loMask, hiMask)
+        let s2 {.align(32).} = sha256UpdateAvx2(x, 80, loMask, hiMask)
         ROUND256(cs, ms[8])
         ROUND256(cs, ms[9])
         ROUND256(cs, ms[10])
         ROUND256(cs, ms[11])
         m256i.store(t2, 40, ms, 8, s2)
 
-        let s3 = sha256UpdateAvx2(x, 88, loMask, hiMask)
+        let s3 {.align(32).} = sha256UpdateAvx2(x, 88, loMask, hiMask)
         ROUND256(cs, ms[12])
         ROUND256(cs, ms[13])
         ROUND256(cs, ms[14])
@@ -424,28 +418,28 @@ when defined(amd64):
         m256i.store(t2, 44, ms, 12, s3)
 
       block:
-        let s0 = sha256UpdateAvx2(x, 96, loMask, hiMask)
+        let s0 {.align(32).} = sha256UpdateAvx2(x, 96, loMask, hiMask)
         ROUND256(cs, ms[0])
         ROUND256(cs, ms[1])
         ROUND256(cs, ms[2])
         ROUND256(cs, ms[3])
         m256i.store(t2, 48, ms, 0, s0)
 
-        let s1 = sha256UpdateAvx2(x, 104, loMask, hiMask)
+        let s1 {.align(32).} = sha256UpdateAvx2(x, 104, loMask, hiMask)
         ROUND256(cs, ms[4])
         ROUND256(cs, ms[5])
         ROUND256(cs, ms[6])
         ROUND256(cs, ms[7])
         m256i.store(t2, 52, ms, 4, s1)
 
-        let s2 = sha256UpdateAvx2(x, 112, loMask, hiMask)
+        let s2 {.align(32).} = sha256UpdateAvx2(x, 112, loMask, hiMask)
         ROUND256(cs, ms[8])
         ROUND256(cs, ms[9])
         ROUND256(cs, ms[10])
         ROUND256(cs, ms[11])
         m256i.store(t2, 56, ms, 8, s2)
 
-        let s3 = sha256UpdateAvx2(x, 120, loMask, hiMask)
+        let s3 {.align(32).} = sha256UpdateAvx2(x, 120, loMask, hiMask)
         ROUND256(cs, ms[12])
         ROUND256(cs, ms[13])
         ROUND256(cs, ms[14])
@@ -552,10 +546,10 @@ when defined(amd64):
                        data: openArray[byte],
                        blocks: int) {.inline, noinit.} =
     var
-      ms {.align(64).}: array[16, uint64]
-      x {.align(64).}: array[8, m256i]
-      cs {.align(64).}: array[8, uint64]
-      t2 {.align(64).}: array[80, uint64]
+      x {.align(32).}: array[8, m256i]
+      ms {.align(32).}: array[16, uint64]
+      cs {.align(32).}: array[8, uint64]
+      t2 {.align(32).}: array[80, uint64]
       blocksCount = blocks
       offset = 0
 
@@ -572,165 +566,165 @@ when defined(amd64):
                  data.toOpenArray(offset, offset + 2 * sha512.sizeBlock() - 1))
 
       block:
-        let s0 = sha512UpdateAvx2(x, 32)
+        let s0 {.align(32).} = sha512UpdateAvx2(x, 32)
         ROUND512(cs, ms[0])
         ROUND512(cs, ms[1])
         m256i.store(t2, 16, ms, 0, s0)
 
-        let s1 = sha512UpdateAvx2(x, 36)
+        let s1 {.align(32).} = sha512UpdateAvx2(x, 36)
         ROUND512(cs, ms[2])
         ROUND512(cs, ms[3])
         m256i.store(t2, 18, ms, 2, s1)
 
-        let s2 = sha512UpdateAvx2(x, 40)
+        let s2 {.align(32).} = sha512UpdateAvx2(x, 40)
         ROUND512(cs, ms[4])
         ROUND512(cs, ms[5])
         m256i.store(t2, 20, ms, 4, s2)
 
-        let s3 = sha512UpdateAvx2(x, 44)
+        let s3 {.align(32).} = sha512UpdateAvx2(x, 44)
         ROUND512(cs, ms[6])
         ROUND512(cs, ms[7])
         m256i.store(t2, 22, ms, 6, s3)
 
-        let s4 = sha512UpdateAvx2(x, 48)
+        let s4 {.align(32).} = sha512UpdateAvx2(x, 48)
         ROUND512(cs, ms[8])
         ROUND512(cs, ms[9])
         m256i.store(t2, 24, ms, 8, s4)
 
-        let s5 = sha512UpdateAvx2(x, 52)
+        let s5 {.align(32).} = sha512UpdateAvx2(x, 52)
         ROUND512(cs, ms[10])
         ROUND512(cs, ms[11])
         m256i.store(t2, 26, ms, 10, s5)
 
-        let s6 = sha512UpdateAvx2(x, 56)
+        let s6 {.align(32).} = sha512UpdateAvx2(x, 56)
         ROUND512(cs, ms[12])
         ROUND512(cs, ms[13])
         m256i.store(t2, 28, ms, 12, s6)
 
-        let s7 = sha512UpdateAvx2(x, 60)
+        let s7 {.align(32).} = sha512UpdateAvx2(x, 60)
         ROUND512(cs, ms[14])
         ROUND512(cs, ms[15])
         m256i.store(t2, 30, ms, 14, s7)
 
       block:
-        let s0 = sha512UpdateAvx2(x, 64)
+        let s0 {.align(32).} = sha512UpdateAvx2(x, 64)
         ROUND512(cs, ms[0])
         ROUND512(cs, ms[1])
         m256i.store(t2, 32, ms, 0, s0)
 
-        let s1 = sha512UpdateAvx2(x, 68)
+        let s1 {.align(32).} = sha512UpdateAvx2(x, 68)
         ROUND512(cs, ms[2])
         ROUND512(cs, ms[3])
         m256i.store(t2, 34, ms, 2, s1)
 
-        let s2 = sha512UpdateAvx2(x, 72)
+        let s2 {.align(32).} = sha512UpdateAvx2(x, 72)
         ROUND512(cs, ms[4])
         ROUND512(cs, ms[5])
         m256i.store(t2, 36, ms, 4, s2)
 
-        let s3 = sha512UpdateAvx2(x, 76)
+        let s3 {.align(32).} = sha512UpdateAvx2(x, 76)
         ROUND512(cs, ms[6])
         ROUND512(cs, ms[7])
         m256i.store(t2, 38, ms, 6, s3)
 
-        let s4 = sha512UpdateAvx2(x, 80)
+        let s4 {.align(32).} = sha512UpdateAvx2(x, 80)
         ROUND512(cs, ms[8])
         ROUND512(cs, ms[9])
         m256i.store(t2, 40, ms, 8, s4)
 
-        let s5 = sha512UpdateAvx2(x, 84)
+        let s5 {.align(32).} = sha512UpdateAvx2(x, 84)
         ROUND512(cs, ms[10])
         ROUND512(cs, ms[11])
         m256i.store(t2, 42, ms, 10, s5)
 
-        let s6 = sha512UpdateAvx2(x, 88)
+        let s6 {.align(32).} = sha512UpdateAvx2(x, 88)
         ROUND512(cs, ms[12])
         ROUND512(cs, ms[13])
         m256i.store(t2, 44, ms, 12, s6)
 
-        let s7 = sha512UpdateAvx2(x, 92)
+        let s7 {.align(32).} = sha512UpdateAvx2(x, 92)
         ROUND512(cs, ms[14])
         ROUND512(cs, ms[15])
         m256i.store(t2, 46, ms, 14, s7)
 
       block:
-        let s0 = sha512UpdateAvx2(x, 96)
+        let s0 {.align(32).} = sha512UpdateAvx2(x, 96)
         ROUND512(cs, ms[0])
         ROUND512(cs, ms[1])
         m256i.store(t2, 48, ms, 0, s0)
 
-        let s1 = sha512UpdateAvx2(x, 100)
+        let s1 {.align(32).} = sha512UpdateAvx2(x, 100)
         ROUND512(cs, ms[2])
         ROUND512(cs, ms[3])
         m256i.store(t2, 50, ms, 2, s1)
 
-        let s2 = sha512UpdateAvx2(x, 104)
+        let s2 {.align(32).} = sha512UpdateAvx2(x, 104)
         ROUND512(cs, ms[4])
         ROUND512(cs, ms[5])
         m256i.store(t2, 52, ms, 4, s2)
 
-        let s3 = sha512UpdateAvx2(x, 108)
+        let s3 {.align(32).} = sha512UpdateAvx2(x, 108)
         ROUND512(cs, ms[6])
         ROUND512(cs, ms[7])
         m256i.store(t2, 54, ms, 6, s3)
 
-        let s4 = sha512UpdateAvx2(x, 112)
+        let s4 {.align(32).} = sha512UpdateAvx2(x, 112)
         ROUND512(cs, ms[8])
         ROUND512(cs, ms[9])
         m256i.store(t2, 56, ms, 8, s4)
 
-        let s5 = sha512UpdateAvx2(x, 116)
+        let s5 {.align(32).} = sha512UpdateAvx2(x, 116)
         ROUND512(cs, ms[10])
         ROUND512(cs, ms[11])
         m256i.store(t2, 58, ms, 10, s5)
 
-        let s6 = sha512UpdateAvx2(x, 120)
+        let s6 {.align(32).} = sha512UpdateAvx2(x, 120)
         ROUND512(cs, ms[12])
         ROUND512(cs, ms[13])
         m256i.store(t2, 60, ms, 12, s6)
 
-        let s7 = sha512UpdateAvx2(x, 124)
+        let s7 {.align(32).} = sha512UpdateAvx2(x, 124)
         ROUND512(cs, ms[14])
         ROUND512(cs, ms[15])
         m256i.store(t2, 62, ms, 14, s7)
 
       block:
-        let s0 = sha512UpdateAvx2(x, 128)
+        let s0 {.align(32).} = sha512UpdateAvx2(x, 128)
         ROUND512(cs, ms[0])
         ROUND512(cs, ms[1])
         m256i.store(t2, 64, ms, 0, s0)
 
-        let s1 = sha512UpdateAvx2(x, 132)
+        let s1 {.align(32).} = sha512UpdateAvx2(x, 132)
         ROUND512(cs, ms[2])
         ROUND512(cs, ms[3])
         m256i.store(t2, 66, ms, 2, s1)
 
-        let s2 = sha512UpdateAvx2(x, 136)
+        let s2 {.align(32).} = sha512UpdateAvx2(x, 136)
         ROUND512(cs, ms[4])
         ROUND512(cs, ms[5])
         m256i.store(t2, 68, ms, 4, s2)
 
-        let s3 = sha512UpdateAvx2(x, 140)
+        let s3 {.align(32).} = sha512UpdateAvx2(x, 140)
         ROUND512(cs, ms[6])
         ROUND512(cs, ms[7])
         m256i.store(t2, 70, ms, 6, s3)
 
-        let s4 = sha512UpdateAvx2(x, 144)
+        let s4 {.align(32).} = sha512UpdateAvx2(x, 144)
         ROUND512(cs, ms[8])
         ROUND512(cs, ms[9])
         m256i.store(t2, 72, ms, 8, s4)
 
-        let s5 = sha512UpdateAvx2(x, 148)
+        let s5 {.align(32).} = sha512UpdateAvx2(x, 148)
         ROUND512(cs, ms[10])
         ROUND512(cs, ms[11])
         m256i.store(t2, 74, ms, 10, s5)
 
-        let s6 = sha512UpdateAvx2(x, 152)
+        let s6 {.align(32).} = sha512UpdateAvx2(x, 152)
         ROUND512(cs, ms[12])
         ROUND512(cs, ms[13])
         m256i.store(t2, 76, ms, 12, s6)
 
-        let s7 = sha512UpdateAvx2(x, 156)
+        let s7 {.align(32).} = sha512UpdateAvx2(x, 156)
         ROUND512(cs, ms[14])
         ROUND512(cs, ms[15])
         m256i.store(t2, 78, ms, 14, s7)

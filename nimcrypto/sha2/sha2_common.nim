@@ -98,8 +98,8 @@ type
   Sha2Context*[bits: static[int],
                bsize: static[int],
                T: uint32|uint64] = object
-    state* {.align(64).}: array[8, T]
-    buffer* {.align(64).}: array[bsize * 2, byte]
+    state* {.align(32).}: array[8, T]
+    buffer* {.align(32).}: array[bsize * 2, byte]
     module*: Sha2Module
     length*: uint64
     reminder*: int

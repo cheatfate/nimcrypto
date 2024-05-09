@@ -106,6 +106,12 @@ elif defined(arm64):
       if (plain and HWCAP_SHA512) != 0'u32:
         res.incl(CpuFeature.SHA2BEXT)
       res
+  elif defined(macos):
+    proc getCpuFeatures*(): set[CpuFeature] =
+      ## TODO: Right now all modern aarch64 macos systems has neon extensions
+      ## available, but we do not have method to detect it yet.
+      {CpuFeature.AARCH64, CpuFeature.SHA2EXT, CpuFeature.SHA2BEXT,
+       CpuFeature.CRC32, CpuFeature.AES}
   else:
     proc getCpuFeatures*(): set[CpuFeature] =
       {}

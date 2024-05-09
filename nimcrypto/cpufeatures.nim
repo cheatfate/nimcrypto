@@ -24,6 +24,10 @@ type
     CRC32,     # CRC-32 extension support
     AES        # AES extension support
 
+echo "ARM64 = ", defined(arm64)
+echo "MACOS = ", defined(macos)
+echo "MACOSX = ", defined(macosx)
+
 when defined(amd64):
   when defined(vcc):
     proc getCpuid(cpuInfo: ptr uint32, funcId: uint32, subId: uint32) {.
@@ -106,7 +110,7 @@ elif defined(arm64):
       if (plain and HWCAP_SHA512) != 0'u32:
         res.incl(CpuFeature.SHA2BEXT)
       res
-  elif defined(macos):
+  elif defined(macos) or defined(macosx):
     proc getCpuFeatures*(): set[CpuFeature] =
       ## TODO: Right now all modern aarch64 macos systems has neon extensions
       ## available, but we do not have method to detect it yet.

@@ -129,8 +129,8 @@ template compress(ctx: var Sha2Context, data: openArray[byte], blocks: int) =
       when compiles(SHA2_NEON_sha256Compress):
         sha2_neon.sha256Compress(ctx.state, data, blocks)
       else:
-        raiseAssert "SHA extensions implementation is not available for " &
-                    ctx.name()
+        raiseAssert "SHA2(neon) extensions implementation is not available " &
+                    "for " & ctx.name()
   elif (ctx is sha384) or (ctx is sha512) or (ctx is sha512_224) or
        (ctx is sha512_256):
     mixin sha512Compress
@@ -153,14 +153,14 @@ template compress(ctx: var Sha2Context, data: openArray[byte], blocks: int) =
       when compiles(SHA2_SHAEXT_sha512Compress):
         sha2_sha.sha512Compress(ctx.state, data, blocks)
       else:
-        raiseAssert "SHA extensions implementation is not available for " &
+        raiseAssert "SHA2 extensions implementation is not available for " &
                     ctx.name()
     of Sha2Module.Neon:
       when compiles(SHA2_NEON_sha512Compress):
         sha2_neon.sha512Compress(ctx.state, data, blocks)
       else:
-        raiseAssert "SHA extensions implementation is not available for " &
-                    ctx.name()
+        raiseAssert "SHA2(neon) extensions implementation is not available " &
+                    "for " & ctx.name()
   else:
     raiseAssert "Invalid context"
 

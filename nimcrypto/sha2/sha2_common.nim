@@ -177,6 +177,7 @@ func getImplementation*(ctx: Sha2Context,
                         implementation: Sha2Implementation,
                         features: set[CpuFeature]): Sha2Module =
   when defined(nimvm):
+    # Nim's internal VM use reference implementation only.
     Sha2Module.Ref
   elif defined(amd64):
     case implementation
@@ -202,26 +203,27 @@ func getImplementation*(ctx: Sha2Context,
       if CpuFeature.AVX in features:
         Sha2Module.Avx
       else:
-        raiseAssert "AVX implementation is not available on this platform"
+        raiseAssert "AVX implementation is not available on [x86_64] platform"
     of Sha2Implementation.Avx2:
       if CpuFeature.AVX2 in features:
         Sha2Module.Avx2
       else:
-        raiseAssert "AVX2 implementation is not available on this platform"
+        raiseAssert "AVX2 implementation is not available on [x86_64] platform"
     of Sha2Implementation.ShaExt:
       when ctx.bsize == sha256.sizeBlock():
         if CpuFeature.SHA2EXT in features:
           Sha2Module.ShaExt
         else:
-          raiseAssert "SHA extension is not available on this platform"
+          raiseAssert "SHA2 extension is not available on [x86_64] platform"
       else:
-        raiseAssert ctx.name() & " is not supported by SHA extensions yet"
+        raiseAssert ctx.name() & " is not supported by SHA extensions yet " &
+                    "on [x86_64] platform"
   elif defined(arm64):
     case implementation
     of Sha2Implementation.Auto:
       when ctx.bsize == sha256.sizeBlock():
         if CpuFeature.SHA2EXT in features:
-          return Sha2Module.ShaExt
+          return Sha2Module.Neon
         Sha2Module.Ref
       else:
         # We do not have SHA-512 implemented using SHA extensions yet.
@@ -229,16 +231,20 @@ func getImplementation*(ctx: Sha2Context,
     of Sha2Implementation.Ref:
       Sha2Module.Ref
     of Sha2Implementation.Avx:
-      raiseAssert "AVX implementation is not available on this platform"
+      raiseAssert "AVX implementation is not available on [aarch64] " &
+                  "platform"
     of Sha2Implementation.Avx2:
-      raiseAssert "AVX2 implementation is not available on this platform"
+      raiseAssert "AVX2 implementation is not available on [aarch64] " &
+                  "platform"
     of Sha2Implementation.ShaExt:
       when ctx.bsize == sha256.sizeBlock():
         if CpuFeature.SHA2EXT in features:
-          Sha2Module.ShaExt
+          Sha2Module.Neon
         else:
-          raiseAssert "SHA extension is not available in this platform"
+          raiseAssert "SHA2 extension is not available on [aarch64] " &
+                      "platform"
       else:
-        raiseAssert ctx.name & " is not supported by SHA extensions yet"
+        raiseAssert ctx.name() & " is not supported by SHA2 extensions yet " &
+                    "on [aarch64] platform"
   else:
     Sha2Module.Ref

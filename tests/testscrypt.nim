@@ -192,55 +192,80 @@ suite "Scrypt KDF tests suite":
              p = 16, keyLen = 32)
     check stringarg == openarrayarg
 
+  proc checkCombination(HashType: typedesc,
+                        implementation: Sha2Implementation,
+                        cpu: set[CpuFeature]): bool =
+    try:
+      var ctx: HashType
+      ctx.init(implementation, cpu)
+      true
+    except Defect:
+      false
+
   let cpuFeatures = getCpuFeatures()
   for implementation in Sha2Implementation:
     test "scrypt N=16, r=1, p=1, keyLen=64 [" &
          toLower($implementation) & "]":
-      let key = fromHex(
-        "77D6576238657B203B19CA42C18A0497F16B4844E3074AE8DFDFFA3FEDE21442" &
-        "FCD0069DED0948F8326A753A0FC81F17E8D3E0FB2E0D3628CF35E20C38D18906")
-      let dkey = scrypt(password = "", salt = "", N = 16, r = 1, p = 1,
-                        keyLen = 64, implementation, cpuFeatures)
-      check key == dkey
+      if not(checkCombination(sha256, implementation, cpuFeatures)):
+        skip()
+      else:
+        let key = fromHex(
+          "77D6576238657B203B19CA42C18A0497F16B4844E3074AE8DFDFFA3FEDE21442" &
+          "FCD0069DED0948F8326A753A0FC81F17E8D3E0FB2E0D3628CF35E20C38D18906")
+        let dkey = scrypt(password = "", salt = "", N = 16, r = 1, p = 1,
+                          keyLen = 64, implementation, cpuFeatures)
+        check key == dkey
 
     test "scrypt N=1024, r=8, p=16, keyLen=64 [" &
          toLower($implementation) & "]":
-      let key = fromHex(
-        "FDBABE1C9D3472007856E7190D01E9FE7C6AD7CBC8237830E77376634B373162" &
-        "2EAF30D92E22A3886FF109279D9830DAC727AFB94A83EE6D8360CBDFA2CC0640")
-      let dkey = scrypt(password = "password", salt = "NaCl", N = 1024, r = 8,
-                        p = 16, keyLen = 64, implementation, cpuFeatures)
-      check key == dkey
+      if not(checkCombination(sha256, implementation, cpuFeatures)):
+        skip()
+      else:
+        let key = fromHex(
+          "FDBABE1C9D3472007856E7190D01E9FE7C6AD7CBC8237830E77376634B373162" &
+          "2EAF30D92E22A3886FF109279D9830DAC727AFB94A83EE6D8360CBDFA2CC0640")
+        let dkey = scrypt(password = "password", salt = "NaCl", N = 1024, r = 8,
+                          p = 16, keyLen = 64, implementation, cpuFeatures)
+        check key == dkey
 
     test "scrypt N=16384, r=8, p=1, keyLen=64 [" &
          toLower($implementation) & "]":
-      let key = fromHex(
-        "7023BDCB3AFD7348461C06CD81FD38EBFDA8FBBA904F8E3EA9B543F6545DA1F2" &
-        "D5432955613F0FCF62D49705242A9AF9E61E85DC0D651E40DFCF017B45575887")
-      let dkey = scrypt(password = "pleaseletmein", salt = "SodiumChloride",
-                        N = 16384, r = 8, p = 1, keyLen = 64, implementation,
-                        cpuFeatures)
-      check key == dkey
+      if not(checkCombination(sha256, implementation, cpuFeatures)):
+        skip()
+      else:
+        let key = fromHex(
+          "7023BDCB3AFD7348461C06CD81FD38EBFDA8FBBA904F8E3EA9B543F6545DA1F2" &
+          "D5432955613F0FCF62D49705242A9AF9E61E85DC0D651E40DFCF017B45575887")
+        let dkey = scrypt(password = "pleaseletmein", salt = "SodiumChloride",
+                          N = 16384, r = 8, p = 1, keyLen = 64, implementation,
+                          cpuFeatures)
+        check key == dkey
 
     test "scrypt N=1048576, r=8, p=1, keyLen=32 [" &
          toLower($implementation) & "]":
-      when defined(cpu64):
-        let key = fromHex(
-          "E277EA2CACB23EDAFC039D229B79DC13ECEDB601D99B182A9FEDBA1E2BFB4F58")
-        let dkey = scrypt(password = "Rabbit", salt = "Mouse", N = 1048576,
-                          r = 8, p = 1, keyLen = 32)
-        check key == dkey
-      else:
+      if not(checkCombination(sha256, implementation, cpuFeatures)):
         skip()
+      else:
+        when defined(cpu64):
+          let key = fromHex(
+            "E277EA2CACB23EDAFC039D229B79DC13ECEDB601D99B182A9FEDBA1E2BFB4F58")
+          let dkey = scrypt(password = "Rabbit", salt = "Mouse", N = 1048576,
+                            r = 8, p = 1, keyLen = 32)
+          check key == dkey
+        else:
+          skip()
 
     test "scrypt N=1048576, r=8, p=1, keyLen=64 [" &
          toLower($implementation) & "]":
-      when defined(cpu64):
-        let key = fromHex(
-          "2101CB9B6A511AAEADDBBE09CF70F881EC568D574A2FFD4DABE5EE9820ADAA47" &
-          "8E56FD8F4BA5D09FFA1C6D927C40F4C337304049E8A952FBCBF45C6FA77A41A4")
-        let dkey = scrypt(password = "pleaseletmein", salt = "SodiumChloride",
-                          N = 1048576, r = 8, p = 1, keyLen = 64)
-        check key == dkey
-      else:
+      if not(checkCombination(sha256, implementation, cpuFeatures)):
         skip()
+      else:
+        when defined(cpu64):
+          let key = fromHex(
+            "2101CB9B6A511AAEADDBBE09CF70F881EC568D574A2FFD4DABE5EE9820ADAA47" &
+            "8E56FD8F4BA5D09FFA1C6D927C40F4C337304049E8A952FBCBF45C6FA77A41A4")
+          let dkey = scrypt(password = "pleaseletmein", salt = "SodiumChloride",
+                            N = 1048576, r = 8, p = 1, keyLen = 64)
+          check key == dkey
+        else:
+          skip()

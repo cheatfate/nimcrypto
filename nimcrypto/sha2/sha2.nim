@@ -1,7 +1,7 @@
 #
 #
 #                    NimCrypto
-#        (c) Copyright 2016 Eugene Kabanov
+#      (c) Copyright 2016-2024 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.

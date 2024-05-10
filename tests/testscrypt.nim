@@ -233,7 +233,8 @@ suite "Scrypt KDF tests suite":
       else:
         skip()
 
-    test "scrypt N=1048576, r=8, p=1, keyLen=64":
+    test "scrypt N=1048576, r=8, p=1, keyLen=64 [" &
+         toLower($implementation) & "]":
       when defined(cpu64):
         let key = fromHex(
           "2101CB9B6A511AAEADDBBE09CF70F881EC568D574A2FFD4DABE5EE9820ADAA47" &

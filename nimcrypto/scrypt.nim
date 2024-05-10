@@ -2,6 +2,7 @@
 #
 #                    NimCrypto
 #          (c) Copyright 2020 Andri Lim
+#        (c) Copyright 2024 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
@@ -10,7 +11,8 @@
 ## This module implements
 ## The scrypt Password-Based Key Derivation Function
 ## https://tools.ietf.org/html/rfc7914
-import utils, sha2, hmac, pbkdf2
+import "."/[utils, sha2, hmac, pbkdf2, cpufeatures]
+export cpufeatures
 
 proc salsaXor(tmp: var openArray[uint32],
   src: openArray[uint32], srco: int, dest: var openArray[uint32], dsto: int) =
@@ -230,14 +232,14 @@ func scrypt[T, M](password: openArray[T], salt: openArray[M],
     return 0
 
   let
-    r32  = r*32
-    r64  = r32*2
-    r128 = r64*2
+    r32  = r * 32
+    r64  = r32 * 2
+    r128 = r64 * 2
 
-  if b.len < p*r128:
+  if b.len < p * r128:
     return 0
 
-  if xyv.len < r32*(N+2):
+  if xyv.len < r32 * (N + 2):
     return 0
 
   var ctx: HMAC[sha256]
@@ -251,11 +253,56 @@ func scrypt[T, M](password: openArray[T], salt: openArray[M],
 
   ctx.pbkdf2(password, b, 1, output)
 
+proc scrypt*[T, M](password: openArray[T], salt: openArray[M],
+                   N, r, p: int, xyv: var openArray[uint32],
+                   b, output: var openArray[byte],
+                   implementation: Sha2Implementation,
+                   cpufeatures: set[CpuFeature] = {}): int =
+
+  when not((M is byte) or (M is char)):
+    {.fatal: "Choosen password type is not supported!".}
+
+  when not((T is byte) or (T is char)):
+    {.fatal: "Choosen salt type is not supported!".}
+
+  if not validateParam(N, r, p):
+    return 0
+
+  let
+    r32  = r * 32
+    r64  = r32 * 2
+    r128 = r64 * 2
+
+  if b.len < p * r128:
+    return 0
+
+  if xyv.len < r32 * (N + 2):
+    return 0
+
+  var ctx: HMAC[sha256]
+  if ctx.pbkdf2(password, salt, 1, b, implementation, cpufeatures) == 0:
+    return 0
+
+  var n = 0
+  for i in 0 ..< p:
+    smix(b, n, r, N, xyv, r64)
+    inc(n, r128)
+
+  ctx.pbkdf2(password, b, 1, output, implementation, cpufeatures)
+
+proc scrypt*[T, M](password: openArray[T], salt: openArray[M],
+                   N, r, p: int, xyv: var openArray[uint32],
+                   b, output: var openArray[byte],
+                   cpufeatures: set[CpuFeature]): int =
+  scrypt(password, salt, N, r, p, xyv, b, output, Sha2Implementation.Auto,
+         cpufeatures)
+
 # because of NimCrypto no alloc policy,
 # users of scrypt must provide their own `xyv` and `b` array.
 # scryptCalc will return how much element needed.
 # return value -> (xyv.len of uint32s, b.len of bytes)
 func scryptCalc*(N, r, p: int): (int, int) =
+  ((r * 32 * (N + 2)), (p * r * 128))
   result = ((r*32*(N+2)), (p*r*128))
 
 func scrypt*(password: openArray[char], salt: openArray[char],

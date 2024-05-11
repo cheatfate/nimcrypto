@@ -192,21 +192,11 @@ suite "Scrypt KDF tests suite":
              p = 16, keyLen = 32)
     check stringarg == openarrayarg
 
-  proc checkCombination(HashType: typedesc,
-                        implementation: Sha2Implementation,
-                        cpu: set[CpuFeature]): bool =
-    try:
-      var ctx: HashType
-      ctx.init(implementation, cpu)
-      true
-    except Defect:
-      false
-
   let cpuFeatures = getCpuFeatures()
   for implementation in Sha2Implementation:
     test "scrypt N=16, r=1, p=1, keyLen=64 [" &
          toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         let key = fromHex(
@@ -218,7 +208,7 @@ suite "Scrypt KDF tests suite":
 
     test "scrypt N=1024, r=8, p=16, keyLen=64 [" &
          toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         let key = fromHex(
@@ -230,7 +220,7 @@ suite "Scrypt KDF tests suite":
 
     test "scrypt N=16384, r=8, p=1, keyLen=64 [" &
          toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         let key = fromHex(
@@ -243,7 +233,7 @@ suite "Scrypt KDF tests suite":
 
     test "scrypt N=1048576, r=8, p=1, keyLen=32 [" &
          toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         when defined(cpu64):
@@ -257,7 +247,7 @@ suite "Scrypt KDF tests suite":
 
     test "scrypt N=1048576, r=8, p=1, keyLen=64 [" &
          toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         when defined(cpu64):

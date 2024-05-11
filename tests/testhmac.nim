@@ -848,22 +848,12 @@ suite "HMAC Tests":
       hctx1.isFullZero() == true
       hctx2.isFullZero() == true
 
-  proc checkCombination(HashType: typedesc,
-                        implementation: Sha2Implementation,
-                        cpu: set[CpuFeature]): bool =
-    try:
-      var ctx: HashType
-      ctx.init(implementation, cpu)
-      true
-    except Defect:
-      false
-
   let cpuFeatures = getCpuFeatures()
   template doSha2Test(description: static[string],
                       implementation: Sha2Implementation,
                       HashType: typedesc) =
     test description & " test vectors [" & toLower($implementation) & "]":
-      if not(checkCombination(HashType, implementation, cpuFeatures)):
+      if not(isAvailable(HashType, implementation, cpuFeatures)):
         skip()
       else:
         var ctx: HMAC[HashType]

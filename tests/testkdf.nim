@@ -727,23 +727,13 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
     else:
       raiseAssert "Unknown context!"
 
-  proc checkCombination(HashType: typedesc,
-                        implementation: Sha2Implementation,
-                        cpu: set[CpuFeature]): bool =
-    try:
-      var ctx: HashType
-      ctx.init(implementation, cpu)
-      true
-    except Defect:
-      false
-
   let cpuFeatures = getCpuFeatures()
 
   template doSha2KdfTest1(description: static[string],
                           implementation: Sha2Implementation,
                           HashType: typedesc) =
     test description & " test (1 iteration) [" & toLower($implementation) & "]":
-      if not(checkCombination(HashType, implementation, cpuFeatures)):
+      if not(isAvailable(HashType, implementation, cpuFeatures)):
         skip()
       else:
         var
@@ -766,7 +756,7 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
     test description & " test (100,000 iteration) [" &
          toLower($implementation) & "]":
       when defined(release):
-        if not(checkCombination(HashType, implementation, cpuFeatures)):
+        if not(isAvailable(HashType, implementation, cpuFeatures)):
           skip()
         else:
           var

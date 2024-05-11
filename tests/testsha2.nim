@@ -456,20 +456,10 @@ suite "SHA2 Tests":
   test "SHA2-512 million(a) test":
     check sha512.millionAtest1() == stripSpaces(digest1ma512)
 
-  proc checkCombination(HashType: typedesc,
-                        implementation: Sha2Implementation,
-                        cpu: set[CpuFeature]): bool =
-    try:
-      var ctx: HashType
-      ctx.init(implementation, cpu)
-      true
-    except Defect:
-      false
-
   let cpuFeatures = getCpuFeatures()
   for implementation in Sha2Implementation:
     test "SHA2-224 test vectors [" & toLower($implementation) & "]":
-      if not(checkCombination(sha224, implementation, cpuFeatures)):
+      if not(isAvailable(sha224, implementation, cpuFeatures)):
         skip()
       else:
         for i in 0 ..< len(code224):
@@ -507,7 +497,7 @@ suite "SHA2 Tests":
             ctx224.isFullZero() == true
 
     test "SHA2-224 empty update() test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha224, implementation, cpuFeatures)):
+      if not(isAvailable(sha224, implementation, cpuFeatures)):
         skip()
       else:
         var data: seq[byte]
@@ -525,7 +515,7 @@ suite "SHA2 Tests":
           ctx2.finish().data == edigest
 
     test "SHA2-256 test vectors [" & toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         for i in 0 ..< len(code256):
@@ -559,7 +549,7 @@ suite "SHA2 Tests":
             ctx256.isFullZero() == true
 
     test "SHA2-256 empty update() test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         var data: seq[byte]
@@ -577,7 +567,7 @@ suite "SHA2 Tests":
           ctx2.finish().data == edigest
 
     test "SHA2-384 test vectors [" & toLower($implementation) & "]":
-      if not(checkCombination(sha384, implementation, cpuFeatures)):
+      if not(isAvailable(sha384, implementation, cpuFeatures)):
         skip()
       else:
         for i in 0 ..< len(code384):
@@ -612,7 +602,7 @@ suite "SHA2 Tests":
             ctx384.isFullZero() == true
 
     test "SHA2-384 empty update() test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha384, implementation, cpuFeatures)):
+      if not(isAvailable(sha384, implementation, cpuFeatures)):
         skip()
       else:
         var data: seq[byte]
@@ -630,7 +620,7 @@ suite "SHA2 Tests":
           ctx2.finish().data == edigest
 
     test "SHA2-512 test vectors [" & toLower($implementation) & "]":
-      if not(checkCombination(sha512, implementation, cpuFeatures)):
+      if not(isAvailable(sha512, implementation, cpuFeatures)):
         skip()
       else:
         for i in 0 ..< len(code512):
@@ -664,7 +654,7 @@ suite "SHA2 Tests":
             ctx512.isFullZero() == true
 
     test "SHA2-512 empty update() test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha512, implementation, cpuFeatures)):
+      if not(isAvailable(sha512, implementation, cpuFeatures)):
         skip()
       else:
         var data: seq[byte]
@@ -682,7 +672,7 @@ suite "SHA2 Tests":
           ctx2.finish().data == edigest
 
     test "SHA2-512/224 test vectors [" & toLower($implementation) & "]":
-      if not(checkCombination(sha512_224, implementation, cpuFeatures)):
+      if not(isAvailable(sha512_224, implementation, cpuFeatures)):
         skip()
       else:
         for i  in 0 ..< len(code512_224):
@@ -709,7 +699,7 @@ suite "SHA2 Tests":
             ctx512_224.isFullZero() == true
 
     test "SHA2-512/224 empty update() test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha512_224, implementation, cpuFeatures)):
+      if not(isAvailable(sha512_224, implementation, cpuFeatures)):
         skip()
       else:
         var data: seq[byte]
@@ -727,7 +717,7 @@ suite "SHA2 Tests":
           ctx2.finish().data == edigest
 
     test "SHA2-512/256 test vectors [" & toLower($implementation) & "]":
-      if not(checkCombination(sha512_256, implementation, cpuFeatures)):
+      if not(isAvailable(sha512_256, implementation, cpuFeatures)):
         skip()
       else:
         for i in 0 ..< len(code512_256):
@@ -754,7 +744,7 @@ suite "SHA2 Tests":
             ctx512_256.isFullZero() == true
 
     test "SHA2-512/256 empty update() test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha512_256, implementation, cpuFeatures)):
+      if not(isAvailable(sha512_256, implementation, cpuFeatures)):
         skip()
       else:
         var data: seq[byte]
@@ -779,25 +769,25 @@ suite "SHA2 Tests":
       $ctx.finish()
 
     test "SHA2-224 million(a) test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha224, implementation, cpuFeatures)):
+      if not(isAvailable(sha224, implementation, cpuFeatures)):
         skip()
       else:
         check sha224.millionAtest2() == stripSpaces(digest1ma224)
 
     test "SHA2-256 million(a) test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha256, implementation, cpuFeatures)):
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
         skip()
       else:
         check sha256.millionAtest2() == stripSpaces(digest1ma256)
 
     test "SHA2-384 million(a) test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha384, implementation, cpuFeatures)):
+      if not(isAvailable(sha384, implementation, cpuFeatures)):
         skip()
       else:
         check sha384.millionAtest2() == stripSpaces(digest1ma384)
 
     test "SHA2-512 million(a) test [" & toLower($implementation) & "]":
-      if not(checkCombination(sha512, implementation, cpuFeatures)):
+      if not(isAvailable(sha512, implementation, cpuFeatures)):
         skip()
       else:
         check sha512.millionAtest2() == stripSpaces(digest1ma512)

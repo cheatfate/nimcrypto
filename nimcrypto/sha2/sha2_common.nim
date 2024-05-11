@@ -248,3 +248,49 @@ func getImplementation*(ctx: Sha2Context,
                     "on [aarch64] platform"
   else:
     Sha2Module.Ref
+
+func isAvailable*(ctx: typedesc[Sha2Context],
+                  implementation: Sha2Implementation,
+                  features: set[CpuFeature]): bool =
+  ## This function returns ``true`` if current combination of ``implementation``
+  ## and CPU ``features`` are available for the specific SHA2 context ``ctx``.
+  when defined(nimvm):
+    true
+  elif defined(amd64):
+    case implementation
+    of Sha2Implementation.Auto, Sha2Implementation.Ref:
+      true
+    of Sha2Implementation.Avx:
+      if CpuFeature.AVX in features:
+        true
+      else:
+        false
+    of Sha2Implementation.Avx2:
+      if CpuFeature.AVX2 in features:
+        true
+      else:
+        false
+    of Sha2Implementation.ShaExt:
+      when ctx.bsize == sha256.sizeBlock():
+        if CpuFeature.SHA2EXT in features:
+          true
+        else:
+          false
+      else:
+        false
+  elif defined(arm64):
+    case implementation
+    of Sha2Implementation.Auto, Sha2Implementation.Ref:
+      true
+    of Sha2Implementation.Avx, Sha2Implementation.Avx2:
+      false
+    of Sha2Implementation.ShaExt:
+      when ctx.bsize == sha256.sizeBlock():
+        if CpuFeature.SHA2EXT in features:
+          true
+        else:
+          false
+      else:
+        false
+  else:
+    true

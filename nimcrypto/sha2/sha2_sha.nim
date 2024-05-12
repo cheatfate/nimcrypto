@@ -81,15 +81,15 @@ when defined(amd64):
   proc sha256Compress*(state: var array[8, uint32],
                        data: openArray[byte],
                        blocks: int) {.noinit, inline.} =
-    let shufMask =
+    let shufMask {.align(32).} =
       mm_set_epi64x(0x0c0d0e0f08090a0b'u64, 0x0405060700010203'u64)
 
     var
-      msgtmp: array[4, m128i]
-      msg: m128i
-      tmp = mm_shuffle_epi32(m128i.load(state, 0), 0xB1'u32)
-      state1 = mm_shuffle_epi32(m128i.load(state, 4), 0x1B'u32)
-      state0 = mm_alignr_epi8(tmp, state1, 8)
+      msgtmp {.noinit.} : array[4, m128i]
+      msg {.align(32), noinit.} : m128i
+      tmp {.align(32).} = mm_shuffle_epi32(m128i.load(state, 0), 0xB1'u32)
+      state1 {.align(32).} = mm_shuffle_epi32(m128i.load(state, 4), 0x1B'u32)
+      state0 {.align(32).} = mm_alignr_epi8(tmp, state1, 8)
       blocksCount = blocks
       offset = 0
 

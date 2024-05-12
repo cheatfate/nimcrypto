@@ -111,9 +111,8 @@ when defined(amd64):
     w[7] = w[6]; w[6] = w[5]; w[5] = w[4]; w[4] = w[3]
     w[3] = w[2]; w[2] = w[1]; w[1] = w[0]; w[0] = tmp
 
-  proc sha256UpdateAvx(x: var array[4, m128i], k256i: int,
-                       loMask, hiMask: m128i): m128i {.inline, noinit.} =
-    var t {.align(64).}: array[4, m128i]
+  template sha256UpdateAvx(x, k256i, loMask, hiMask: untyped): m128i =
+    var t {.align(32), noinit.}: array[4, m128i]
 
     t[0] = mm_alignr_epi8(x[1], x[0], 4)
     t[3] = mm_alignr_epi8(x[3], x[2], 4)
@@ -150,9 +149,8 @@ when defined(amd64):
 
     mm_add_epi32(x[3], m128i.load(K0D, k256i))
 
-  proc sha512UpdateAvx(x: var array[8, m128i], k512i: int): m128i {.
-       inline, noinit.} =
-    var t {.align(64).}: array[4, m128i]
+  template sha512UpdateAvx(x, k512i: untyped): m128i =
+    var t {.align(32), noinit.}: array[4, m128i]
 
     t[0] = mm_alignr_epi8(x[1], x[0], 8)
     t[3] = mm_alignr_epi8(x[5], x[4], 8)
@@ -188,10 +186,10 @@ when defined(amd64):
 
     mm_add_epi64(x[7], m128i.load(K1D, k512i))
 
-  proc loadData32(x: var array[4, m128i],
-                  ms: var array[16, uint32], data: openArray[byte]) {.
-       inline, noinit.} =
-    let shuffleMask =
+  # x: var array[4, m128i]
+  # ms: var array[16, uint32]
+  template loadData32(x, ms: untyped, data: openArray[byte]) =
+    let shuffleMask {.align(32).} =
       mm_setr_epi32(0x00010203'u32, 0x04050607'u32,
                     0x08090a0b'u32, 0x0c0d0e0f'u32)
     x[0] = m128i.load(data, 0)
@@ -210,10 +208,10 @@ when defined(amd64):
     x[3] = mm_shuffle_epi8(x[3], shuffleMask)
     m128i.store(ms, 12, mm_add_epi32(x[3], m128i.load(K0D, 12)))
 
-  proc loadData64(x: var array[8, m128i],
-                  ms: var array[16, uint64], data: openArray[byte]) {.
-       inline, noinit.} =
-    let shuffleMask =
+  # x: var array[8, m128i]
+  # ms: var array[16, uint32]
+  template loadData64(x, ms: untyped, data: openArray[byte]) =
+    let shuffleMask {.align(32).}=
       mm_setr_epi32(0x04050607'u32, 0x00010203'u32,
                     0x0c0d0e0f'u32, 0x08090a0b'u32)
 
@@ -253,17 +251,17 @@ when defined(amd64):
                        data: openArray[byte],
                        blocks: int) {.inline, noinit.} =
     let
-      loMask =
+      loMask {.align(32).} =
         mm_setr_epi32(0x03020100'u32, 0x0b0a0908'u32, 0xffffffff'u32,
                       0xffffffff'u32)
-      hiMask =
+      hiMask {.align(32).} =
         mm_setr_epi32(0xffffffff'u32, 0xffffffff'u32, 0x03020100'u32,
                       0x0b0a0908'u32)
 
     var
-      ms {.align(64).}: array[16, uint32]
-      x {.align(64).}: array[4, m128i]
-      cs {.align(64).}: array[8, uint32]
+      ms {.align(32), noinit.}: array[16, uint32]
+      x {.align(32), noinit.}: array[4, m128i]
+      cs {.align(32), noinit.}: array[8, uint32]
       blocksCount = blocks
       offset = 0
 
@@ -275,28 +273,28 @@ when defined(amd64):
                                          offset + sha256.sizeBlock() - 1))
 
       block:
-        let s0 = sha256UpdateAvx(x, 16, loMask, hiMask)
+        let s0 {.align(32).} = sha256UpdateAvx(x, 16, loMask, hiMask)
         ROUND256(cs, ms[0])
         ROUND256(cs, ms[1])
         ROUND256(cs, ms[2])
         ROUND256(cs, ms[3])
         m128i.store(ms, 0, s0)
 
-        let s1 = sha256UpdateAvx(x, 20, loMask, hiMask)
+        let s1 {.align(32).} = sha256UpdateAvx(x, 20, loMask, hiMask)
         ROUND256(cs, ms[4])
         ROUND256(cs, ms[5])
         ROUND256(cs, ms[6])
         ROUND256(cs, ms[7])
         m128i.store(ms, 4, s1)
 
-        let s2 = sha256UpdateAvx(x, 24, loMask, hiMask)
+        let s2 {.align(32).} = sha256UpdateAvx(x, 24, loMask, hiMask)
         ROUND256(cs, ms[8])
         ROUND256(cs, ms[9])
         ROUND256(cs, ms[10])
         ROUND256(cs, ms[11])
         m128i.store(ms, 8, s2)
 
-        let s3 = sha256UpdateAvx(x, 28, loMask, hiMask)
+        let s3 {.align(32).} = sha256UpdateAvx(x, 28, loMask, hiMask)
         ROUND256(cs, ms[12])
         ROUND256(cs, ms[13])
         ROUND256(cs, ms[14])
@@ -304,28 +302,28 @@ when defined(amd64):
         m128i.store(ms, 12, s3)
 
       block:
-        let s0 = sha256UpdateAvx(x, 32, loMask, hiMask)
+        let s0 {.align(32).} = sha256UpdateAvx(x, 32, loMask, hiMask)
         ROUND256(cs, ms[0])
         ROUND256(cs, ms[1])
         ROUND256(cs, ms[2])
         ROUND256(cs, ms[3])
         m128i.store(ms, 0, s0)
 
-        let s1 = sha256UpdateAvx(x, 36, loMask, hiMask)
+        let s1 {.align(32).} = sha256UpdateAvx(x, 36, loMask, hiMask)
         ROUND256(cs, ms[4])
         ROUND256(cs, ms[5])
         ROUND256(cs, ms[6])
         ROUND256(cs, ms[7])
         m128i.store(ms, 4, s1)
 
-        let s2 = sha256UpdateAvx(x, 40, loMask, hiMask)
+        let s2 {.align(32).} = sha256UpdateAvx(x, 40, loMask, hiMask)
         ROUND256(cs, ms[8])
         ROUND256(cs, ms[9])
         ROUND256(cs, ms[10])
         ROUND256(cs, ms[11])
         m128i.store(ms, 8, s2)
 
-        let s3 = sha256UpdateAvx(x, 44, loMask, hiMask)
+        let s3 {.align(32).} = sha256UpdateAvx(x, 44, loMask, hiMask)
         ROUND256(cs, ms[12])
         ROUND256(cs, ms[13])
         ROUND256(cs, ms[14])
@@ -333,28 +331,28 @@ when defined(amd64):
         m128i.store(ms, 12, s3)
 
       block:
-        let s0 = sha256UpdateAvx(x, 48, loMask, hiMask)
+        let s0 {.align(32).} = sha256UpdateAvx(x, 48, loMask, hiMask)
         ROUND256(cs, ms[0])
         ROUND256(cs, ms[1])
         ROUND256(cs, ms[2])
         ROUND256(cs, ms[3])
         m128i.store(ms, 0, s0)
 
-        let s1 = sha256UpdateAvx(x, 52, loMask, hiMask)
+        let s1 {.align(32).} = sha256UpdateAvx(x, 52, loMask, hiMask)
         ROUND256(cs, ms[4])
         ROUND256(cs, ms[5])
         ROUND256(cs, ms[6])
         ROUND256(cs, ms[7])
         m128i.store(ms, 4, s1)
 
-        let s2 = sha256UpdateAvx(x, 56, loMask, hiMask)
+        let s2 {.align(32).} = sha256UpdateAvx(x, 56, loMask, hiMask)
         ROUND256(cs, ms[8])
         ROUND256(cs, ms[9])
         ROUND256(cs, ms[10])
         ROUND256(cs, ms[11])
         m128i.store(ms, 8, s2)
 
-        let s3 = sha256UpdateAvx(x, 60, loMask, hiMask)
+        let s3 {.align(32).} = sha256UpdateAvx(x, 60, loMask, hiMask)
         ROUND256(cs, ms[12])
         ROUND256(cs, ms[13])
         ROUND256(cs, ms[14])
@@ -388,9 +386,9 @@ when defined(amd64):
                        data: openArray[byte],
                        blocks: int) {.inline, noinit.} =
     var
-      ms {.align(64).}: array[16, uint64]
-      x {.align(64).}: array[8, m128i]
-      cs {.align(64).}: array[8, uint64]
+      ms {.align(32), noinit.}: array[16, uint64]
+      x {.align(32), noinit.}: array[8, m128i]
+      cs {.align(32), noinit.}: array[8, uint64]
       blocksCount = blocks
       offset = 0
 

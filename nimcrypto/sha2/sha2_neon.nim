@@ -83,9 +83,9 @@ when defined(arm64):
                        data: openArray[byte],
                        blocks: int) {.noinit, inline.} =
     var
-      ms: array[4, uint32x4]
-      temp: array[3, uint32x4]
-      cs = uint32x4x2.load(state, 0)
+      ms {.align(32), noinit.}: array[4, uint32x4]
+      temp {.align(32), noinit.}: array[3, uint32x4]
+      cs {.align(32).} = uint32x4x2.load(state, 0)
       offset = 0
 
     for j in 0 ..< blocks:

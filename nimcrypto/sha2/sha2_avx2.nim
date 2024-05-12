@@ -163,7 +163,7 @@ when defined(amd64):
     w[3] = w[2]; w[2] = w[1]; w[1] = w[0]; w[0] = tmp
 
   template sha256UpdateAvx2(x, k256i, loMask, hiMask: untyped): m256i =
-    var t {.align(32).}: array[4, m256i]
+    var t {.align(32), noinit.}: array[4, m256i]
 
     t[0] = mm256_alignr_epi8(x[1], x[0], 4)
     t[3] = mm256_alignr_epi8(x[3], x[2], 4)
@@ -202,7 +202,7 @@ when defined(amd64):
     mm256_add_epi32(x[3], m256i.load(K0x2, k256i))
 
   template sha512UpdateAvx2(x, k512i: untyped): m256i =
-    var t {.align(32).}: array[4, m256i]
+    var t {.align(32), noinit.}: array[4, m256i]
 
     t[0] = mm256_alignr_epi8(x[1], x[0], 8)
     t[3] = mm256_alignr_epi8(x[5], x[4], 8)
@@ -240,7 +240,7 @@ when defined(amd64):
 
   template loadData32(x, ms, t2: untyped,
                       data: openArray[byte]) =
-    let shuffleMask =
+    let shuffleMask {.align(32).} =
       mm256_setr_epi32(0x00010203'u32, 0x04050607'u32,
                        0x08090a0b'u32, 0x0c0d0e0f'u32,
                        0x00010203'u32, 0x04050607'u32,
@@ -328,10 +328,10 @@ when defined(amd64):
                        data: openArray[byte],
                        blocks: int) {.inline, noinit.} =
     var
-      x {.align(32).}: array[4, m256i]
-      ms {.align(32).}: array[16, uint32]
-      t2 {.align(32).}: array[64, uint32]
-      cs {.align(32).}: array[8, uint32]
+      x {.align(32), noinit.}: array[4, m256i]
+      ms {.align(32), noinit.}: array[16, uint32]
+      t2 {.align(32), noinit.}: array[64, uint32]
+      cs {.align(32), noinit.}: array[8, uint32]
       blocksCount = blocks
       offset = 0
 
@@ -546,10 +546,10 @@ when defined(amd64):
                        data: openArray[byte],
                        blocks: int) {.inline, noinit.} =
     var
-      x {.align(32).}: array[8, m256i]
-      ms {.align(32).}: array[16, uint64]
-      cs {.align(32).}: array[8, uint64]
-      t2 {.align(32).}: array[80, uint64]
+      x {.align(32), noinit.}: array[8, m256i]
+      ms {.align(32), noinit.}: array[16, uint64]
+      cs {.align(32), noinit.}: array[8, uint64]
+      t2 {.align(32), noinit.}: array[80, uint64]
       blocksCount = blocks
       offset = 0
 

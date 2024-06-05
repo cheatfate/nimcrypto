@@ -204,7 +204,7 @@ when defined(linux):
 elif defined(windows):
   proc cSecureZeroMemory(
     s: pointer, n: csize_t
-  ) {.importc: "SecureZeroMemory", header: "winbase.h".}
+  ) {.importc: "SecureZeroMemory", header: "windows.h".}
 
   proc burnMem*(p: pointer, size: Natural) =
     cSecureZeroMemory(p, csize_t size)

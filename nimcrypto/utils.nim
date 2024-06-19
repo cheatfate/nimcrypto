@@ -358,6 +358,13 @@ template copyMem*[A, B](dst: var openArray[A], dsto: int,
   else:
     copyMem(addr dst[dsto], unsafeAddr src[srco], length * sizeof(B))
 
+template zeroMem*[A](dst: var openArray[A], dsto: int, length: int) =
+  when nimvm:
+    for i in 0 ..< length:
+      dst[dsto + i] = A(0)
+  else:
+    zeroMem(addr dst[dsto], length * sizeof(A))
+
 template compareMem*[T](a, b: openArray[T]): bool =
   if len(a) != len(b):
     return false

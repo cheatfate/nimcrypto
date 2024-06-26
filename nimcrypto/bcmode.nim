@@ -1107,7 +1107,7 @@ proc decrypt*[T](ctx: var GCM[T], input: openArray[byte],
   let uselen = min(len(tag), 16)
   ctx.decrypt(input, output)
   ctx.getTag(dataTag.toOpenArray(0, uselen - 1))
-  compareMem(tag.toOpenArray(0, uselen - 1), dataTag.toOpenArray(0, uselen - 1))
+  equalMemFull(tag.toOpenArray(0, uselen - 1), dataTag.toOpenArray(0, uselen - 1))
 
 proc clear*[T](ctx: var GCM[T]) {.inline.} =
   ## Clear ``GCM[T]`` context ``ctx``.

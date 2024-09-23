@@ -78,6 +78,8 @@ template hmacSizeBlock*(h: typedesc): int =
         {.fatal: "Choosen hash primitive is not yet supported!".}
     else:
       {.fatal: "Choosen hash primitive is not yet supported!".}
+  else:
+    {.fatal: "Choosen hash primitive is not yet supported!".}
 
 type
   HMAC*[HashType] = object

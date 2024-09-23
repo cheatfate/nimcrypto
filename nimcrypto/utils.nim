@@ -21,6 +21,8 @@ type
     SkipSpaces, ## Skips all the whitespace characters inside of string
     SkipPrefix  ## Skips `0x` and `x` prefixes at the begining of string
 
+  bchar* = byte | char
+
 template ROL*(x: uint32, n: int): uint32 =
   (x shl uint32(n and 0x1F)) or (x shr uint32(32 - (n and 0x1F)))
 

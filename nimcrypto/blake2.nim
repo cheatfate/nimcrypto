@@ -283,6 +283,11 @@ template sizeBlock*(r: typedesc[blake2]): int =
   else:
     (128)
 
+template hmacSizeBlock*(r: typedesc[blake2]): int =
+  ## Size of processing block in octets (bytes), while perform HMAC[blake2]
+  ## operation.
+  r.sizeBlock
+
 proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
   when ctx is Blake2sContext:
     when nimvm:

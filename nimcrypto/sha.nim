@@ -67,6 +67,11 @@ template sizeDigest*(r: typedesc[sha1]): int =
 template sizeBlock*(r: typedesc[sha1]): int =
   (512 div 8)
 
+template hmacSizeBlock*(r: typedesc[sha1]): int =
+  ## Size of processing block in octets (bytes), while perform HMAC[sha1]
+  ## operation.
+  r.sizeBlock
+
 proc init*(ctx: var Sha1Context) {.inline.} =
   ctx.size = 0'u64
   ctx.h[0] = 0x67452301'u32

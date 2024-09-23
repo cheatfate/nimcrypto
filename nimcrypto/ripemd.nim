@@ -658,6 +658,11 @@ template sizeDigest*(r: typedesc[ripemd]): int =
 template sizeBlock*(r: typedesc[ripemd]): int =
   (64)
 
+template hmacSizeBlock*(r: typedesc[ripemd]): int =
+  ## Size of processing block in octets (bytes), while perform HMAC[ripemd]
+  ## operation.
+  r.sizeBlock
+
 proc init*(ctx: var RipemdContext) {.inline.} =
   ctx.count[0] = 0
   ctx.count[1] = 0

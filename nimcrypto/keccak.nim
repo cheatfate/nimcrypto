@@ -348,6 +348,20 @@ template sizeDigest*(r: typedesc[keccak | shake128 | shake256]): int =
 template sizeBlock*(r: typedesc[keccak | shake128 | shake256]): int =
   (200)
 
+template hmacSizeBlock*(r: typedesc[keccak]): int =
+  ## Size of processing block in octets (bytes), while perform HMAC[keccak]
+  ## operation.
+  when r.bits == 224:
+    144
+  elif r.bits == 256:
+    136
+  elif r.bits == 384:
+    104
+  elif r.bits == 512:
+    72
+  else:
+    {.fatal: "Choosen hash primitive is not supported!".}
+
 proc init*(ctx: var KeccakContext) {.inline.} =
   ctx = type(ctx)()
 

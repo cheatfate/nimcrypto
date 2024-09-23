@@ -66,9 +66,6 @@ else:
       ## Message digest type
       data*: array[bits div 8, byte]
 
-type
-  bchar* = byte | char
-
 proc `$`*(digest: MDigest): string =
   ## Return hexadecimal string representation of ``digest``.
   ##

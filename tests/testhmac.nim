@@ -1,6 +1,4 @@
-import nimcrypto/hmac, nimcrypto/hash, nimcrypto/utils
-import nimcrypto/sha2, nimcrypto/ripemd, nimcrypto/keccak
-import nimcrypto/sha
+import nimcrypto/[hmac, hash, utils, sha, sha2, ripemd, keccak]
 import unittest
 
 when defined(nimHasUsed): {.used.}

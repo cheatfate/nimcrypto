@@ -129,6 +129,11 @@ template sizeBlock*(r: typedesc[sha2]): int =
   else:
     (128)
 
+template hmacSizeBlock*(r: typedesc[sha2]): int =
+  ## Size of processing block in octets (bytes), while perform HMAC[sha2]
+  ## operation.
+  r.sizeBlock
+
 proc init*(ctx: var Sha2Context) {.inline.} =
   ctx.count[0] = 0
   ctx.count[1] = 0

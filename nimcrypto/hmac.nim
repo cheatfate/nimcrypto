@@ -55,29 +55,7 @@
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
-import utils
-import sha, sha2, ripemd, keccak, blake2, hash
-export sha, sha2, ripemd, keccak, blake2, hash
-
-template hmacSizeBlock*(h: typedesc): int =
-  mixin sizeBlock
-  when (h is Sha1Context) or (h is Sha2Context) or (h is RipemdContext) or
-       (h is Blake2Context):
-    int(h.sizeBlock)
-  elif h is KeccakContext:
-    when h.kind == Keccak or h.kind == Sha3:
-      when h.bits == 224:
-        144
-      elif h.bits == 256:
-        136
-      elif h.bits == 384:
-        104
-      elif h.bits == 512:
-        72
-      else:
-        {.fatal: "Choosen hash primitive is not yet supported!".}
-    else:
-      {.fatal: "Choosen hash primitive is not yet supported!".}
+import hash, utils
 
 type
   HMAC*[HashType] = object
@@ -136,6 +114,7 @@ proc init*[T](hmctx: var HMAC[T], key: ptr byte, keylen: uint) =
 proc clear*(hmctx: var HMAC) =
   ## Clear HMAC context ``hmctx``.
   when nimvm:
+    mixin clear
     hmctx.mdctx.clear()
     hmctx.opadctx.clear()
     for i in 0 ..< len(hmctx.ipad):
@@ -199,18 +178,21 @@ proc finish*[T: bchar](hmctx: var HMAC,
   ## ``data``. ``data`` length must be at least ``hmctx.sizeDigest`` octets
   ## (bytes).
   mixin update, finish
-  if len(data) >= int(hmctx.sizeDigest):
-    var buffer: array[hmctx.sizeDigest, byte]
-    discard finish(hmctx.mdctx, buffer)
-    hmctx.opadctx.update(buffer)
-    result = hmctx.opadctx.finish(data)
+  if len(data) < int(hmctx.sizeDigest):
+    return 0'u
+
+  var buffer: array[hmctx.sizeDigest, byte]
+  discard finish(hmctx.mdctx, buffer)
+  hmctx.opadctx.update(buffer)
+  hmctx.opadctx.finish(data)
+
 
 proc finish*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint): uint {.inline.} =
   ## Finalize HMAC context ``hmctx`` and store calculated digest to address
   ## pointed by ``pbytes`` of length ``nbytes``. ``pbytes`` must be able to
   ## hold at ``hmctx.sizeDigest`` octets (bytes).
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
-  result = hmctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
+  hmctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
 proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   ## Finalize HMAC context ``hmctx`` and return calculated digest as
@@ -270,5 +252,5 @@ proc hmac*(HashType: typedesc, key: ptr byte, klen: uint,
   ##    echo ripemd160.hmac(key, keylen, data, datalen)
   var keyarr = cast[ptr UncheckedArray[byte]](key)
   var dataarr = cast[ptr UncheckedArray[byte]](data)
-  result = hmac(HashType, keyarr.toOpenArray(0, int(klen) - 1),
-                dataarr.toOpenArray(0, int(ulen) - 1))
+  hmac(HashType, keyarr.toOpenArray(0, int(klen) - 1),
+       dataarr.toOpenArray(0, int(ulen) - 1))

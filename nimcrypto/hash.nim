@@ -9,7 +9,7 @@
 
 ## This module provides helper procedures for calculating secure digests
 ## supported by `nimcrypto` library.
-import utils
+import ./utils
 
 const
   MaxMDigestLength* = 64
@@ -152,14 +152,10 @@ proc `==`*[A, B](d1: MDigest[A], d2: MDigest[B]): bool =
   ## Check for equality between two ``MDigest`` objects ``d1`` and ``d2``.
   ## If size in bits of ``d1`` is not equal to size in bits of ``d2`` then
   ## digests considered as not equal.
-  if d1.bits != d2.bits:
-    return false
-  var n = len(d1.data)
-  var res = 0
-  while n > 0:
-    dec(n)
-    res = res or int(d1.data[n] xor d2.data[n])
-  result = (res == 0)
+  when d1.bits == d2.bits:
+    equalMemFull(d1.data, d2.data)
+  else:
+    false
 
 when true:
   proc toDigestAux(n: static int, s: static string): MDigest[n] =

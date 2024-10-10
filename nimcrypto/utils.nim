@@ -14,6 +14,30 @@
 ## decent library "Constant-Time Toolkit" (https://github.com/pornin/CTTK)
 ## Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
 
+import std/macros
+
+proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
+  # Replace "what" ident node by "by"
+  if node.kind in {nnkIdent, nnkSym}:
+    if node.eqIdent(what): by else: node
+  elif node.len == 0:
+    node
+  else:
+    let rTree = node.kind.newTree()
+    for child in node:
+      rTree.add replaceNodes(child, what, by)
+    rTree
+
+macro unroll(idx: untyped{nkIdent}, start, stopEx: static int, body: untyped): untyped =
+  ## unroll idx over the range [start, stopEx), repeating the body for each
+  ## iteration
+  result = newStmtList()
+  for i in start ..< stopEx:
+    # block unrolledIter_{idx}{i}: body
+    result.add nnkBlockStmt.newTree(
+      ident("unrolledIter_" & $idx & $i), body.replaceNodes(idx, newLit i)
+    )
+
 type
   HexFlags* {.pure.} = enum
     LowerCase,  ## Produce lowercase hexadecimal characters
@@ -171,15 +195,32 @@ proc stripSpaces*(s: string): string =
     if i in allowed:
       result &= i
 
-proc burnMem*(p: pointer, size: Natural) =
-  var sp {.volatile.} = cast[ptr byte](p)
-  var c = size
-  if not isNil(sp):
-    zeroMem(p, size)
-    while c > 0:
-      sp[] = 0
-      sp = cast[ptr byte](cast[uint](sp) + 1)
-      dec(c)
+when defined(linux):
+  proc c_explicit_bzero(
+    s: pointer, n: csize_t
+  ) {.importc: "explicit_bzero", header: "string.h".}
+
+  proc burnMem*(p: pointer, size: Natural) =
+    c_explicit_bzero(p, csize_t size)
+
+elif defined(windows):
+  proc cSecureZeroMemory(
+    s: pointer, n: csize_t
+  ) {.importc: "SecureZeroMemory", header: "windows.h".}
+
+  proc burnMem*(p: pointer, size: Natural) =
+    cSecureZeroMemory(p, csize_t size)
+
+else:
+  proc burnMem*(p: pointer, size: Natural) =
+    var sp {.volatile.} = cast[ptr byte](p)
+    var c = size
+    if not isNil(sp):
+      zeroMem(p, size)
+      while c > 0:
+        sp[] = 0
+        sp = cast[ptr byte](cast[uint](sp) + 1)
+        dec(c)
 
 proc burnArray*[T](a: var openArray[T]) {.inline.} =
   if len(a) > 0:
@@ -360,13 +401,85 @@ template copyMem*[A, B](dst: var openArray[A], dsto: int,
   else:
     copyMem(addr dst[dsto], unsafeAddr src[srco], length * sizeof(B))
 
-template compareMem*[T](a, b: openArray[T]): bool =
-  if len(a) != len(b):
-    return false
+template offset(p: pointer, n: Natural | uint): pointer =
+  cast[pointer](cast[uint](p) + uint n)
+
+template equalMemFull(
+    aParam, bParam: pointer, limbs: static Natural, Limb: type SomeUnsignedInt
+): bool =
+  # Length known at runtime (and assumed to be small!) - unroll the loop
   var
-    n = len(a)
-    res = 0'u8
-  while n > 0:
-    dec(n)
-    res = res or (a[n] xor b[n])
-  res == 0'u8
+    res = Limb(0)
+    aa {.noinit.}, bb {.noinit.}: Limb
+
+  let
+    a = aParam
+    b = bParam
+
+  unroll i, 0, limbs:
+    copyMem(addr aa, a.offset((limbs - i - 1) * sizeof(Limb)), sizeof(Limb))
+    copyMem(addr bb, b.offset((limbs - i - 1) * sizeof(Limb)), sizeof(Limb))
+    res = res or (aa xor bb)
+
+  res == 0
+
+template equalMemFull(
+    aParam, bParam: pointer, limbsParam: Natural, Limb: type SomeUnsignedInt
+): bool =
+  var
+    res = Limb(0)
+    aa {.noinit.}, bb {.noinit.}: Limb
+
+  let
+    a = aParam
+    b = bParam
+    limbs = uint limbsParam # avoid range checks
+
+  for i in uint(0)..<limbs:
+    copyMem(
+      addr aa, a.offset((limbs - i - 1) * uint sizeof(Limb)), sizeof(Limb))
+    copyMem(
+      addr bb, b.offset((limbs - i - 1) * uint sizeof(Limb)), sizeof(Limb))
+    res = res or (aa xor bb)
+
+  res == 0
+
+proc equalMemFull*(a, b: pointer, len: static Natural): bool =
+  when len mod sizeof(uint64) == 0:
+    equalMemFull(a, b, len div sizeof(uint64), uint64)
+  elif len mod sizeof(uint32) == 0:
+    equalMemFull(a, b, len div sizeof(uint32), uint32)
+  elif len mod sizeof(uint16) == 0:
+    equalMemFull(a, b, len div sizeof(uint16), uint16)
+  else:
+    equalMemFull(a, b, len, uint8)
+
+proc equalMemFull*[I; T](a, b: array[I, T]): bool =
+  when nimvm:
+    a == b
+  else:
+    const bytes = a.len * sizeof(T)
+    equalMemFull(unsafeAddr a[0], unsafeAddr b[0], bytes)
+
+proc equalMemFull*[T](a, b: openArray[T]): bool =
+  when nimvm:
+    a == b
+  else:
+    if a.len == b.len:
+      if a.len == 0:
+        true
+      else:
+        let
+          bytes = a.len * sizeof(T)
+          ap = unsafeAddr a[0]
+          bp = unsafeAddr b[0]
+        if bytes mod sizeof(uint64) == 0:
+          equalMemFull(ap, bp, bytes div sizeof(uint64), uint64)
+        elif bytes mod sizeof(uint32) == 0:
+          equalMemFull(ap, bp, bytes div sizeof(uint32), uint32)
+        elif bytes mod sizeof(uint16) == 0:
+          equalMemFull(ap, bp, bytes div sizeof(uint16), uint16)
+        else:
+          equalMemFull(ap, bp, bytes, uint8)
+    else:
+      false

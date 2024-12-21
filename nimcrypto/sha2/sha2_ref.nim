@@ -27,11 +27,49 @@ template ROUND512(a, b, c, d, e, f, g, h, z) =
   d = d + t0
   h = t0 + t1
 
+template WMIX256(i) =
+  W[i] = SIG1(W[i - 2]) + W[i - 7] + SIG0(W[i - 15]) + W[i - 16]
+
+template WMIX512(i) =
+  W[i] = RHO1(W[i - 2]) + W[i - 7] + RHO0(W[i - 15]) + W[i - 16]
+
+template WLOOP256() =
+  WMIX256(16); WMIX256(17); WMIX256(18); WMIX256(19);
+  WMIX256(20); WMIX256(21); WMIX256(22); WMIX256(23);
+  WMIX256(24); WMIX256(25); WMIX256(26); WMIX256(27);
+  WMIX256(28); WMIX256(29); WMIX256(30); WMIX256(31);
+  WMIX256(32); WMIX256(33); WMIX256(34); WMIX256(35);
+  WMIX256(36); WMIX256(37); WMIX256(38); WMIX256(39);
+  WMIX256(40); WMIX256(41); WMIX256(42); WMIX256(43);
+  WMIX256(44); WMIX256(45); WMIX256(46); WMIX256(47);
+  WMIX256(48); WMIX256(49); WMIX256(50); WMIX256(51);
+  WMIX256(52); WMIX256(53); WMIX256(54); WMIX256(55);
+  WMIX256(56); WMIX256(57); WMIX256(58); WMIX256(59);
+  WMIX256(60); WMIX256(61); WMIX256(62); WMIX256(63);
+
+template WLOOP512() =
+  WMIX512(16); WMIX512(17); WMIX512(18); WMIX512(19);
+  WMIX512(20); WMIX512(21); WMIX512(22); WMIX512(23);
+  WMIX512(24); WMIX512(25); WMIX512(26); WMIX512(27);
+  WMIX512(28); WMIX512(29); WMIX512(30); WMIX512(31);
+  WMIX512(32); WMIX512(33); WMIX512(34); WMIX512(35);
+  WMIX512(36); WMIX512(37); WMIX512(38); WMIX512(39);
+  WMIX512(40); WMIX512(41); WMIX512(42); WMIX512(43);
+  WMIX512(44); WMIX512(45); WMIX512(46); WMIX512(47);
+  WMIX512(48); WMIX512(49); WMIX512(50); WMIX512(51);
+  WMIX512(52); WMIX512(53); WMIX512(54); WMIX512(55);
+  WMIX512(56); WMIX512(57); WMIX512(58); WMIX512(59);
+  WMIX512(60); WMIX512(61); WMIX512(62); WMIX512(63);
+  WMIX512(64); WMIX512(65); WMIX512(66); WMIX512(67);
+  WMIX512(68); WMIX512(69); WMIX512(70); WMIX512(71);
+  WMIX512(72); WMIX512(73); WMIX512(74); WMIX512(75);
+  WMIX512(76); WMIX512(77); WMIX512(78); WMIX512(79);
+
 proc sha256Compress*(state: var array[8, uint32], data: openArray[byte],
                      blocks: int) {.noinit, inline.} =
   var
+    W {.align(16), noinit.}: array[64, uint32]
     t0, t1: uint32
-    W {.noinit.}: array[64, uint32]
     blocksCount = blocks
     offset = 0
 
@@ -45,8 +83,7 @@ proc sha256Compress*(state: var array[8, uint32], data: openArray[byte],
     W[12] = beLoad32(data, offset + 48); W[13] = beLoad32(data, offset + 52)
     W[14] = beLoad32(data, offset + 56); W[15] = beLoad32(data, offset + 60)
 
-    for i in 16 ..< 64:
-      W[i] = SIG1(W[i - 2]) + W[i - 7] + SIG0(W[i - 15]) + W[i - 16]
+    WLOOP256()
 
     var
       s0 = state[0]
@@ -141,8 +178,8 @@ proc sha256Compress*(state: var array[8, uint32], data: openArray[byte],
 proc sha512Compress*(state: var array[8, uint64], data: openArray[byte],
                      blocks: int) {.noinit, inline.} =
   var
+    W {.align(16), noinit.}: array[80, uint64]
     t0, t1: uint64
-    W {.noinit.}: array[80, uint64]
     blocksCount = blocks
     offset = 0
 
@@ -156,8 +193,7 @@ proc sha512Compress*(state: var array[8, uint64], data: openArray[byte],
     W[12] = beLoad64(data, offset + 96); W[13] = beLoad64(data, offset + 104)
     W[14] = beLoad64(data, offset + 112); W[15] = beLoad64(data, offset + 120)
 
-    for i in 16 ..< 80:
-      W[i] = RHO1(W[i - 2]) + W[i - 7] + RHO0(W[i - 15]) + W[i - 16]
+    WLOOP512()
 
     var s0 = state[0]
     var s1 = state[1]

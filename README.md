@@ -1,5 +1,5 @@
 # nimcrypto
-[![Github action](https://github.com/cheatfate/nimcrypto/workflows/nimcrypto/badge.svg)](https://github.com/cheatfate/nimcrypto/actions/workflows/ci.yml)
+[![Github action](https://github.com/cheatfate/nimcrypto/workflows/nimcrypto/badge.svg?branch=master)](https://github.com/cheatfate/nimcrypto/actions/workflows/ci.yml)
 
 # Nim cryptographic library
 

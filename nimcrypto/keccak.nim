@@ -57,7 +57,7 @@ type
 # This difference in implementation was made because Nim VM do not support more
 # then 256 registers and so it is not enough for it to perform round in
 # template.
-# See https://github.com/nim-lang/Nim/issues/23688
+# See also https://github.com/nim-lang/Nim/issues/23688
 proc THETA1V(a: var openArray[uint64], b: openArray[uint64],
              c: int) {.inline.} =
   a[c] = b[c] xor b[c + 5] xor b[c + 10] xor b[c + 15] xor b[c + 20]

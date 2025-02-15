@@ -58,176 +58,174 @@ type
 # then 256 registers and so it is not enough for it to perform round in
 # template.
 # See also https://github.com/nim-lang/Nim/issues/23688
-when nimvm:
-  proc THETA1V(a: var openArray[uint64], b: openArray[uint64],
-               c: int) {.inline.} =
-    a[c] = b[c] xor b[c + 5] xor b[c + 10] xor b[c + 15] xor b[c + 20]
+proc THETA1V(a: var openArray[uint64], b: openArray[uint64],
+             c: int) {.inline.} =
+  a[c] = b[c] xor b[c + 5] xor b[c + 10] xor b[c + 15] xor b[c + 20]
 
-  proc THETA2V(a: var uint64, b: openArray[uint64], c: int) {.inline.} =
-    a = b[(c + 4) mod 5] xor ROL(uint64(b[(c + 1) mod 5]), 1)
+proc THETA2V(a: var uint64, b: openArray[uint64], c: int) {.inline.} =
+  a = b[(c + 4) mod 5] xor ROL(uint64(b[(c + 1) mod 5]), 1)
 
-  proc THETA3V(a: var openArray[uint64], b: int, c: uint64) {.inline.} =
-    a[b] = a[b] xor c
-    a[b + 5] = a[b + 5] xor c
-    a[b + 10] = a[b + 10] xor c
-    a[b + 15] = a[b + 15] xor c
-    a[b + 20] = a[b + 20] xor c
+proc THETA3V(a: var openArray[uint64], b: int, c: uint64) {.inline.} =
+  a[b] = a[b] xor c
+  a[b + 5] = a[b + 5] xor c
+  a[b + 10] = a[b + 10] xor c
+  a[b + 15] = a[b + 15] xor c
+  a[b + 20] = a[b + 20] xor c
 
-  proc RHOPIV(a: var openArray[uint64], b: var openArray[uint64], c: var uint64,
-             d, e: int) {.inline.} =
-    a[0] = b[d]
-    b[d] = ROL(c, e)
-    c = uint64(a[0])
+proc RHOPIV(a: var openArray[uint64], b: var openArray[uint64], c: var uint64,
+           d, e: int) {.inline.} =
+  a[0] = b[d]
+  b[d] = ROL(c, e)
+  c = uint64(a[0])
 
-  proc CHIV(a: var openArray[uint64], b: var openArray[uint64],
-            c: int) {.inline.} =
-    a[0] = b[c]
-    a[1] = b[c + 1]
-    a[2] = b[c + 2]
-    a[3] = b[c + 3]
-    a[4] = b[c + 4]
-    b[c] = b[c] xor (not(a[1]) and a[2])
-    b[c + 1] = b[c + 1] xor (not(a[2]) and a[3])
-    b[c + 2] = b[c + 2] xor (not(a[3]) and a[4])
-    b[c + 3] = b[c + 3] xor (not(a[4]) and a[0])
-    b[c + 4] = b[c + 4] xor (not(a[0]) and a[1])
+proc CHIV(a: var openArray[uint64], b: var openArray[uint64],
+          c: int) {.inline.} =
+  a[0] = b[c]
+  a[1] = b[c + 1]
+  a[2] = b[c + 2]
+  a[3] = b[c + 3]
+  a[4] = b[c + 4]
+  b[c] = b[c] xor (not(a[1]) and a[2])
+  b[c + 1] = b[c + 1] xor (not(a[2]) and a[3])
+  b[c + 2] = b[c + 2] xor (not(a[3]) and a[4])
+  b[c + 3] = b[c + 3] xor (not(a[4]) and a[0])
+  b[c + 4] = b[c + 4] xor (not(a[0]) and a[1])
 
 
-  proc KECCAKROUNDP(a: var openArray[uint64], b: var openArray[uint64],
-                    c: var uint64, r: int) {.inline.} =
-    THETA1V(b, a, 0)
-    THETA1V(b, a, 1)
-    THETA1V(b, a, 2)
-    THETA1V(b, a, 3)
-    THETA1V(b, a, 4)
+proc KECCAKROUNDP(a: var openArray[uint64], b: var openArray[uint64],
+                  c: var uint64, r: int) {.inline.} =
+  THETA1V(b, a, 0)
+  THETA1V(b, a, 1)
+  THETA1V(b, a, 2)
+  THETA1V(b, a, 3)
+  THETA1V(b, a, 4)
 
-    THETA2V(c, b, 0)
-    THETA3V(a, 0, c)
-    THETA2V(c, b, 1)
-    THETA3V(a, 1, c)
-    THETA2V(c, b, 2)
-    THETA3V(a, 2, c)
-    THETA2V(c, b, 3)
-    THETA3V(a, 3, c)
-    THETA2V(c, b, 4)
-    THETA3V(a, 4, c)
+  THETA2V(c, b, 0)
+  THETA3V(a, 0, c)
+  THETA2V(c, b, 1)
+  THETA3V(a, 1, c)
+  THETA2V(c, b, 2)
+  THETA3V(a, 2, c)
+  THETA2V(c, b, 3)
+  THETA3V(a, 3, c)
+  THETA2V(c, b, 4)
+  THETA3V(a, 4, c)
 
-    c = a[1]
-    RHOPIV(b, a, c, 10, 1)
-    RHOPIV(b, a, c, 7, 3)
-    RHOPIV(b, a, c, 11, 6)
-    RHOPIV(b, a, c, 17, 10)
-    RHOPIV(b, a, c, 18, 15)
-    RHOPIV(b, a, c, 3, 21)
-    RHOPIV(b, a, c, 5, 28)
-    RHOPIV(b, a, c, 16, 36)
-    RHOPIV(b, a, c, 8, 45)
-    RHOPIV(b, a, c, 21, 55)
-    RHOPIV(b, a, c, 24, 2)
-    RHOPIV(b, a, c, 4, 14)
-    RHOPIV(b, a, c, 15, 27)
-    RHOPIV(b, a, c, 23, 41)
-    RHOPIV(b, a, c, 19, 56)
-    RHOPIV(b, a, c, 13, 8)
-    RHOPIV(b, a, c, 12, 25)
-    RHOPIV(b, a, c, 2, 43)
-    RHOPIV(b, a, c, 20, 62)
-    RHOPIV(b, a, c, 14, 18)
-    RHOPIV(b, a, c, 22, 39)
-    RHOPIV(b, a, c, 9, 61)
-    RHOPIV(b, a, c, 6, 20)
-    RHOPIV(b, a, c, 1, 44)
+  c = a[1]
+  RHOPIV(b, a, c, 10, 1)
+  RHOPIV(b, a, c, 7, 3)
+  RHOPIV(b, a, c, 11, 6)
+  RHOPIV(b, a, c, 17, 10)
+  RHOPIV(b, a, c, 18, 15)
+  RHOPIV(b, a, c, 3, 21)
+  RHOPIV(b, a, c, 5, 28)
+  RHOPIV(b, a, c, 16, 36)
+  RHOPIV(b, a, c, 8, 45)
+  RHOPIV(b, a, c, 21, 55)
+  RHOPIV(b, a, c, 24, 2)
+  RHOPIV(b, a, c, 4, 14)
+  RHOPIV(b, a, c, 15, 27)
+  RHOPIV(b, a, c, 23, 41)
+  RHOPIV(b, a, c, 19, 56)
+  RHOPIV(b, a, c, 13, 8)
+  RHOPIV(b, a, c, 12, 25)
+  RHOPIV(b, a, c, 2, 43)
+  RHOPIV(b, a, c, 20, 62)
+  RHOPIV(b, a, c, 14, 18)
+  RHOPIV(b, a, c, 22, 39)
+  RHOPIV(b, a, c, 9, 61)
+  RHOPIV(b, a, c, 6, 20)
+  RHOPIV(b, a, c, 1, 44)
 
-    CHIV(b, a, 0)
-    CHIV(b, a, 5)
-    CHIV(b, a, 10)
-    CHIV(b, a, 15)
-    CHIV(b, a, 20)
+  CHIV(b, a, 0)
+  CHIV(b, a, 5)
+  CHIV(b, a, 10)
+  CHIV(b, a, 15)
+  CHIV(b, a, 20)
 
-    a[0] = a[0] xor RNDC[r]
+  a[0] = a[0] xor RNDC[r]
 
-else:
-  template THETA1(a, b, c: untyped) =
-    a[c] = b[c] xor b[c + 5] xor b[c + 10] xor b[c + 15] xor b[c + 20]
+template THETA1(a, b, c: untyped) =
+  a[c] = b[c] xor b[c + 5] xor b[c + 10] xor b[c + 15] xor b[c + 20]
 
-  template THETA2(a, b, c: untyped) =
-    a = b[(c + 4) mod 5] xor ROL(uint64(b[(c + 1) mod 5]), 1)
+template THETA2(a, b, c: untyped) =
+  a = b[(c + 4) mod 5] xor ROL(uint64(b[(c + 1) mod 5]), 1)
 
-  template THETA3(a, b, c) =
-    a[b] = a[b] xor c
-    a[b + 5] = a[b + 5] xor c
-    a[b + 10] = a[b + 10] xor c
-    a[b + 15] = a[b + 15] xor c
-    a[b + 20] = a[b + 20] xor c
+template THETA3(a, b, c) =
+  a[b] = a[b] xor c
+  a[b + 5] = a[b + 5] xor c
+  a[b + 10] = a[b + 10] xor c
+  a[b + 15] = a[b + 15] xor c
+  a[b + 20] = a[b + 20] xor c
 
-  template RHOPI(a, b, c, d, e) =
-    a[0] = b[d]
-    b[d] = ROL(c, e)
-    c = a[0]
+template RHOPI(a, b, c, d, e) =
+  a[0] = b[d]
+  b[d] = ROL(c, e)
+  c = a[0]
 
-  template CHI(a, b, c) =
-    a[0] = b[c]
-    a[1] = b[c + 1]
-    a[2] = b[c + 2]
-    a[3] = b[c + 3]
-    a[4] = b[c + 4]
-    b[c] = b[c] xor (not(a[1]) and a[2])
-    b[c + 1] = b[c + 1] xor (not(a[2]) and a[3])
-    b[c + 2] = b[c + 2] xor (not(a[3]) and a[4])
-    b[c + 3] = b[c + 3] xor (not(a[4]) and a[0])
-    b[c + 4] = b[c + 4] xor (not(a[0]) and a[1])
+template CHI(a, b, c) =
+  a[0] = b[c]
+  a[1] = b[c + 1]
+  a[2] = b[c + 2]
+  a[3] = b[c + 3]
+  a[4] = b[c + 4]
+  b[c] = b[c] xor (not(a[1]) and a[2])
+  b[c + 1] = b[c + 1] xor (not(a[2]) and a[3])
+  b[c + 2] = b[c + 2] xor (not(a[3]) and a[4])
+  b[c + 3] = b[c + 3] xor (not(a[4]) and a[0])
+  b[c + 4] = b[c + 4] xor (not(a[0]) and a[1])
 
-  template KECCAKROUND(a, b, c, r) =
-    THETA1(b, a, 0)
-    THETA1(b, a, 1)
-    THETA1(b, a, 2)
-    THETA1(b, a, 3)
-    THETA1(b, a, 4)
+template KECCAKROUND(a, b, c, r) =
+  THETA1(b, a, 0)
+  THETA1(b, a, 1)
+  THETA1(b, a, 2)
+  THETA1(b, a, 3)
+  THETA1(b, a, 4)
 
-    THETA2(c, b, 0)
-    THETA3(a, 0, c)
-    THETA2(c, b, 1)
-    THETA3(a, 1, c)
-    THETA2(c, b, 2)
-    THETA3(a, 2, c)
-    THETA2(c, b, 3)
-    THETA3(a, 3, c)
-    THETA2(c, b, 4)
-    THETA3(a, 4, c)
+  THETA2(c, b, 0)
+  THETA3(a, 0, c)
+  THETA2(c, b, 1)
+  THETA3(a, 1, c)
+  THETA2(c, b, 2)
+  THETA3(a, 2, c)
+  THETA2(c, b, 3)
+  THETA3(a, 3, c)
+  THETA2(c, b, 4)
+  THETA3(a, 4, c)
 
-    c = a[1]
-    RHOPI(b, a, c, 10, 1)
-    RHOPI(b, a, c, 7, 3)
-    RHOPI(b, a, c, 11, 6)
-    RHOPI(b, a, c, 17, 10)
-    RHOPI(b, a, c, 18, 15)
-    RHOPI(b, a, c, 3, 21)
-    RHOPI(b, a, c, 5, 28)
-    RHOPI(b, a, c, 16, 36)
-    RHOPI(b, a, c, 8, 45)
-    RHOPI(b, a, c, 21, 55)
-    RHOPI(b, a, c, 24, 2)
-    RHOPI(b, a, c, 4, 14)
-    RHOPI(b, a, c, 15, 27)
-    RHOPI(b, a, c, 23, 41)
-    RHOPI(b, a, c, 19, 56)
-    RHOPI(b, a, c, 13, 8)
-    RHOPI(b, a, c, 12, 25)
-    RHOPI(b, a, c, 2, 43)
-    RHOPI(b, a, c, 20, 62)
-    RHOPI(b, a, c, 14, 18)
-    RHOPI(b, a, c, 22, 39)
-    RHOPI(b, a, c, 9, 61)
-    RHOPI(b, a, c, 6, 20)
-    RHOPI(b, a, c, 1, 44)
+  c = a[1]
+  RHOPI(b, a, c, 10, 1)
+  RHOPI(b, a, c, 7, 3)
+  RHOPI(b, a, c, 11, 6)
+  RHOPI(b, a, c, 17, 10)
+  RHOPI(b, a, c, 18, 15)
+  RHOPI(b, a, c, 3, 21)
+  RHOPI(b, a, c, 5, 28)
+  RHOPI(b, a, c, 16, 36)
+  RHOPI(b, a, c, 8, 45)
+  RHOPI(b, a, c, 21, 55)
+  RHOPI(b, a, c, 24, 2)
+  RHOPI(b, a, c, 4, 14)
+  RHOPI(b, a, c, 15, 27)
+  RHOPI(b, a, c, 23, 41)
+  RHOPI(b, a, c, 19, 56)
+  RHOPI(b, a, c, 13, 8)
+  RHOPI(b, a, c, 12, 25)
+  RHOPI(b, a, c, 2, 43)
+  RHOPI(b, a, c, 20, 62)
+  RHOPI(b, a, c, 14, 18)
+  RHOPI(b, a, c, 22, 39)
+  RHOPI(b, a, c, 9, 61)
+  RHOPI(b, a, c, 6, 20)
+  RHOPI(b, a, c, 1, 44)
 
-    CHI(b, a, 0)
-    CHI(b, a, 5)
-    CHI(b, a, 10)
-    CHI(b, a, 15)
-    CHI(b, a, 20)
+  CHI(b, a, 0)
+  CHI(b, a, 5)
+  CHI(b, a, 10)
+  CHI(b, a, 15)
+  CHI(b, a, 20)
 
-    a[0] = a[0] xor RNDC[r]
+  a[0] = a[0] xor RNDC[r]
 
 proc keccakTransform(data: var array[200, byte]) {.inline.} =
   var

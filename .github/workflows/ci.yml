@@ -19,7 +19,7 @@ jobs:
             cpu: amd64
           - os: windows
             cpu: i386
-        nim_branch: [version-1-6, version-2-0, devel]
+        nim_branch: [version-1-6, version-2-0, version-2-2, devel]
         include:
           - target:
               os: linux
@@ -47,7 +47,7 @@ jobs:
       - name: Restore MinGW-W64 (Windows) from cache
         if: runner.os == 'Windows'
         id: windows-mingw-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: external/mingw-${{ matrix.target.cpu }}
           key: 'mingw-${{ matrix.target.cpu }}'
@@ -55,7 +55,7 @@ jobs:
       - name: Restore Nim DLLs dependencies (Windows) from cache
         if: runner.os == 'Windows'
         id: windows-dlls-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: external/dlls-${{ matrix.target.cpu }}
           key: 'dlls-${{ matrix.target.cpu }}'
@@ -101,7 +101,7 @@ jobs:
           steps.nim-compiler-cache.outputs.cache-hit != 'true' &&
           matrix.nim_branch != 'devel'
         id: nim-compiler-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: '${{ github.workspace }}/nim-${{ matrix.nim_branch }}-${{ matrix.target.cpu }}'
           key: 'nim-${{ matrix.target.cpu }}-${{ matrix.nim_branch }}'

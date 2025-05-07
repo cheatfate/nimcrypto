@@ -52,3 +52,5 @@ packages/*
 
 .env
 
+nimble.develop
+nimble.paths

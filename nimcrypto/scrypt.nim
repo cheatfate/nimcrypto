@@ -11,7 +11,6 @@
 ## The scrypt Password-Based Key Derivation Function
 ## https://tools.ietf.org/html/rfc7914
 import utils, sha2, hmac, pbkdf2
-export hmac
 
 proc salsaXor(tmp: var openArray[uint32],
   src: openArray[uint32], srco: int, dest: var openArray[uint32], dsto: int) =
@@ -217,9 +216,9 @@ func validateParam(N, r, p: int): bool =
 # and p=1. The parameters N, r, and p should be increased as memory latency and
 # CPU parallelism increases; consider setting N to the highest power of 2 you
 # can derive within 100 milliseconds. Remember to get a good random salt.
-func scrypt*[T, M](password: openArray[T], salt: openArray[M],
-             N, r, p: int, xyv: var openArray[uint32],
-             b, output: var openArray[byte]): int =
+func scrypt[T, M](password: openArray[T], salt: openArray[M],
+                  N, r, p: int, xyv: var openArray[uint32],
+                  b, output: var openArray[byte]): int =
 
   when not((M is byte) or (M is char)):
     {.fatal: "Choosen password type is not supported!".}
@@ -258,3 +257,23 @@ func scrypt*[T, M](password: openArray[T], salt: openArray[M],
 # return value -> (xyv.len of uint32s, b.len of bytes)
 func scryptCalc*(N, r, p: int): (int, int) =
   result = ((r*32*(N+2)), (p*r*128))
+
+func scrypt*(password: openArray[char], salt: openArray[char],
+             N, r, p: int, xyv: var openArray[uint32],
+             b, output: var openArray[byte]): int =
+  scrypt[char, char](password, salt, N, r, p, xyv, b, output)
+
+func scrypt*(password: openArray[char], salt: openArray[byte],
+             N, r, p: int, xyv: var openArray[uint32],
+             b, output: var openArray[byte]): int =
+  scrypt[char, byte](password, salt, N, r, p, xyv, b, output)
+
+func scrypt*(password: openArray[byte], salt: openArray[char],
+             N, r, p: int, xyv: var openArray[uint32],
+             b, output: var openArray[byte]): int =
+  scrypt[byte, char](password, salt, N, r, p, xyv, b, output)
+
+func scrypt*(password: openArray[byte], salt: openArray[byte],
+             N, r, p: int, xyv: var openArray[uint32],
+             b, output: var openArray[byte]): int =
+  scrypt[byte, byte](password, salt, N, r, p, xyv, b, output)

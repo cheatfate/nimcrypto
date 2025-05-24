@@ -190,19 +190,18 @@ func init*(
 
 func init*(ctx: var Sha2Context) {.noinit.} =
   ctx.compressFunc =
-    {.noSideEffect.}:
-      when ctx is sha224:
-        default_sha224_compress_func
-      elif ctx is sha256:
-        default_sha256_compress_func
-      elif ctx is sha384:
-        default_sha384_compress_func
-      elif ctx is sha512:
-        default_sha512_compress_func
-      elif ctx is sha512224:
-        default_sha512224_compress_func
-      elif ctx is sha512256:
-        default_sha512256_compress_func
+    when ctx is sha224:
+      {.noSideEffect.}: default_sha224_compress_func
+    elif ctx is sha256:
+      {.noSideEffect.}: default_sha256_compress_func
+    elif ctx is sha384:
+      {.noSideEffect.}: default_sha384_compress_func
+    elif ctx is sha512:
+      {.noSideEffect.}: default_sha512_compress_func
+    elif ctx is sha512224:
+      {.noSideEffect.}: default_sha512224_compress_func
+    elif ctx is sha512256:
+      {.noSideEffect.}: default_sha512256_compress_func
   ctx.reset()
 
 func clear*(ctx: var Sha2Context) {.noinit.} =

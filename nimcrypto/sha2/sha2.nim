@@ -165,12 +165,6 @@ func getCompressFunction(
     else:
       sha2_ref.sha512Compress
 
-template defaultCpuFeatures(): set[CpuFeature] =
-  when nimvm:
-    {}
-  else:
-    {.noSideEffect.}: nimcryptoCpuFeatures
-
 func init*(
     ctx: var Sha2Context,
     implementation: Sha2Implementation,

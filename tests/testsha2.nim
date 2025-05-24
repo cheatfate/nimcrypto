@@ -1,6 +1,8 @@
 import nimcrypto/hash, nimcrypto/sha2, nimcrypto/utils
 import unittest
 
+from std/strutils import toLower
+
 when defined(nimHasUsed): {.used.}
 
 suite "SHA2 Tests":
@@ -130,6 +132,52 @@ suite "SHA2 Tests":
       $check2241 == stripSpaces(digest224[1])
       $check2242 == stripSpaces(digest224[2])
 
+  test "SHA2-256 compile-time test vectors":
+    const
+      check2560 = sha256.digest(code256[0])
+      check2561 = sha256.digest(code256[1])
+      check2562 = sha256.digest(code256[2])
+    check:
+      $check2560 == stripSpaces(digest256[0])
+      $check2561 == stripSpaces(digest256[1])
+      $check2562 == stripSpaces(digest256[2])
+
+  test "SHA2-384 compile-time test vectors":
+    const
+      check3840 = sha384.digest(stripSpaces(code384[0]))
+      check3841 = sha384.digest(stripSpaces(code384[1]))
+      check3842 = sha384.digest(stripSpaces(code384[2]))
+    check:
+      $check3840 == stripSpaces(digest384[0])
+      $check3841 == stripSpaces(digest384[1])
+      $check3842 == stripSpaces(digest384[2])
+
+  test "SHA2-512 compile-time test vectors":
+    const
+      check5120 = sha512.digest(stripSpaces(code512[0]))
+      check5121 = sha512.digest(stripSpaces(code512[1]))
+      check5122 = sha512.digest(stripSpaces(code512[2]))
+    check:
+      $check5120 == stripSpaces(digest512[0])
+      $check5121 == stripSpaces(digest512[1])
+      $check5122 == stripSpaces(digest512[2])
+
+  test "SHA2-512/224 compile-time test vectors":
+    const
+      check5122240 = sha512_224.digest(stripSpaces(code512_224[0]))
+      check5122241 = sha512_224.digest(stripSpaces(code512_224[1]))
+    check:
+      $check5122240 == stripSpaces(digest512_224[0])
+      $check5122241 == stripSpaces(digest512_224[1])
+
+  test "SHA2-512/256 compile-time test vectors":
+    const
+      check5122560 = sha512_256.digest(stripSpaces(code512_256[0]))
+      check5122561 = sha512_256.digest(stripSpaces(code512_256[1]))
+    check:
+      $check5122560 == stripSpaces(digest512_256[0])
+      $check5122561 == stripSpaces(digest512_256[1])
+
   test "SHA2-224 test vectors":
     i = 0
     while i < len(code224):
@@ -175,16 +223,6 @@ suite "SHA2 Tests":
       ctx1.finish().data == edigest
       ctx2.finish().data == edigest
 
-  test "SHA2-256 compile-time test vectors":
-    const
-      check2560 = sha256.digest(code256[0])
-      check2561 = sha256.digest(code256[1])
-      check2562 = sha256.digest(code256[2])
-    check:
-      $check2560 == stripSpaces(digest256[0])
-      $check2561 == stripSpaces(digest256[1])
-      $check2562 == stripSpaces(digest256[2])
-
   test "SHA2-256 test vectors":
     i = 0
     while i < len(code256):
@@ -229,16 +267,6 @@ suite "SHA2 Tests":
     check:
       ctx1.finish().data == edigest
       ctx2.finish().data == edigest
-
-  test "SHA2-384 compile-time test vectors":
-    const
-      check3840 = sha384.digest(stripSpaces(code384[0]))
-      check3841 = sha384.digest(stripSpaces(code384[1]))
-      check3842 = sha384.digest(stripSpaces(code384[2]))
-    check:
-      $check3840 == stripSpaces(digest384[0])
-      $check3841 == stripSpaces(digest384[1])
-      $check3842 == stripSpaces(digest384[2])
 
   test "SHA2-384 test vectors":
     i = 0
@@ -286,16 +314,6 @@ suite "SHA2 Tests":
       ctx1.finish().data == edigest
       ctx2.finish().data == edigest
 
-  test "SHA2-512 compile-time test vectors":
-    const
-      check5120 = sha512.digest(stripSpaces(code512[0]))
-      check5121 = sha512.digest(stripSpaces(code512[1]))
-      check5122 = sha512.digest(stripSpaces(code512[2]))
-    check:
-      $check5120 == stripSpaces(digest512[0])
-      $check5121 == stripSpaces(digest512[1])
-      $check5122 == stripSpaces(digest512[2])
-
   test "SHA2-512 test vectors":
     i = 0
     while i < len(code512):
@@ -341,14 +359,6 @@ suite "SHA2 Tests":
       ctx1.finish().data == edigest
       ctx2.finish().data == edigest
 
-  test "SHA2-512/224 compile-time test vectors":
-    const
-      check5122240 = sha512_224.digest(stripSpaces(code512_224[0]))
-      check5122241 = sha512_224.digest(stripSpaces(code512_224[1]))
-    check:
-      $check5122240 == stripSpaces(digest512_224[0])
-      $check5122241 == stripSpaces(digest512_224[1])
-
   test "SHA2-512/224 test vectors":
     i = 0
     while i < len(code512_224):
@@ -387,14 +397,6 @@ suite "SHA2 Tests":
     check:
       ctx1.finish().data == edigest
       ctx2.finish().data == edigest
-
-  test "SHA2-512/256 compile-time test vectors":
-    const
-      check5122560 = sha512_256.digest(stripSpaces(code512_256[0]))
-      check5122561 = sha512_256.digest(stripSpaces(code512_256[1]))
-    check:
-      $check5122560 == stripSpaces(digest512_256[0])
-      $check5122561 == stripSpaces(digest512_256[1])
 
   test "SHA2-512/256 test vectors":
     i = 0
@@ -435,21 +437,357 @@ suite "SHA2 Tests":
       ctx1.finish().data == edigest
       ctx2.finish().data == edigest
 
-  proc millionAtest(t: typedesc): string =
+  proc millionAtest1(t: typedesc): string =
     var ctx: t
     ctx.init()
     for i in 0 ..< 1_000_000:
       ctx.update("a")
-    result = $ctx.finish()
+    $ctx.finish()
 
   test "SHA2-224 million(a) test":
-    check sha224.millionAtest() == stripSpaces(digest1ma224)
+    check sha224.millionAtest1() == stripSpaces(digest1ma224)
 
   test "SHA2-256 million(a) test":
-    check sha256.millionAtest() == stripSpaces(digest1ma256)
+    check sha256.millionAtest1() == stripSpaces(digest1ma256)
 
   test "SHA2-384 million(a) test":
-    check sha384.millionAtest() == stripSpaces(digest1ma384)
+    check sha384.millionAtest1() == stripSpaces(digest1ma384)
 
   test "SHA2-512 million(a) test":
-    check sha512.millionAtest() == stripSpaces(digest1ma512)
+    check sha512.millionAtest1() == stripSpaces(digest1ma512)
+
+  let cpuFeatures = getCpuFeatures()
+  for implementation in Sha2Implementation:
+    test "SHA2-224 test vectors [" & toLower($implementation) & "]":
+      if not(isAvailable(sha224, implementation, cpuFeatures)):
+        skip()
+      else:
+        for i in 0 ..< len(code224):
+          let
+            plaintext = stripSpaces(code224[i])
+            digest = stripSpaces(digest224[i])
+
+          ctx224.init(implementation, cpuFeatures)
+          if len(plaintext) > 0:
+            ctx224.update(cast[ptr uint8](unsafeAddr plaintext[0]),
+                          uint(len(plaintext)))
+          else:
+            ctx224.update(nil, 0)
+
+          let
+            check1 = $ctx224.finish()
+            check2 =
+              if len(plaintext) > 0:
+                $digest(sha224, cast[ptr uint8](unsafeAddr plaintext[0]),
+                        uint(len(plaintext)), implementation,
+                        cpuFeatures)
+              else:
+                $sha224.digest(nil, 0, implementation, cpuFeatures)
+            check3 = $digest(sha224, plaintext, implementation, cpuFeatures)
+
+          ctx224.init(implementation, cpuFeatures)
+          ctx224.update(plaintext)
+          let check4 = $ctx224.finish()
+          ctx224.clear()
+          check:
+            check1 == digest
+            check2 == digest
+            check3 == digest
+            check4 == digest
+            ctx224.isFullZero() == true
+
+    test "SHA2-224 empty update() test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha224, implementation, cpuFeatures)):
+        skip()
+      else:
+        var data: seq[byte]
+        var ctx1, ctx2: sha224
+        var msg = cast[seq[byte]](stripSpaces(code224[1]))
+        var edigest = fromHex(stripSpaces(digest224[1]))
+        ctx1.init(implementation, cpuFeatures)
+        ctx2.init(implementation, cpuFeatures)
+        ctx1.update(msg)
+        ctx2.update(addr msg[0], uint(len(msg)))
+        ctx1.update(data)
+        ctx2.update(nil, 0)
+        check:
+          ctx1.finish().data == edigest
+          ctx2.finish().data == edigest
+
+    test "SHA2-256 test vectors [" & toLower($implementation) & "]":
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
+        skip()
+      else:
+        for i in 0 ..< len(code256):
+          var plaintext = stripSpaces(code256[i])
+          var digest = stripSpaces(digest256[i])
+          ctx256.init(implementation, cpuFeatures)
+          if len(plaintext) > 0:
+            ctx256.update(cast[ptr uint8](addr plaintext[0]),
+                          uint(len(plaintext)))
+          else:
+            ctx256.update(nil, 0)
+          let
+            check1 = $ctx256.finish()
+            check2 =
+              if len(plaintext) > 0:
+                $sha256.digest(cast[ptr uint8](addr plaintext[0]),
+                               uint(len(plaintext)), implementation,
+                               cpuFeatures)
+              else:
+                $sha256.digest(nil, 0, implementation, cpuFeatures)
+            check3 = $sha256.digest(plaintext, implementation, cpuFeatures)
+          ctx256.init(implementation, cpuFeatures)
+          ctx256.update(plaintext)
+          var check4 = $ctx256.finish()
+          ctx256.clear()
+          check:
+            check1 == digest
+            check2 == digest
+            check3 == digest
+            check4 == digest
+            ctx256.isFullZero() == true
+
+    test "SHA2-256 empty update() test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
+        skip()
+      else:
+        var data: seq[byte]
+        var ctx1, ctx2: sha256
+        var msg = cast[seq[byte]](stripSpaces(code256[1]))
+        var edigest = fromHex(stripSpaces(digest256[1]))
+        ctx1.init(implementation, cpuFeatures)
+        ctx2.init(implementation, cpuFeatures)
+        ctx1.update(msg)
+        ctx2.update(addr msg[0], uint(len(msg)))
+        ctx1.update(data)
+        ctx2.update(nil, 0)
+        check:
+          ctx1.finish().data == edigest
+          ctx2.finish().data == edigest
+
+    test "SHA2-384 test vectors [" & toLower($implementation) & "]":
+      if not(isAvailable(sha384, implementation, cpuFeatures)):
+        skip()
+      else:
+        for i in 0 ..< len(code384):
+          var plaintext = stripSpaces(code384[i])
+          var digest = stripSpaces(digest384[i])
+          ctx384.init(implementation, cpuFeatures)
+          if len(plaintext) > 0:
+            ctx384.update(cast[ptr uint8](addr plaintext[0]),
+                          uint(len(plaintext)))
+          else:
+            ctx384.update(nil, 0)
+          let
+            check1 = $ctx384.finish()
+            check2 =
+              if len(plaintext) > 0:
+                $sha384.digest(cast[ptr uint8](addr plaintext[0]),
+                               uint(len(plaintext)), implementation,
+                               cpuFeatures)
+              else:
+                $sha384.digest(nil, 0, implementation, cpuFeatures)
+
+            check3 = $sha384.digest(plaintext, implementation, cpuFeatures)
+          ctx384.init()
+          ctx384.update(plaintext)
+          var check4 = $ctx384.finish()
+          ctx384.clear()
+          check:
+            check1 == digest
+            check2 == digest
+            check3 == digest
+            check4 == digest
+            ctx384.isFullZero() == true
+
+    test "SHA2-384 empty update() test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha384, implementation, cpuFeatures)):
+        skip()
+      else:
+        var data: seq[byte]
+        var ctx1, ctx2: sha384
+        var msg = cast[seq[byte]](stripSpaces(code384[1]))
+        var edigest = fromHex(stripSpaces(digest384[1]))
+        ctx1.init(implementation, cpuFeatures)
+        ctx2.init(implementation, cpuFeatures)
+        ctx1.update(msg)
+        ctx2.update(addr msg[0], uint(len(msg)))
+        ctx1.update(data)
+        ctx2.update(nil, 0)
+        check:
+          ctx1.finish().data == edigest
+          ctx2.finish().data == edigest
+
+    test "SHA2-512 test vectors [" & toLower($implementation) & "]":
+      if not(isAvailable(sha512, implementation, cpuFeatures)):
+        skip()
+      else:
+        for i in 0 ..< len(code512):
+          var plaintext = stripSpaces(code512[i])
+          var digest = stripSpaces(digest512[i])
+          ctx512.init(implementation, cpuFeatures)
+          if len(plaintext) > 0:
+            ctx512.update(cast[ptr uint8](addr plaintext[0]),
+                                          uint(len(plaintext)))
+          else:
+            ctx512.update(nil, 0)
+          let
+            check1 = $ctx512.finish()
+            check2 =
+              if len(plaintext) > 0:
+                $sha512.digest(cast[ptr uint8](addr plaintext[0]),
+                               uint(len(plaintext)), implementation,
+                               cpuFeatures)
+              else:
+                $sha512.digest(nil, 0, implementation, cpuFeatures)
+            check3 = $sha512.digest(plaintext, implementation, cpuFeatures)
+          ctx512.init(implementation, cpuFeatures)
+          ctx512.update(plaintext)
+          var check4 = $ctx512.finish()
+          ctx512.clear()
+          check:
+            check1 == digest
+            check2 == digest
+            check3 == digest
+            check4 == digest
+            ctx512.isFullZero() == true
+
+    test "SHA2-512 empty update() test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha512, implementation, cpuFeatures)):
+        skip()
+      else:
+        var data: seq[byte]
+        var ctx1, ctx2: sha512
+        var msg = cast[seq[byte]](stripSpaces(code512[1]))
+        var edigest = fromHex(stripSpaces(digest512[1]))
+        ctx1.init(implementation, cpuFeatures)
+        ctx2.init(implementation, cpuFeatures)
+        ctx1.update(msg)
+        ctx2.update(addr msg[0], uint(len(msg)))
+        ctx1.update(data)
+        ctx2.update(nil, 0)
+        check:
+          ctx1.finish().data == edigest
+          ctx2.finish().data == edigest
+
+    test "SHA2-512/224 test vectors [" & toLower($implementation) & "]":
+      if not(isAvailable(sha512_224, implementation, cpuFeatures)):
+        skip()
+      else:
+        for i  in 0 ..< len(code512_224):
+          var plaintext = stripSpaces(code512_224[i])
+          var digest = stripSpaces(digest512_224[i])
+          ctx512_224.init(implementation, cpuFeatures)
+          ctx512_224.update(cast[ptr uint8](addr plaintext[0]),
+                            uint(len(plaintext)))
+          let
+            check1 = $ctx512_224.finish()
+            check2 = $sha512_224.digest(cast[ptr uint8](addr plaintext[0]),
+                                        uint(len(plaintext)), implementation,
+                                        cpuFeatures)
+            check3 = $sha512_224.digest(plaintext, implementation, cpuFeatures)
+          ctx512_224.init(implementation, cpuFeatures)
+          ctx512_224.update(plaintext)
+          var check4 = $ctx512_224.finish()
+          ctx512_224.clear()
+          check:
+            check1 == digest
+            check2 == digest
+            check3 == digest
+            check4 == digest
+            ctx512_224.isFullZero() == true
+
+    test "SHA2-512/224 empty update() test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha512_224, implementation, cpuFeatures)):
+        skip()
+      else:
+        var data: seq[byte]
+        var ctx1, ctx2: sha512_224
+        var msg = cast[seq[byte]](stripSpaces(code512_224[1]))
+        var edigest = fromHex(stripSpaces(digest512_224[1]))
+        ctx1.init(implementation, cpuFeatures)
+        ctx2.init(implementation, cpuFeatures)
+        ctx1.update(msg)
+        ctx2.update(addr msg[0], uint(len(msg)))
+        ctx1.update(data)
+        ctx2.update(nil, 0)
+        check:
+          ctx1.finish().data == edigest
+          ctx2.finish().data == edigest
+
+    test "SHA2-512/256 test vectors [" & toLower($implementation) & "]":
+      if not(isAvailable(sha512_256, implementation, cpuFeatures)):
+        skip()
+      else:
+        for i in 0 ..< len(code512_256):
+          var plaintext = stripSpaces(code512_256[i])
+          var digest = stripSpaces(digest512_256[i])
+          ctx512_256.init(implementation, cpuFeatures)
+          ctx512_256.update(cast[ptr uint8](addr plaintext[0]),
+                            uint(len(plaintext)))
+          var check1 = $ctx512_256.finish()
+          var check2 = $sha512_256.digest(cast[ptr uint8](addr plaintext[0]),
+                                          uint(len(plaintext)), implementation,
+                                          cpuFeatures)
+          var check3 = $sha512_256.digest(plaintext, implementation,
+                                          cpuFeatures)
+          ctx512_256.init(implementation, cpuFeatures)
+          ctx512_256.update(plaintext)
+          var check4 = $ctx512_256.finish()
+          ctx512_256.clear()
+          check:
+            check1 == digest
+            check2 == digest
+            check3 == digest
+            check4 == digest
+            ctx512_256.isFullZero() == true
+
+    test "SHA2-512/256 empty update() test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha512_256, implementation, cpuFeatures)):
+        skip()
+      else:
+        var data: seq[byte]
+        var ctx1, ctx2: sha512_256
+        var msg = cast[seq[byte]](stripSpaces(code512_256[1]))
+        var edigest = fromHex(stripSpaces(digest512_256[1]))
+        ctx1.init(implementation, cpuFeatures)
+        ctx2.init(implementation, cpuFeatures)
+        ctx1.update(msg)
+        ctx2.update(addr msg[0], uint(len(msg)))
+        ctx1.update(data)
+        ctx2.update(nil, 0)
+        check:
+          ctx1.finish().data == edigest
+          ctx2.finish().data == edigest
+
+    proc millionAtest2(t: typedesc): string =
+      var ctx: t
+      ctx.init(implementation, cpuFeatures)
+      for i in 0 ..< 1_000_000:
+        ctx.update("a")
+      $ctx.finish()
+
+    test "SHA2-224 million(a) test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha224, implementation, cpuFeatures)):
+        skip()
+      else:
+        check sha224.millionAtest2() == stripSpaces(digest1ma224)
+
+    test "SHA2-256 million(a) test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha256, implementation, cpuFeatures)):
+        skip()
+      else:
+        check sha256.millionAtest2() == stripSpaces(digest1ma256)
+
+    test "SHA2-384 million(a) test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha384, implementation, cpuFeatures)):
+        skip()
+      else:
+        check sha384.millionAtest2() == stripSpaces(digest1ma384)
+
+    test "SHA2-512 million(a) test [" & toLower($implementation) & "]":
+      if not(isAvailable(sha512, implementation, cpuFeatures)):
+        skip()
+      else:
+        check sha512.millionAtest2() == stripSpaces(digest1ma512)

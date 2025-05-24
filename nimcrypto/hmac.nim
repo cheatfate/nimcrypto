@@ -241,8 +241,8 @@ func finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   discard finish(hmctx, res.data)
   res
 
-func hmac*[A: bchar, B: bchar](
-    HashType: typedesc[NonOptimizedType],
+func hmac*[T: NonOptimizedType, A: bchar, B: bchar](
+    HashType: typedesc[T],
     key: openArray[A],
     data: openArray[B]
 ): MDigest[HashType.bits] =
@@ -274,8 +274,8 @@ func hmac*[A: bchar, B: bchar](
   ctx.clear()
   res
 
-func hmac*(
-    HashType: typedesc[NonOptimizedType],
+func hmac*[T: NonOptimizedType](
+    HashType: typedesc[T],
     key: ptr byte,
     klen: uint,
     data: ptr byte,

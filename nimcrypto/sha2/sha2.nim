@@ -165,6 +165,12 @@ func getCompressFunction(
     else:
       sha2_ref.sha512Compress
 
+template defaultCpuFeatures(): set[CpuFeature] =
+  when nimvm:
+    {}
+  else:
+    {.noSideEffect.}: nimcryptoCpuFeatures
+
 func init*(
     ctx: var Sha2Context,
     implementation: Sha2Implementation,
@@ -179,23 +185,24 @@ func init*(
     implementation: Sha2Implementation
 ) {.noinit.} =
   ctx.compressFunc =
-    getCompressFunction(type(ctx), implementation, nimcryptoCpuFeatures)
+    getCompressFunction(type(ctx), implementation, defaultCpuFeatures)
   ctx.reset()
 
 func init*(ctx: var Sha2Context) {.noinit.} =
   ctx.compressFunc =
-    when ctx is sha224:
-      default_sha224_compress_func
-    elif ctx is sha256:
-      default_sha256_compress_func
-    elif ctx is sha384:
-      default_sha384_compress_func
-    elif ctx is sha512:
-      default_sha512_compress_func
-    elif ctx is sha512224:
-      default_sha512224_compress_func
-    elif ctx is sha512256:
-      default_sha512256_compress_func
+    {.noSideEffect.}:
+      when ctx is sha224:
+        default_sha224_compress_func
+      elif ctx is sha256:
+        default_sha256_compress_func
+      elif ctx is sha384:
+        default_sha384_compress_func
+      elif ctx is sha512:
+        default_sha512_compress_func
+      elif ctx is sha512224:
+        default_sha512224_compress_func
+      elif ctx is sha512256:
+        default_sha512256_compress_func
   ctx.reset()
 
 func clear*(ctx: var Sha2Context) {.noinit.} =
@@ -377,12 +384,6 @@ func finish*(ctx: var Sha2Context, pbytes: ptr byte,
 
 func finish*(ctx: var Sha2Context): MDigest[ctx.bits] {.noinit.} =
   discard finish(ctx, result.data)
-
-template defaultCpuFeatures(): set[CpuFeature] =
-  when nimvm:
-    {}
-  else:
-    {.noSideEffect.}: nimcryptoCpuFeatures
 
 template declareDigest(DigestType: untyped) =
   when DigestType is sha224 or DigestType is sha256:

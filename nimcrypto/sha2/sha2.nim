@@ -1,7 +1,7 @@
 #
 #
 #                    NimCrypto
-#      (c) Copyright 2016-2024 Eugene Kabanov
+#      (c) Copyright 2016-2025 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
@@ -23,7 +23,7 @@ export Sha2Context, Sha2Implementation, sizeDigest, sizeBlock, name,
        sha224, sha256, sha384, sha512, sha512_224, sha512_256, sha2,
        cpufeatures, isAvailable
 
-proc reset*(ctx: var Sha2Context) {.noinit.} =
+func reset*(ctx: var Sha2Context) {.noinit.} =
   ctx.length = 0'u64
   ctx.reminder = 0
   when ctx.bits == 224 and ctx.bsize == 64:
@@ -81,18 +81,124 @@ proc reset*(ctx: var Sha2Context) {.noinit.} =
     ctx.state[6] = 0x2B0199FC2C85B8AA'u64
     ctx.state[7] = 0x0EB72DDC81C52CA2'u64
 
-proc init*(ctx: var Sha2Context,
-           implementation = Sha2Implementation.Auto,
-           cpufeatures: set[CpuFeature] = {}) {.noinit.} =
-  ctx.module = ctx.getImplementation(implementation, cpufeatures)
+func getCompressFunction(
+    Sha2ContextType: typedesc[sha224|sha256],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+): Sha256CompressFunc =
+  var ctx: Sha2ContextType
+  case ctx.getImplementation(implementation, cpufeatures)
+  of Sha2Module.Ref:
+    sha2_ref.sha256Compress
+  of Sha2Module.Avx:
+    when compiles(SHA2_AVX_sha256Compress):
+      sha2_avx.sha256Compress
+    else:
+      sha2_ref.sha256Compress
+  of Sha2Module.Avx2:
+    when compiles(SHA2_AVX2_sha256Compress):
+      sha2_avx2.sha256Compress
+    else:
+      when compiles(SHA2_AVX_sha256Compress):
+        sha2_avx.sha256Compress
+      else:
+        sha2_ref.sha256Compress
+  of Sha2Module.ShaExt:
+    when compiles(SHA2_SHAEXT_sha256Compress):
+      sha2_sha.sha256Compress
+    else:
+      when compiles(SHA2_AVX2_sha256Compress):
+        sha2_avx2.sha256Compress
+      else:
+        when compiles(SHA2_AVX_sha256Compress):
+          sha2_avx.sha256Compress
+        else:
+          sha2_ref.sha256Compress
+  of Sha2Module.Neon:
+    when compiles(SHA2_NEON_sha256Compress):
+      sha2_neon.sha256Compress
+    else:
+      sha2_ref.sha256Compress
+
+func getCompressFunction(
+    Sha2ContextType: typedesc[sha384|sha512|sha512224|sha512256],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+): Sha512CompressFunc =
+  var ctx: Sha2ContextType
+  case ctx.getImplementation(implementation, cpufeatures)
+  of Sha2Module.Ref:
+    sha2_ref.sha512Compress
+  of Sha2Module.Avx:
+    when compiles(SHA2_AVX_sha512Compress):
+      sha2_avx.sha512Compress
+    else:
+      sha2_ref.sha512Compress
+  of Sha2Module.Avx2:
+    when compiles(SHA2_AVX2_sha512Compress):
+      sha2_avx2.sha512Compress
+    else:
+      when compiles(SHA2_AVX_sha512Compress):
+        sha2_avx.sha512Compress
+      else:
+        sha2_ref.sha512Compress
+  of Sha2Module.ShaExt:
+    # There currently no support for newer x86 SHA-512 instruction set, but
+    # `SHA2_SHAEXT_sha512Compress` constant protects code from compilation
+    # errors.
+    when compiles(SHA2_SHAEXT_sha512Compress):
+      sha2_sha.sha512Compress
+    else:
+      when compiles(SHA2_AVX2_sha512Compress):
+        sha2_avx2.sha512Compress
+      else:
+        when compiles(SHA2_AVX_sha512Compress):
+          sha2_avx.sha512Compress
+        else:
+          sha2_ref.sha512Compress
+  of Sha2Module.Neon:
+    # There currently no support for newer ARM SHA-512 instruction set, but
+    # `SHA2_NEON_sha512Compress` constant protects code from compilation
+    # errors.
+    when compiles(SHA2_NEON_sha512Compress):
+      sha2_neon.sha512Compress
+    else:
+      sha2_ref.sha512Compress
+
+func init*(
+    ctx: var Sha2Context,
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+) {.noinit.} =
+  ctx.compressFunc =
+    getCompressFunction(type(ctx), implementation, cpufeatures)
   ctx.reset()
 
-proc init*(ctx: var Sha2Context,
-           cpufeatures: set[CpuFeature]) {.noinit.} =
-  ctx.module = ctx.getImplementation(Sha2Implementation.Auto, cpufeatures)
+func init*(
+    ctx: var Sha2Context,
+    implementation: Sha2Implementation
+) {.noinit.} =
+  ctx.compressFunc =
+    getCompressFunction(type(ctx), implementation, nimcryptoCpuFeatures)
   ctx.reset()
 
-proc clear*(ctx: var Sha2Context) {.noinit.} =
+func init*(ctx: var Sha2Context) {.noinit.} =
+  ctx.compressFunc =
+    when ctx is sha224:
+      default_sha224_compress_func
+    elif ctx is sha256:
+      default_sha256_compress_func
+    elif ctx is sha384:
+      default_sha384_compress_func
+    elif ctx is sha512:
+      default_sha512_compress_func
+    elif ctx is sha512224:
+      default_sha512224_compress_func
+    elif ctx is sha512256:
+      default_sha512256_compress_func
+  ctx.reset()
+
+func clear*(ctx: var Sha2Context) {.noinit.} =
   when nimvm:
     for i in 0 ..< len(ctx.state):
       ctx.state[i] = when ctx.bsize == 64: 0'u32 else: 0'u64
@@ -101,70 +207,7 @@ proc clear*(ctx: var Sha2Context) {.noinit.} =
   else:
     burnMem(ctx)
 
-template compress(ctx: var Sha2Context, data: openArray[byte], blocks: int) =
-  when (ctx is sha224) or (ctx is sha256):
-    mixin sha256Compress
-    case ctx.module
-    of Sha2Module.Ref:
-      sha2_ref.sha256Compress(ctx.state, data, blocks)
-    of Sha2Module.Avx:
-      when compiles(SHA2_AVX_sha256Compress):
-        sha2_avx.sha256Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "AVX implementation is not available for " &
-                    ctx.name()
-    of Sha2Module.Avx2:
-      when compiles(SHA2_AVX2_sha256Compress):
-        sha2_avx2.sha256Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "AVX2 implementation is not available for " &
-                    ctx.name()
-    of Sha2Module.ShaExt:
-      when compiles(SHA2_SHAEXT_sha256Compress):
-        sha2_sha.sha256Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "SHA extensions implementation is not available for " &
-                    ctx.name()
-    of Sha2Module.Neon:
-      when compiles(SHA2_NEON_sha256Compress):
-        sha2_neon.sha256Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "SHA2(neon) extensions implementation is not available " &
-                    "for " & ctx.name()
-  elif (ctx is sha384) or (ctx is sha512) or (ctx is sha512_224) or
-       (ctx is sha512_256):
-    mixin sha512Compress
-    case ctx.module
-    of Sha2Module.Ref:
-      sha2_ref.sha512Compress(ctx.state, data, blocks)
-    of Sha2Module.Avx:
-      when compiles(SHA2_AVX_sha512Compress):
-        sha2_avx.sha512Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "AVX implementation is not available for " &
-                    ctx.name()
-    of Sha2Module.Avx2:
-      when compiles(SHA2_AVX2_sha512Compress):
-        sha2_avx2.sha512Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "AVX2 implementation is not available for " &
-                    ctx.name()
-    of Sha2Module.ShaExt:
-      when compiles(SHA2_SHAEXT_sha512Compress):
-        sha2_sha.sha512Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "SHA2 extensions implementation is not available for " &
-                    ctx.name()
-    of Sha2Module.Neon:
-      when compiles(SHA2_NEON_sha512Compress):
-        sha2_neon.sha512Compress(ctx.state, data, blocks)
-      else:
-        raiseAssert "SHA2(neon) extensions implementation is not available " &
-                    "for " & ctx.name()
-  else:
-    raiseAssert "Invalid context"
-
-proc update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
+func update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
   var
     pos = 0
     bytesLeft = len(data)
@@ -183,7 +226,8 @@ proc update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
   if ctx.reminder != 0:
     let clen = int(ctx.sizeBlock()) - ctx.reminder
     copyMem(ctx.buffer, ctx.reminder, data, 0, clen)
-    compress(ctx, ctx.buffer, 1)
+    {.noSideEffect.}:
+      ctx.compressFunc(ctx.state, ctx.buffer, 1)
     pos += clen
     bytesLeft -= clen
     ctx.reminder = 0
@@ -202,10 +246,14 @@ proc update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
         else:
           blocksCount shl 7
     when T is byte:
-      compress(ctx, data.toOpenArray(pos, pos + blocksLength - 1), blocksCount)
+      {.noSideEffect.}:
+        ctx.compressFunc(
+          ctx.state, data.toOpenArray(pos, pos + blocksLength - 1), blocksCount)
     else:
-      compress(ctx, data.toOpenArrayByte(pos, pos + blocksLength - 1),
-               blocksCount)
+      {.noSideEffect.}:
+        ctx.compressFunc(
+          ctx.state, data.toOpenArrayByte(pos, pos + blocksLength - 1),
+          blocksCount)
     pos += blocksLength
     bytesLeft -= blocksLength
 
@@ -213,12 +261,12 @@ proc update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
     copyMem(ctx.buffer, 0, data, pos, bytesLeft)
     ctx.reminder = bytesLeft
 
-proc update*(ctx: var Sha2Context, pbytes: ptr byte, nbytes: uint) {.noinit.} =
+func update*(ctx: var Sha2Context, pbytes: ptr byte, nbytes: uint) {.noinit.} =
   if not(isNil(pbytes)) and (nbytes > 0'u):
     let p = cast[ptr UncheckedArray[byte]](pbytes)
     ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
-proc finalize256(ctx: var Sha2Context) {.inline, noinit.} =
+func finalize256(ctx: var Sha2Context) {.inline, noinit.} =
   let
     bLength = ctx.length shl 3
     lastBlocksCount = if (ctx.reminder < 56): 1 else: 2
@@ -229,9 +277,10 @@ proc finalize256(ctx: var Sha2Context) {.inline, noinit.} =
 
   zeroMem(ctx.buffer, ctx.reminder, len(ctx.buffer) - ctx.reminder)
   beStore64(ctx.buffer, sizePos, bLength)
-  compress(ctx, ctx.buffer, lastBlocksCount)
+  {.noSideEffect.}:
+    ctx.compressFunc(ctx.state, ctx.buffer, lastBlocksCount)
 
-proc finalize512(ctx: var Sha2Context) {.inline, noinit.} =
+func finalize512(ctx: var Sha2Context) {.inline, noinit.} =
   let
     bLength = ctx.length shl 3
     lastBlocksCount = if (ctx.reminder < 112): 1 else: 2
@@ -242,9 +291,10 @@ proc finalize512(ctx: var Sha2Context) {.inline, noinit.} =
 
   zeroMem(ctx.buffer, ctx.reminder, len(ctx.buffer) - ctx.reminder)
   beStore64(ctx.buffer, sizePos, bLength)
-  compress(ctx, ctx.buffer, lastBlocksCount)
+  {.noSideEffect.}:
+    ctx.compressFunc(ctx.state, ctx.buffer, lastBlocksCount)
 
-proc finish*(ctx: var Sha2Context,
+func finish*(ctx: var Sha2Context,
              data: var openArray[byte]): uint {.noinit, discardable.} =
   when ctx.bits == 224 and ctx.bsize == 64:
     if len(data) >= 28:
@@ -320,19 +370,49 @@ proc finish*(ctx: var Sha2Context,
     else:
       0'u
 
-proc finish*(ctx: var Sha2Context, pbytes: ptr byte,
+func finish*(ctx: var Sha2Context, pbytes: ptr byte,
              nbytes: uint): uint {.noinit.} =
   let ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(ctx: var Sha2Context): MDigest[ctx.bits] {.noinit.} =
+func finish*(ctx: var Sha2Context): MDigest[ctx.bits] {.noinit.} =
   discard finish(ctx, result.data)
 
+template defaultCpuFeatures(): set[CpuFeature] =
+  {.noSideEffect.}: nimcryptoCpuFeatures
+
 template declareDigest(DigestType: untyped) =
-  proc digest*[B: bchar](HashType: typedesc[DigestType], data: openArray[B],
-                         implementation: Sha2Implementation,
-                         cpufeatures: set[CpuFeature] = {}
-                        ): MDigest[HashType.bits] =
+  when DigestType is sha224 or DigestType is sha256:
+    var `default _ DigestType _ compress _ func`* {.inject.}: Sha256CompressFunc
+    `default _ DigestType _ compress _ func` =
+      proc(
+          state: var array[8, uint32],
+          data: openArray[byte],
+          blocks: int
+      ) {.noinit, nimcall.} =
+        `default _ DigestType _ compress _ func` =
+          getCompressFunction(DigestType, Sha2Implementation.Auto,
+            nimcryptoCpuFeatures)
+        `default _ DigestType _ compress _ func`(state, data, blocks)
+  else:
+    var `default _ DigestType _ compress _ func`* {.inject.}: Sha512CompressFunc
+    `default _ DigestType _ compress _ func` =
+      proc(
+          state: var array[8, uint64],
+          data: openArray[byte],
+          blocks: int
+      ) {.noinit, nimcall.} =
+        `default _ DigestType _ compress _ func` =
+          getCompressFunction(DigestType, Sha2Implementation.Auto,
+            nimcryptoCpuFeatures)
+        `default _ DigestType _ compress _ func`(state, data, blocks)
+
+  func digest*[B: bchar](
+      HashType: typedesc[DigestType],
+      data: openArray[B],
+      implementation: Sha2Implementation,
+      cpufeatures: set[CpuFeature]
+  ): MDigest[HashType.bits] =
     var ctx: HashType
     ctx.init(implementation, cpufeatures)
     ctx.update(data)
@@ -340,13 +420,26 @@ template declareDigest(DigestType: untyped) =
     ctx.clear()
     res
 
-  proc digest*[B: bchar](HashType: typedesc[DigestType], data: openArray[B],
-                         cpufeatures: set[CpuFeature]): MDigest[HashType.bits] =
-    digest(HashType, data, Sha2Implementation.Auto, cpufeatures)
+  func digest*[B: bchar](
+      HashType: typedesc[DigestType],
+      data: openArray[B],
+      implementation: Sha2Implementation,
+  ): MDigest[HashType.bits] =
+    digest(HashType, data, implementation, defaultCpuFeatures)
 
-  proc digest*(HashType: typedesc[DigestType], data: ptr byte, ulen: uint,
-               implementation: Sha2Implementation,
-               cpufeatures: set[CpuFeature] = {}): MDigest[HashType.bits] =
+  func digest*[B: bchar](
+      HashType: typedesc[DigestType],
+      data: openArray[B],
+  ): MDigest[HashType.bits] =
+    digest(HashType, data, Sha2Implementation.Auto, defaultCpuFeatures)
+
+  func digest*(
+      HashType: typedesc[DigestType],
+      data: ptr byte,
+      ulen: uint,
+      implementation: Sha2Implementation,
+      cpufeatures: set[CpuFeature]
+  ): MDigest[HashType.bits] =
     var ctx: HashType
     ctx.init(implementation, cpufeatures)
     ctx.update(data, ulen)
@@ -354,9 +447,20 @@ template declareDigest(DigestType: untyped) =
     ctx.clear()
     res
 
-  proc digest*(HashType: typedesc[DigestType], data: ptr byte, ulen: uint,
-               cpufeatures: set[CpuFeature]): MDigest[HashType.bits] =
-    digest(HashType, data, ulen, Sha2Implementation.Auto, cpufeatures)
+  func digest*(
+      HashType: typedesc[DigestType],
+      data: ptr byte,
+      ulen: uint,
+      implementation: Sha2Implementation
+  ): MDigest[HashType.bits] =
+    digest(HashType, data, ulen, implementation, defaultCpuFeatures)
+
+  func digest*(
+      HashType: typedesc[DigestType],
+      data: ptr byte,
+      ulen: uint
+  ): MDigest[HashType.bits] =
+    digest(HashType, data, ulen, Sha2Implementation.Auto, defaultCpuFeatures)
 
 declareDigest(sha224)
 declareDigest(sha256)

@@ -1,7 +1,7 @@
 #
 #
 #                    NimCrypto
-#        (c) Copyright 2024 Eugene Kabanov
+#       (c) Copyright 2024-2025 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
@@ -80,7 +80,7 @@ when defined(amd64):
 
   proc sha256Compress*(state: var array[8, uint32],
                        data: openArray[byte],
-                       blocks: int) {.noinit, inline.} =
+                       blocks: int) {.noinit.} =
     let shufMask {.align(32).} =
       mm_set_epi64x(0x0c0d0e0f08090a0b'u64, 0x0405060700010203'u64)
 

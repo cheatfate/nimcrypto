@@ -21,8 +21,9 @@
 when defined(amd64):
   import "."/sha2_common
 
-  {.localPassc:"-msha".}
-  {.localPassc:"-msse2".}
+  {.localPassc: "-msha".}
+  {.localPassc: "-msse2".}
+  {.localPassc: "-mssse3".}
 
   when defined(vcc):
     {.pragma: x86type, bycopy, header:"<intrin.h>".}

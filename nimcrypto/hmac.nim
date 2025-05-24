@@ -91,6 +91,11 @@ type
     ipad: array[HashType.hmacSizeBlock, byte]
     opad: array[HashType.hmacSizeBlock, byte]
 
+  NonOptimizedType =
+    sha1 | keccak224 | keccak256 | keccak384 | keccak512 | sha3_224 | sha3_256 |
+    sha3_384 | sha3_512 | blake2_224 | blake2_256 | blake2_384 | blake2_512 |
+    ripemd128 | ripemd160 | ripemd256 | ripemd320
+
   Sha2Type =
     sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
 
@@ -103,7 +108,10 @@ template sizeDigest*[T](h: HMAC[T]): uint =
   ## Size of HMAC digest in octets (bytes).
   uint(h.mdctx.sizeDigest)
 
-func init*[T, M](hmctx: var HMAC[T], key: openArray[M]) =
+func init*[T: NonOptimizedType, M](
+    hmctx: var HMAC[T],
+    key: openArray[M]
+) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` array.
   ##
   ## ``key`` supports ``openArray[byte]`` and ``openArray[char]`` only.
@@ -133,7 +141,11 @@ func init*[T, M](hmctx: var HMAC[T], key: openArray[M]) =
   update(hmctx.mdctx, hmctx.ipad)
   update(hmctx.opadctx, hmctx.opad)
 
-func init*[T](hmctx: var HMAC[T], key: ptr byte, keylen: uint) =
+func init*[T: NonOptimizedType](
+    hmctx: var HMAC[T],
+    key: ptr byte,
+    keylen: uint
+) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` of size
   ## ``keylen``.
   mixin init
@@ -230,7 +242,7 @@ func finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   res
 
 func hmac*[A: bchar, B: bchar](
-    HashType: typedesc,
+    HashType: typedesc[NonOptimizedType],
     key: openArray[A],
     data: openArray[B]
 ): MDigest[HashType.bits] =
@@ -263,7 +275,7 @@ func hmac*[A: bchar, B: bchar](
   res
 
 func hmac*(
-    HashType: typedesc,
+    HashType: typedesc[NonOptimizedType],
     key: ptr byte,
     klen: uint,
     data: ptr byte,

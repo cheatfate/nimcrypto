@@ -121,3 +121,9 @@ else:
 
 let
   nimcryptoCpuFeatures*: set[CpuFeature] = getCpuFeatures()
+
+template defaultCpuFeatures*(): set[CpuFeature] =
+  when nimvm:
+    {}
+  else:
+    {.noSideEffect.}: nimcryptoCpuFeatures

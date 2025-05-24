@@ -4,7 +4,7 @@ on: [push, pull_request]
 jobs:
   build:
     strategy:
-      fail-fast: false
+      fail-fast: true
       max-parallel: 20
       matrix:
         branch: [master]
@@ -14,7 +14,7 @@ jobs:
           - os: linux
             cpu: i386
           - os: macos
-            cpu: amd64
+            cpu: arm64
           - os: windows
             cpu: amd64
           - os: windows

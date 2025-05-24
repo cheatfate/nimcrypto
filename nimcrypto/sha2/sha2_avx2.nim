@@ -26,7 +26,7 @@
 when defined(amd64):
   import "."/[sha2_common, sha2_avx]
 
-  {.localPassc:"-mavx2".}
+  {.localPassc: "-mavx2".}
 
   when defined(vcc):
     {.pragma: x86type, bycopy, header:"<intrin.h>".}

@@ -118,3 +118,6 @@ elif defined(arm64):
 else:
   proc getCpuFeatures*(): set[CpuFeature] =
     {}
+
+let
+  nimcryptoCpuFeatures*: set[CpuFeature] = getCpuFeatures()

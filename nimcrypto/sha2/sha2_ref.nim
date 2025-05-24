@@ -1,7 +1,7 @@
 #
 #
 #                    NimCrypto
-#        (c) Copyright 2016-2024 Eugene Kabanov
+#        (c) Copyright 2016-2025 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
@@ -66,7 +66,7 @@ template WLOOP512() =
   WMIX512(76); WMIX512(77); WMIX512(78); WMIX512(79);
 
 proc sha256Compress*(state: var array[8, uint32], data: openArray[byte],
-                     blocks: int) {.noinit, inline.} =
+                     blocks: int) {.noinit.} =
   var
     W {.align(16), noinit.}: array[64, uint32]
     t0, t1: uint32
@@ -176,7 +176,7 @@ proc sha256Compress*(state: var array[8, uint32], data: openArray[byte],
     dec(blocksCount)
 
 proc sha512Compress*(state: var array[8, uint64], data: openArray[byte],
-                     blocks: int) {.noinit, inline.} =
+                     blocks: int) {.noinit.} =
   var
     W {.align(16), noinit.}: array[80, uint64]
     t0, t1: uint64

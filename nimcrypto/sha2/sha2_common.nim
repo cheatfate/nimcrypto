@@ -1,7 +1,7 @@
 #
 #
 #                    NimCrypto
-#        (c) Copyright 2016-2024 Eugene Kabanov
+#        (c) Copyright 2016-2025 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
@@ -95,12 +95,27 @@ type
     ShaExt,
     Neon
 
+  Sha256CompressFunc* = proc(
+      state: var array[8, uint32],
+      data: openArray[byte],
+      blocks: int
+  ) {.raises: [], gcsafe, nimcall.}
+
+  Sha512CompressFunc* = proc(
+      state: var array[8, uint64],
+      data: openArray[byte],
+      blocks: int
+  ) {.raises: [], gcsafe, nimcall.}
+
   Sha2Context*[bits: static[int],
                bsize: static[int],
                T: uint32|uint64] = object
     state* {.align(32).}: array[8, T]
     buffer* {.align(32).}: array[bsize * 2, byte]
-    module*: Sha2Module
+    when T is uint32:
+      compressFunc*: Sha256CompressFunc
+    else:
+      compressFunc*: Sha512CompressFunc
     length*: uint64
     reminder*: int
 
@@ -173,9 +188,11 @@ func name*(r: typedesc[sha2]): string {.noinit.} =
   else:
     raiseAssert "Unknown context"
 
-func getImplementation*(ctx: Sha2Context,
-                        implementation: Sha2Implementation,
-                        features: set[CpuFeature]): Sha2Module =
+func getImplementation*(
+    ctx: Sha2Context,
+    implementation: Sha2Implementation,
+    features: set[CpuFeature]
+): Sha2Module =
   when defined(nimvm):
     # Nim's internal VM use reference implementation only.
     Sha2Module.Ref
@@ -249,9 +266,11 @@ func getImplementation*(ctx: Sha2Context,
   else:
     Sha2Module.Ref
 
-func isAvailable*(ctx: typedesc[Sha2Context],
-                  implementation: Sha2Implementation,
-                  features: set[CpuFeature]): bool =
+func isAvailable*(
+    ctx: typedesc[Sha2Context],
+    implementation: Sha2Implementation,
+    features: set[CpuFeature]
+): bool =
   ## This function returns ``true`` if current combination of ``implementation``
   ## and CPU ``features`` are available for the specific SHA2 context ``ctx``.
   when defined(nimvm):

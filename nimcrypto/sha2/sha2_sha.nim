@@ -24,6 +24,7 @@ when defined(amd64):
   {.localPassc: "-msha".}
   {.localPassc: "-msse2".}
   {.localPassc: "-mssse3".}
+  {.localPassc: "-msse4.1".}
 
   when defined(vcc):
     {.pragma: x86type, bycopy, header:"<intrin.h>".}

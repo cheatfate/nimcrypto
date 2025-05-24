@@ -379,7 +379,10 @@ func finish*(ctx: var Sha2Context): MDigest[ctx.bits] {.noinit.} =
   discard finish(ctx, result.data)
 
 template defaultCpuFeatures(): set[CpuFeature] =
-  {.noSideEffect.}: nimcryptoCpuFeatures
+  when nimvm:
+    {}
+  else:
+    {.noSideEffect.}: nimcryptoCpuFeatures
 
 template declareDigest(DigestType: untyped) =
   when DigestType is sha224 or DigestType is sha256:

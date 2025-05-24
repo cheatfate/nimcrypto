@@ -193,7 +193,7 @@ func getImplementation*(
     implementation: Sha2Implementation,
     features: set[CpuFeature]
 ): Sha2Module =
-  when defined(nimvm):
+  when nimvm:
     # Nim's internal VM use reference implementation only.
     Sha2Module.Ref
   elif defined(amd64):
@@ -273,8 +273,11 @@ func isAvailable*(
 ): bool =
   ## This function returns ``true`` if current combination of ``implementation``
   ## and CPU ``features`` are available for the specific SHA2 context ``ctx``.
-  when defined(nimvm):
-    true
+  when nimvm:
+    case Sha2Implementation.Auto, Sha2Implementation.Ref:
+      true
+    else:
+      false
   elif defined(amd64):
     case implementation
     of Sha2Implementation.Auto, Sha2Implementation.Ref:

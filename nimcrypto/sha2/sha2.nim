@@ -231,7 +231,6 @@ func update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
     pos += clen
     bytesLeft -= clen
     ctx.reminder = 0
-    zeroMem(ctx.buffer, 0, int(ctx.sizeBlock))
 
   if bytesLeft >= int(ctx.sizeBlock):
     let
@@ -261,7 +260,7 @@ func update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
     copyMem(ctx.buffer, 0, data, pos, bytesLeft)
     ctx.reminder = bytesLeft
 
-func update*(ctx: var Sha2Context, pbytes: ptr byte, nbytes: uint) {.noinit.} =
+func update*(ctx: var Sha2Context, pbytes: ptr byte, nbytes: uint) =
   if not(isNil(pbytes)) and (nbytes > 0'u):
     let p = cast[ptr UncheckedArray[byte]](pbytes)
     ctx.update(toOpenArray(p, 0, int(nbytes) - 1))

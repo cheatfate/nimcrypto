@@ -1,7 +1,7 @@
 #
 #
 #                    NimCrypto
-#        (c) Copyright 2016 Eugene Kabanov
+#      (c) Copyright 2016-2024 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
@@ -55,7 +55,33 @@
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
 ##    # 18AF7C8586141A47EAAD416C2B356431D001FAFF3B8C98C80AA108DC971B230D
-import hash, utils
+
+{.push raises: [].}
+
+import "."/[utils, cpufeatures]
+import "."/[sha, ripemd, keccak, blake2, hash]
+import "."/sha2/sha2
+export sha, sha2, ripemd, keccak, blake2, hash, cpufeatures
+
+template hmacSizeBlock*(h: typedesc): int =
+  mixin sizeBlock
+  when (h is Sha1Context) or (h is Sha2Context) or (h is RipemdContext) or
+       (h is Blake2Context):
+    int(h.sizeBlock)
+  elif h is KeccakContext:
+    when h.kind == Keccak or h.kind == Sha3:
+      when h.bits == 224:
+        144
+      elif h.bits == 256:
+        136
+      elif h.bits == 384:
+        104
+      elif h.bits == 512:
+        72
+      else:
+        {.fatal: "Choosen hash primitive is not yet supported!".}
+    else:
+      {.fatal: "Choosen hash primitive is not yet supported!".}
 
 type
   HMAC*[HashType] = object
@@ -64,6 +90,14 @@ type
     opadctx: HashType
     ipad: array[HashType.hmacSizeBlock, byte]
     opad: array[HashType.hmacSizeBlock, byte]
+
+  NonOptimizedType =
+    sha1 | keccak224 | keccak256 | keccak384 | keccak512 | sha3_224 | sha3_256 |
+    sha3_384 | sha3_512 | blake2_224 | blake2_256 | blake2_384 | blake2_512 |
+    ripemd128 | ripemd160 | ripemd256 | ripemd320
+
+  Sha2Type =
+    sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
 
 template sizeBlock*[T](h: HMAC[T]): uint =
   ## Size of processing block in octets (bytes), while perform HMAC
@@ -74,7 +108,10 @@ template sizeDigest*[T](h: HMAC[T]): uint =
   ## Size of HMAC digest in octets (bytes).
   uint(h.mdctx.sizeDigest)
 
-proc init*[T, M](hmctx: var HMAC[T], key: openArray[M]) =
+func init*[T: NonOptimizedType, M](
+    hmctx: var HMAC[T],
+    key: openArray[M]
+) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` array.
   ##
   ## ``key`` supports ``openArray[byte]`` and ``openArray[char]`` only.
@@ -104,14 +141,18 @@ proc init*[T, M](hmctx: var HMAC[T], key: openArray[M]) =
   update(hmctx.mdctx, hmctx.ipad)
   update(hmctx.opadctx, hmctx.opad)
 
-proc init*[T](hmctx: var HMAC[T], key: ptr byte, keylen: uint) =
+func init*[T: NonOptimizedType](
+    hmctx: var HMAC[T],
+    key: ptr byte,
+    keylen: uint
+) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` of size
   ## ``keylen``.
   mixin init
   var ptrarr = cast[ptr UncheckedArray[byte]](key)
   init(hmctx, ptrarr.toOpenArray(0, int(keylen) - 1))
 
-proc clear*(hmctx: var HMAC) =
+func clear*(hmctx: var HMAC) =
   ## Clear HMAC context ``hmctx``.
   when nimvm:
     mixin clear
@@ -123,7 +164,7 @@ proc clear*(hmctx: var HMAC) =
   else:
     burnMem(hmctx)
 
-proc reset*(hmctx: var HMAC) =
+func reset*(hmctx: var HMAC) =
   ## Reset HMAC context ``hmctx`` to initial state (state of context, right
   ## after init() call).
   mixin reset, update
@@ -132,7 +173,7 @@ proc reset*(hmctx: var HMAC) =
   update(hmctx.mdctx, hmctx.ipad)
   update(hmctx.opadctx, hmctx.opad)
 
-proc update*[T: bchar](hmctx: var HMAC, data: openArray[T]) {.inline.} =
+func update*[T: bchar](hmctx: var HMAC, data: openArray[T]) {.inline.} =
   ## Update HMAC context ``hmctx`` with data array ``data``. Repeated calls are
   ## equivalent to a single call with the concatenation of all ``data``
   ## arguments.
@@ -151,7 +192,7 @@ proc update*[T: bchar](hmctx: var HMAC, data: openArray[T]) {.inline.} =
   mixin update
   update(hmctx.mdctx, data)
 
-proc update*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint) {.inline.} =
+func update*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint) {.inline.} =
   ## Update HMAC context ``hmctx`` with data pointed by ``pbytes`` of length
   ## ``nbytes``. Repeated calls are equivalent to a single call with the
   ## concatenation of all ``data`` arguments.
@@ -172,35 +213,39 @@ proc update*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint) {.inline.} =
     var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
     hmctx.update(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*[T: bchar](hmctx: var HMAC,
+func finish*[T: bchar](hmctx: var HMAC,
                        data: var openArray[T]): uint {.inline.} =
   ## Finalize HMAC context ``hmctx`` and store calculated digest to array
   ## ``data``. ``data`` length must be at least ``hmctx.sizeDigest`` octets
   ## (bytes).
   mixin update, finish
-  if len(data) < int(hmctx.sizeDigest):
-    return 0'u
+  if len(data) >= int(hmctx.sizeDigest):
+    var buffer: array[hmctx.sizeDigest, byte]
+    discard finish(hmctx.mdctx, buffer)
+    hmctx.opadctx.update(buffer)
+    hmctx.opadctx.finish(data)
+  else:
+    0
 
-  var buffer: array[hmctx.sizeDigest, byte]
-  discard finish(hmctx.mdctx, buffer)
-  hmctx.opadctx.update(buffer)
-  hmctx.opadctx.finish(data)
-
-
-proc finish*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint): uint {.inline.} =
+func finish*(hmctx: var HMAC, pbytes: ptr byte, nbytes: uint): uint {.inline.} =
   ## Finalize HMAC context ``hmctx`` and store calculated digest to address
   ## pointed by ``pbytes`` of length ``nbytes``. ``pbytes`` must be able to
   ## hold at ``hmctx.sizeDigest`` octets (bytes).
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   hmctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
+func finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   ## Finalize HMAC context ``hmctx`` and return calculated digest as
   ## ``MDigest`` object.
-  discard finish(hmctx, result.data)
+  var res: MDigest[hmctx.HashType.bits]
+  discard finish(hmctx, res.data)
+  res
 
-proc hmac*[A: bchar, B: bchar](HashType: typedesc, key: openArray[A],
-                               data: openArray[B]): MDigest[HashType.bits] =
+func hmac*[T: NonOptimizedType, A: bchar, B: bchar](
+    HashType: typedesc[T],
+    key: openArray[A],
+    data: openArray[B]
+): MDigest[HashType.bits] =
   ## Perform HMAC computation with hash algorithm ``HashType`` using key ``key``
   ## of data ``data``.
   ##
@@ -225,11 +270,17 @@ proc hmac*[A: bchar, B: bchar](HashType: typedesc, key: openArray[A],
   var ctx: HMAC[HashType]
   ctx.init(key)
   ctx.update(data)
-  result = ctx.finish()
+  let res = ctx.finish()
   ctx.clear()
+  res
 
-proc hmac*(HashType: typedesc, key: ptr byte, klen: uint,
-           data: ptr byte, ulen: uint): MDigest[HashType.bits] {.inline.} =
+func hmac*[T: NonOptimizedType](
+    HashType: typedesc[T],
+    key: ptr byte,
+    klen: uint,
+    data: ptr byte,
+    ulen: uint
+): MDigest[HashType.bits] {.inline.} =
   ## Perform HMAC computation with hash algorithm ``HashType`` using key ``key``
   ## of length ``klen`` for data buffer pointed by ``data`` of length ``ulen``.
   ##
@@ -250,7 +301,167 @@ proc hmac*(HashType: typedesc, key: ptr byte, klen: uint,
   ##    echo keccak256.hmac(key, keylen, data, datalen)
   ##    # Print HMAC[RIPEMD160](key = "AliceKey", data = "Hello World!")
   ##    echo ripemd160.hmac(key, keylen, data, datalen)
-  var keyarr = cast[ptr UncheckedArray[byte]](key)
-  var dataarr = cast[ptr UncheckedArray[byte]](data)
+  var
+    keyarr = cast[ptr UncheckedArray[byte]](key)
+    dataarr = cast[ptr UncheckedArray[byte]](data)
   hmac(HashType, keyarr.toOpenArray(0, int(klen) - 1),
        dataarr.toOpenArray(0, int(ulen) - 1))
+
+## Optimized SHA2 declarations
+func init*[T: Sha2Type, M](
+    hmctx: var HMAC[T],
+    key: openArray[M],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+) =
+  mixin init, update, finish
+
+  when not((M is byte) or (M is char)):
+    {.fatal: "Choosen key type is not supported!".}
+
+  var kpad: array[hmctx.sizeBlock, byte]
+  init(hmctx.opadctx, implementation, cpufeatures)
+
+  if len(key) > 0:
+    if len(key) > int(hmctx.sizeBlock):
+      init(hmctx.mdctx, implementation, cpufeatures)
+      update(hmctx.mdctx, key)
+      discard finish(hmctx.mdctx, kpad)
+    else:
+      copyMem(kpad, 0, key, 0, len(key))
+
+  for i in 0 ..< int(hmctx.sizeBlock):
+    hmctx.opad[i] = 0x5C'u8 xor kpad[i]
+    hmctx.ipad[i] = 0x36'u8 xor kpad[i]
+
+  init(hmctx.mdctx, implementation, cpufeatures)
+  update(hmctx.mdctx, hmctx.ipad)
+  update(hmctx.opadctx, hmctx.opad)
+
+func init*[T: Sha2Type, M](
+    hmctx: var HMAC[T],
+    key: openArray[M],
+    implementation: Sha2Implementation
+) =
+  init(hmctx, key, implementation, defaultCpuFeatures)
+
+func init*[T: Sha2Type, M](
+    hmctx: var HMAC[T],
+    key: openArray[M]
+) =
+  init(hmctx, key, Sha2Implementation.Auto, defaultCpuFeatures)
+
+func init*[T: Sha2Type](
+    hmctx: var HMAC[T],
+    key: ptr byte,
+    keylen: uint,
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+) =
+  var ptrarr = cast[ptr UncheckedArray[byte]](key)
+  init(
+    hmctx, ptrarr.toOpenArray(0, int(keylen) - 1), implementation, cpufeatures)
+
+func init*[T: Sha2Type](
+    hmctx: var HMAC[T],
+    key: ptr byte,
+    keylen: uint,
+    implementation: Sha2Implementation
+) =
+  var ptrarr = cast[ptr UncheckedArray[byte]](key)
+  init(
+    hmctx, ptrarr.toOpenArray(0, int(keylen) - 1), implementation,
+    defaultCpuFeatures)
+
+func init*[T: Sha2Type](
+    hmctx: var HMAC[T],
+    key: ptr byte,
+    keylen: uint,
+) =
+  var ptrarr = cast[ptr UncheckedArray[byte]](key)
+  init(
+    hmctx, ptrarr.toOpenArray(0, int(keylen) - 1), Sha2Implementation.Auto,
+    defaultCpuFeatures)
+
+template declareHmac(DigestType: untyped) =
+  func hmac*[A: bchar, B: bchar](
+      HashType: typedesc[DigestType],
+      key: openArray[A],
+      data: openArray[B],
+      implementation: Sha2Implementation,
+      cpufeatures: set[CpuFeature]
+  ): MDigest[HashType.bits] =
+    var ctx: HMAC[HashType]
+    ctx.init(key, implementation, cpufeatures)
+    ctx.update(data)
+    let res = ctx.finish()
+    ctx.clear()
+    res
+
+  func hmac*[A: bchar, B: bchar](
+      HashType: typedesc[DigestType],
+      key: openArray[A],
+      data: openArray[B],
+      implementation: Sha2Implementation
+  ): MDigest[HashType.bits] =
+    hmac(HashType, key, data, implementation, defaultCpuFeatures)
+
+  func hmac*[A: bchar, B: bchar](
+      HashType: typedesc[DigestType],
+      key: openArray[A],
+      data: openArray[B],
+  ): MDigest[HashType.bits] =
+    hmac(HashType, key, data, Sha2Implementation.Auto, defaultCpuFeatures)
+
+  func hmac*(
+      HashType: typedesc[DigestType],
+      key: ptr byte,
+      klen: uint,
+      data: ptr byte,
+      ulen: uint,
+      implementation: Sha2Implementation,
+      cpufeatures: set[CpuFeature]
+  ): MDigest[HashType.bits] =
+    var
+      keyarr = cast[ptr UncheckedArray[byte]](key)
+      dataarr = cast[ptr UncheckedArray[byte]](data)
+    hmac(
+      HashType, keyarr.toOpenArray(0, int(klen) - 1),
+      dataarr.toOpenArray(0, int(ulen) - 1), implementation, cpufeatures)
+
+  func hmac*(
+      HashType: typedesc[DigestType],
+      key: ptr byte,
+      klen: uint,
+      data: ptr byte,
+      ulen: uint,
+      implementation: Sha2Implementation,
+  ): MDigest[HashType.bits] =
+    var
+      keyarr = cast[ptr UncheckedArray[byte]](key)
+      dataarr = cast[ptr UncheckedArray[byte]](data)
+    hmac(
+      HashType, keyarr.toOpenArray(0, int(klen) - 1),
+      dataarr.toOpenArray(0, int(ulen) - 1), implementation, defaultCpuFeatures)
+
+  func hmac*(
+      HashType: typedesc[DigestType],
+      key: ptr byte,
+      klen: uint,
+      data: ptr byte,
+      ulen: uint
+  ): MDigest[HashType.bits] =
+    var
+      keyarr = cast[ptr UncheckedArray[byte]](key)
+      dataarr = cast[ptr UncheckedArray[byte]](data)
+    hmac(
+      HashType, keyarr.toOpenArray(0, int(klen) - 1),
+      dataarr.toOpenArray(0, int(ulen) - 1), Sha2Implementation.Auto,
+      defaultCpuFeatures)
+
+declareHmac(sha224)
+declareHmac(sha256)
+declareHmac(sha384)
+declareHmac(sha512)
+declareHmac(sha512_224)
+declareHmac(sha512_256)

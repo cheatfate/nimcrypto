@@ -16,6 +16,17 @@
 
 import std/macros
 
+const
+  nimcryptoNoBzero* {.booldefine.}: bool = false
+    ## Force nimcrypto to compile without explicit_bzero() dependency.
+
+  nimcryptoBzeroAvailable* =
+    (
+      defined(freebsd) or defined(netbsd) or defined(openbsd) or
+      defined(macos) or defined(macosx) or defined(dragonflybsd) or
+      defined(linux)
+    ) and not(defined(android)) and not(nimcryptoNoBzero)
+
 proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
   # Replace "what" ident node by "by"
   if node.kind in {nnkIdent, nnkSym}:
@@ -28,7 +39,11 @@ proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
       rTree.add replaceNodes(child, what, by)
     rTree
 
-macro unroll(idx: untyped{nkIdent}, start, stopEx: static int, body: untyped): untyped =
+macro unroll(
+    idx: untyped{nkIdent},
+    start, stopEx: static int,
+    body: untyped
+): untyped =
   ## unroll idx over the range [start, stopEx), repeating the body for each
   ## iteration
   result = newStmtList()
@@ -195,7 +210,7 @@ proc stripSpaces*(s: string): string =
     if i in allowed:
       result &= i
 
-when defined(linux):
+when nimcryptoBzeroAvailable:
   proc c_explicit_bzero(
     s: pointer, n: csize_t
   ) {.importc: "explicit_bzero", header: "string.h".}
@@ -203,7 +218,7 @@ when defined(linux):
   proc burnMem*(p: pointer, size: Natural) =
     c_explicit_bzero(p, csize_t size)
 
-elif defined(windows):
+elif defined(windows) and not(nimcryptoNoBzero):
   proc cSecureZeroMemory(
     s: pointer, n: csize_t
   ) {.importc: "SecureZeroMemory", header: "windows.h".}

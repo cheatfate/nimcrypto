@@ -248,7 +248,7 @@ else:
 
   proc burnMem*(p: pointer, size: Natural) =
     {.noSideEffect.}:
-      memset_func(p, cint(0), csize_t(size))
+      discard memset_func(p, cint(0), csize_t(size))
 
 proc burnArray*[T](a: var openArray[T]) {.inline.} =
   if len(a) > 0:

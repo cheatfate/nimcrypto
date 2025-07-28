@@ -20,13 +20,6 @@ const
   nimcryptoNoBzero* {.booldefine.}: bool = false
     ## Force nimcrypto to compile without explicit_bzero() dependency.
 
-  nimcryptoBzeroAvailable* =
-    (
-      defined(freebsd) or defined(netbsd) or defined(openbsd) or
-      defined(macos) or defined(macosx) or defined(dragonflybsd) or
-      defined(linux)
-    ) and not(defined(android)) and not(nimcryptoNoBzero)
-
 proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
   # Replace "what" ident node by "by"
   if node.kind in {nnkIdent, nnkSym}:
@@ -227,7 +220,7 @@ elif defined(netbsd) and not(nimcryptoNoBzero):
   proc burnMem*(p: pointer, size: Natural) =
     c_explicit_memset(p, cint(0), csize_t(size))
 
-elif defined(linux) and not(android) and not(nimcryptoNoBzero):
+elif defined(linux) and not(defined(android)) and not(nimcryptoNoBzero):
   proc c_explicit_bzero(
     s: pointer, n: csize_t
   ) {.importc: "explicit_bzero", header: "string.h".}

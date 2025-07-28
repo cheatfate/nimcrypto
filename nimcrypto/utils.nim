@@ -16,6 +16,11 @@
 
 import std/macros
 
+const
+  nimcryptoNoBzero* {.booldefine.}: bool = false
+    ## Force nimcrypto to compile without dependency on C library functions
+    ## explicit_bzero()/explicit_memset()/SecureZeroMemory() .
+
 proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
   # Replace "what" ident node by "by"
   if node.kind in {nnkIdent, nnkSym}:
@@ -28,7 +33,11 @@ proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
       rTree.add replaceNodes(child, what, by)
     rTree
 
-macro unroll(idx: untyped{nkIdent}, start, stopEx: static int, body: untyped): untyped =
+macro unroll(
+    idx: untyped{nkIdent},
+    start, stopEx: static int,
+    body: untyped
+): untyped =
   ## unroll idx over the range [start, stopEx), repeating the body for each
   ## iteration
   result = newStmtList()
@@ -195,32 +204,52 @@ proc stripSpaces*(s: string): string =
     if i in allowed:
       result &= i
 
-when defined(linux):
+when (defined(freebsd) or defined(dragonflybsd) or defined(openbsd)) and
+     not(nimcryptoNoBzero):
+  proc c_explicit_bzero(
+    s: pointer, n: csize_t
+  ) {.importc: "explicit_bzero", header: "strings.h".}
+
+  proc burnMem*(p: pointer, size: Natural) =
+    c_explicit_bzero(p, csize_t(size))
+
+elif defined(netbsd) and not(nimcryptoNoBzero):
+  proc c_explicit_memset(
+    s: pointer, c: cint, n: csize_t
+  ) {.importc: "explicit_memset", header: "string.h".}
+
+  proc burnMem*(p: pointer, size: Natural) =
+    c_explicit_memset(p, cint(0), csize_t(size))
+
+elif defined(linux) and not(defined(android)) and not(nimcryptoNoBzero):
   proc c_explicit_bzero(
     s: pointer, n: csize_t
   ) {.importc: "explicit_bzero", header: "string.h".}
 
   proc burnMem*(p: pointer, size: Natural) =
-    c_explicit_bzero(p, csize_t size)
-
-elif defined(windows):
+    c_explicit_bzero(p, csize_t(size))
+elif defined(windows) and not(nimcryptoNoBzero):
   proc cSecureZeroMemory(
     s: pointer, n: csize_t
   ) {.importc: "SecureZeroMemory", header: "windows.h".}
 
   proc burnMem*(p: pointer, size: Natural) =
-    cSecureZeroMemory(p, csize_t size)
-
+    cSecureZeroMemory(p, csize_t(size))
 else:
+  # We use OPENSSL_cleanse() trick here.
+
+  proc c_memset(
+    s: pointer, c: cint, n: csize_t
+  ): pointer {.importc: "memset", header: "string.h".}
+
+  let memset_func = c_memset
+    # Pointer to memset is volatile so that compiler must de-reference
+    # the pointer and can't assume that it points to any function in
+    # particular (such as memset, which it then might further "optimize").
+
   proc burnMem*(p: pointer, size: Natural) =
-    var sp {.volatile.} = cast[ptr byte](p)
-    var c = size
-    if not isNil(sp):
-      zeroMem(p, size)
-      while c > 0:
-        sp[] = 0
-        sp = cast[ptr byte](cast[uint](sp) + 1)
-        dec(c)
+    {.noSideEffect.}:
+      discard memset_func(p, cint(0), csize_t(size))
 
 proc burnArray*[T](a: var openArray[T]) {.inline.} =
   if len(a) > 0:

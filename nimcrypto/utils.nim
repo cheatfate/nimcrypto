@@ -18,7 +18,8 @@ import std/macros
 
 const
   nimcryptoNoBzero* {.booldefine.}: bool = false
-    ## Force nimcrypto to compile without explicit_bzero() dependency.
+    ## Force nimcrypto to compile without dependency on C library functions
+    ## explicit_bzero()/explicit_memset()/SecureZeroMemory() .
 
 proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
   # Replace "what" ident node by "by"

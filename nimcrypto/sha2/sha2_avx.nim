@@ -148,7 +148,8 @@ when defined(amd64):
 
     let tmp = x[0]; x[0] = x[1]; x[1] = x[2]; x[2] = x[3]; x[3] = tmp
 
-    mm_add_epi32(x[3], m128i.load(K0D, k256i))
+    {.noSideEffect.}:
+      mm_add_epi32(x[3], m128i.load(K0D, k256i))
 
   template sha512UpdateAvx(x, k512i: untyped): m128i =
     var t {.align(32), noinit.}: array[4, m128i]
@@ -185,7 +186,8 @@ when defined(amd64):
     x[0] = x[1]; x[1] = x[2]; x[2] = x[3]; x[3] = x[4];
     x[4] = x[5]; x[5] = x[6]; x[6] = x[7]; x[7] = tmp;
 
-    mm_add_epi64(x[7], m128i.load(K1D, k512i))
+    {.noSideEffect.}:
+      mm_add_epi64(x[7], m128i.load(K1D, k512i))
 
   # x: var array[4, m128i]
   # ms: var array[16, uint32]
@@ -195,19 +197,23 @@ when defined(amd64):
                     0x08090a0b'u32, 0x0c0d0e0f'u32)
     x[0] = m128i.load(data, 0)
     x[0] = mm_shuffle_epi8(x[0], shuffleMask)
-    m128i.store(ms, 0, mm_add_epi32(x[0], m128i.load(K0D, 0)))
+    {.noSideEffect.}:
+      m128i.store(ms, 0, mm_add_epi32(x[0], m128i.load(K0D, 0)))
 
     x[1] = m128i.load(data, 16)
     x[1] = mm_shuffle_epi8(x[1], shuffleMask)
-    m128i.store(ms, 4, mm_add_epi32(x[1], m128i.load(K0D, 4)))
+    {.noSideEffect.}:
+      m128i.store(ms, 4, mm_add_epi32(x[1], m128i.load(K0D, 4)))
 
     x[2] = m128i.load(data, 32)
     x[2] = mm_shuffle_epi8(x[2], shuffleMask)
-    m128i.store(ms, 8, mm_add_epi32(x[2], m128i.load(K0D, 8)))
+    {.noSideEffect.}:
+      m128i.store(ms, 8, mm_add_epi32(x[2], m128i.load(K0D, 8)))
 
     x[3] = m128i.load(data, 48)
     x[3] = mm_shuffle_epi8(x[3], shuffleMask)
-    m128i.store(ms, 12, mm_add_epi32(x[3], m128i.load(K0D, 12)))
+    {.noSideEffect.}:
+      m128i.store(ms, 12, mm_add_epi32(x[3], m128i.load(K0D, 12)))
 
   # x: var array[8, m128i]
   # ms: var array[16, uint32]
@@ -218,39 +224,49 @@ when defined(amd64):
 
     x[0] = m128i.load(data, 0)
     x[0] = mm_shuffle_epi8(x[0], shuffleMask)
-    m128i.store(ms, 0, mm_add_epi64(x[0], m128i.load(K1D, 0)))
+    {.noSideEffect.}:
+      m128i.store(ms, 0, mm_add_epi64(x[0], m128i.load(K1D, 0)))
 
     x[1] = m128i.load(data, 16)
     x[1] = mm_shuffle_epi8(x[1], shuffleMask)
-    m128i.store(ms, 2, mm_add_epi64(x[1], m128i.load(K1D, 2)))
+    {.noSideEffect.}:
+      m128i.store(ms, 2, mm_add_epi64(x[1], m128i.load(K1D, 2)))
 
     x[2] = m128i.load(data, 32)
     x[2] = mm_shuffle_epi8(x[2], shuffleMask)
-    m128i.store(ms, 4, mm_add_epi64(x[2], m128i.load(K1D, 4)))
+    {.noSideEffect.}:
+      m128i.store(ms, 4, mm_add_epi64(x[2], m128i.load(K1D, 4)))
 
     x[3] = m128i.load(data, 48)
     x[3] = mm_shuffle_epi8(x[3], shuffleMask)
-    m128i.store(ms, 6, mm_add_epi64(x[3], m128i.load(K1D, 6)))
+    {.noSideEffect.}:
+      m128i.store(ms, 6, mm_add_epi64(x[3], m128i.load(K1D, 6)))
 
     x[4] = m128i.load(data, 64)
     x[4] = mm_shuffle_epi8(x[4], shuffleMask)
-    m128i.store(ms, 8, mm_add_epi64(x[4], m128i.load(K1D, 8)))
+    {.noSideEffect.}:
+      m128i.store(ms, 8, mm_add_epi64(x[4], m128i.load(K1D, 8)))
 
     x[5] = m128i.load(data, 80)
     x[5] = mm_shuffle_epi8(x[5], shuffleMask)
-    m128i.store(ms, 10, mm_add_epi64(x[5], m128i.load(K1D, 10)))
+    {.noSideEffect.}:
+      m128i.store(ms, 10, mm_add_epi64(x[5], m128i.load(K1D, 10)))
 
     x[6] = m128i.load(data, 96)
     x[6] = mm_shuffle_epi8(x[6], shuffleMask)
-    m128i.store(ms, 12, mm_add_epi64(x[6], m128i.load(K1D, 12)))
+    {.noSideEffect.}:
+      m128i.store(ms, 12, mm_add_epi64(x[6], m128i.load(K1D, 12)))
 
     x[7] = m128i.load(data, 112)
     x[7] = mm_shuffle_epi8(x[7], shuffleMask)
-    m128i.store(ms, 14, mm_add_epi64(x[7], m128i.load(K1D, 14)))
+    {.noSideEffect.}:
+      m128i.store(ms, 14, mm_add_epi64(x[7], m128i.load(K1D, 14)))
 
-  proc sha256Compress*(state: var array[8, uint32],
-                       data: openArray[byte],
-                       blocks: int) {.noinit.} =
+  func sha256Compress*(
+      state: var array[8, uint32],
+      data: openArray[byte],
+      blocks: int
+  ) {.noinit.} =
     let
       loMask {.align(32).} =
         mm_setr_epi32(0x03020100'u32, 0x0b0a0908'u32, 0xffffffff'u32,
@@ -270,8 +286,8 @@ when defined(amd64):
       cs[0] = state[0]; cs[1] = state[1]; cs[2] = state[2]; cs[3] = state[3]
       cs[4] = state[4]; cs[5] = state[5]; cs[6] = state[6]; cs[7] = state[7]
 
-      loadData32(x, ms, data.toOpenArray(offset,
-                                         offset + sha256.sizeBlock() - 1))
+      loadData32(x, ms,
+        data.toOpenArray(offset, offset + sha256.sizeBlock() - 1))
 
       block:
         let s0 {.align(32).} = sha256UpdateAvx(x, 16, loMask, hiMask)
@@ -383,9 +399,11 @@ when defined(amd64):
       offset += sha256.sizeBlock()
       dec(blocksCount)
 
-  proc sha512Compress*(state: var array[8, uint64],
-                       data: openArray[byte],
-                       blocks: int) {.noinit.} =
+  func sha512Compress*(
+      state: var array[8, uint64],
+      data: openArray[byte],
+      blocks: int
+  ) {.noinit.} =
     var
       ms {.align(32), noinit.}: array[16, uint64]
       x {.align(32), noinit.}: array[8, m128i]
@@ -397,8 +415,8 @@ when defined(amd64):
       cs[0] = state[0]; cs[1] = state[1]; cs[2] = state[2]; cs[3] = state[3]
       cs[4] = state[4]; cs[5] = state[5]; cs[6] = state[6]; cs[7] = state[7]
 
-      loadData64(x, ms, data.toOpenArray(offset,
-                                         offset + sha512.sizeBlock() - 1))
+      loadData64(x, ms,
+        data.toOpenArray(offset, offset + sha512.sizeBlock() - 1))
 
       block:
         let s0 = sha512UpdateAvx(x, 16)

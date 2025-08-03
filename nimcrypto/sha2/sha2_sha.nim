@@ -80,9 +80,11 @@ when defined(amd64):
   template setconst(i: static[int]): untyped =
     mm_setr_epi32(K0[i * 4], K0[i * 4 + 1], K0[i * 4 + 2], K0[i * 4 + 3])
 
-  proc sha256Compress*(state: var array[8, uint32],
-                       data: openArray[byte],
-                       blocks: int) {.noinit.} =
+  func sha256Compress*(
+      state: var array[8, uint32],
+      data: openArray[byte],
+      blocks: int
+  ) {.noinit.} =
     let shufMask {.align(32).} =
       mm_set_epi64x(0x0c0d0e0f08090a0b'u64, 0x0405060700010203'u64)
 

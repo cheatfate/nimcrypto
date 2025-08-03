@@ -199,7 +199,8 @@ when defined(amd64):
 
     let tmp = x[0]; x[0] = x[1]; x[1] = x[2]; x[2] = x[3]; x[3] = tmp
 
-    mm256_add_epi32(x[3], m256i.load(K0x2, k256i))
+    {.noSideEffect.}:
+      mm256_add_epi32(x[3], m256i.load(K0x2, k256i))
 
   template sha512UpdateAvx2(x, k512i: untyped): m256i =
     var t {.align(32), noinit.}: array[4, m256i]
@@ -236,7 +237,8 @@ when defined(amd64):
     x[0] = x[1]; x[1] = x[2]; x[2] = x[3]; x[3] = x[4];
     x[4] = x[5]; x[5] = x[6]; x[6] = x[7]; x[7] = tmp;
 
-    mm256_add_epi64(x[7], m256i.load(K1x2, k512i))
+    {.noSideEffect.}:
+      mm256_add_epi64(x[7], m256i.load(K1x2, k512i))
 
   template loadData32(x, ms, t2: untyped,
                       data: openArray[byte]) =
@@ -249,25 +251,29 @@ when defined(amd64):
     block:
       x[0] = m256i.load(data, 64, data, 0)
       x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
-      let y {.align(32).} = mm256_add_epi32(x[0], m256i.load(K0x2, 0))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi32(x[0], m256i.load(K0x2, 0))
       m256i.store(t2, 0, ms, 0, y)
 
     block:
       x[1] = m256i.load(data, 80, data, 16)
       x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
-      let y {.align(32).} = mm256_add_epi32(x[1], m256i.load(K0x2, 8))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi32(x[1], m256i.load(K0x2, 8))
       m256i.store(t2, 4, ms, 4, y)
 
     block:
       x[2] = m256i.load(data, 96, data, 32)
       x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
-      let y {.align(32).} = mm256_add_epi32(x[2], m256i.load(K0x2, 16))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi32(x[2], m256i.load(K0x2, 16))
       m256i.store(t2, 8, ms, 8, y)
 
     block:
       x[3] = m256i.load(data, 112, data, 48)
       x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
-      let y {.align(32).} = mm256_add_epi32(x[3], m256i.load(K0x2, 24))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi32(x[3], m256i.load(K0x2, 24))
       m256i.store(t2, 12, ms, 12, y)
 
   template loadData64(x, ms, t2: untyped,
@@ -279,54 +285,64 @@ when defined(amd64):
     block:
       x[0] = m256i.load(data, 128, data, 0)
       x[0] = mm256_shuffle_epi8(x[0], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[0], m256i.load(K1x2, 0))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[0], m256i.load(K1x2, 0))
       m256i.store(t2, 0, ms, 0, y)
 
     block:
       x[1] = m256i.load(data, 144, data, 16)
       x[1] = mm256_shuffle_epi8(x[1], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[1], m256i.load(K1x2, 4))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[1], m256i.load(K1x2, 4))
       m256i.store(t2, 2, ms, 2, y)
 
     block:
       x[2] = m256i.load(data, 160, data, 32)
       x[2] = mm256_shuffle_epi8(x[2], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[2], m256i.load(K1x2, 8))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[2], m256i.load(K1x2, 8))
       m256i.store(t2, 4, ms, 4, y)
 
     block:
       x[3] = m256i.load(data, 176, data, 48)
       x[3] = mm256_shuffle_epi8(x[3], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[3], m256i.load(K1x2, 12))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[3], m256i.load(K1x2, 12))
       m256i.store(t2, 6, ms, 6, y)
 
     block:
       x[4] = m256i.load(data, 192, data, 64)
       x[4] = mm256_shuffle_epi8(x[4], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[4], m256i.load(K1x2, 16))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[4], m256i.load(K1x2, 16))
       m256i.store(t2, 8, ms, 8, y)
 
     block:
       x[5] = m256i.load(data, 208, data, 80)
       x[5] = mm256_shuffle_epi8(x[5], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[5], m256i.load(K1x2, 20))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[5], m256i.load(K1x2, 20))
       m256i.store(t2, 10, ms, 10, y)
 
     block:
       x[6] = m256i.load(data, 224, data, 96)
       x[6] = mm256_shuffle_epi8(x[6], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[6], m256i.load(K1x2, 24))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[6], m256i.load(K1x2, 24))
       m256i.store(t2, 12, ms, 12, y)
 
     block:
       x[7] = m256i.load(data, 240, data, 112)
       x[7] = mm256_shuffle_epi8(x[7], shuffleMask)
-      let y {.align(32).} = mm256_add_epi64(x[7], m256i.load(K1x2, 28))
+      {.noSideEffect.}:
+        let y {.align(32).} = mm256_add_epi64(x[7], m256i.load(K1x2, 28))
       m256i.store(t2, 14, ms, 14, y)
 
-  proc sha256Compress*(state: var array[8, uint32],
-                       data: openArray[byte],
-                       blocks: int) {.noinit.} =
+  func sha256Compress*(
+      state: var array[8, uint32],
+      data: openArray[byte],
+      blocks: int
+  ) {.noinit.} =
     var
       x {.align(32), noinit.}: array[4, m256i]
       ms {.align(32), noinit.}: array[16, uint32]
@@ -542,9 +558,11 @@ when defined(amd64):
       offset += (2 * sha256.sizeBlock())
       dec(blocksCount, 2)
 
-  proc sha512Compress*(state: var array[8, uint64],
-                       data: openArray[byte],
-                       blocks: int) {.noinit.} =
+  func sha512Compress*(
+      state: var array[8, uint64],
+      data: openArray[byte],
+      blocks: int
+  ) {.noinit.} =
     var
       x {.align(32), noinit.}: array[8, m256i]
       ms {.align(32), noinit.}: array[16, uint64]

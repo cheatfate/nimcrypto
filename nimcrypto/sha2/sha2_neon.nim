@@ -79,9 +79,11 @@ when defined(arm64):
                 value: uint32x4x2) =
     vst1q_u32_x2(cast [ptr uint32](unsafeAddr data[index]), value)
 
-  proc sha256Compress*(state: var array[8, uint32],
-                       data: openArray[byte],
-                       blocks: int) {.noinit.} =
+  func sha256Compress*(
+      state: var array[8, uint32],
+      data: openArray[byte],
+      blocks: int
+  ) {.noinit.} =
     var
       ms {.align(32), noinit.}: array[4, uint32x4]
       temp {.align(32), noinit.}: array[3, uint32x4]
@@ -96,12 +98,14 @@ when defined(arm64):
       ms[2] = vreinterpretq_u32_u8(vrev32q_u8(d.data[2]))
       ms[3] = vreinterpretq_u32_u8(vrev32q_u8(d.data[3]))
 
-      temp[0] = vaddq_u32(ms[0], uint32x4.load(K0D, 0))
+      {.noSideEffect.}:
+        temp[0] = vaddq_u32(ms[0], uint32x4.load(K0D, 0))
 
       # 1
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 4))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 4))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -114,7 +118,8 @@ when defined(arm64):
       # 2
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 8))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 8))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -127,7 +132,8 @@ when defined(arm64):
       # 3
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 12))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 12))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -140,7 +146,8 @@ when defined(arm64):
       # 4
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 16))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 16))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -153,7 +160,8 @@ when defined(arm64):
       # 5
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 20))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 20))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -166,7 +174,8 @@ when defined(arm64):
       # 6
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 24))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 24))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -179,7 +188,8 @@ when defined(arm64):
       # 7
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 28))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 28))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -192,7 +202,8 @@ when defined(arm64):
       # 8
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 32))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 32))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -205,7 +216,8 @@ when defined(arm64):
       # 9
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 36))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 36))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -218,7 +230,8 @@ when defined(arm64):
       # 10
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 40))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 40))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -231,7 +244,8 @@ when defined(arm64):
       # 11
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 44))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 44))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -244,7 +258,8 @@ when defined(arm64):
       # 12
       ms[0] = vsha256su0q_u32(ms[0], ms[1])
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 48))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 48))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
       ms[0] = vsha256su1q_u32(ms[0], ms[2], ms[3])
@@ -255,17 +270,20 @@ when defined(arm64):
         let t = temp[0]; temp[0] = temp[1]; temp[1] = t
 
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 52))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[1], uint32x4.load(K0D, 52))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
 
       temp[2] = cs.data[0]
-      temp[0] = vaddq_u32(ms[2], uint32x4.load(K0D, 56))
+      {.noSideEffect.}:
+        temp[0] = vaddq_u32(ms[2], uint32x4.load(K0D, 56))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[1])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[1])
 
       temp[2] = cs.data[0]
-      temp[1] = vaddq_u32(ms[3], uint32x4.load(K0D, 60))
+      {.noSideEffect.}:
+        temp[1] = vaddq_u32(ms[3], uint32x4.load(K0D, 60))
       cs.data[0] = vsha256hq_u32(cs.data[0], cs.data[1], temp[0])
       cs.data[1] = vsha256h2q_u32(cs.data[1], temp[2], temp[0])
 

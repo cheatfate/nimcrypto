@@ -26,14 +26,14 @@ type
 
 when defined(amd64):
   when defined(vcc):
-    proc getCpuid(cpuInfo: ptr uint32, funcId: uint32, subId: uint32) {.
+    func getCpuid(cpuInfo: ptr uint32, funcId: uint32, subId: uint32) {.
          importc: "__cpuidex", header: "<intrin.h>".}
   else:
-    proc getCpuid(leaf, subleaf: uint32,
+    func getCpuid(leaf, subleaf: uint32,
                   eax, ebx, ecx, edx: var uint32): uint32 {.
          importc: "__get_cpuid_count", header: "<cpuid.h>".}
 
-  proc cpuId(leaf, subleaf: uint32): array[4, uint32] =
+  func cpuId(leaf, subleaf: uint32): array[4, uint32] =
     var res: array[4, uint32]
     when defined(vcc):
       getCpuid(addr res[0], leaf, subleaf)
@@ -57,7 +57,7 @@ when defined(amd64):
     BIT_CRC32 = 1'u32 shl 20
     REG_CRC32 = 2
 
-  proc getCpuFeatures*(): set[CpuFeature] =
+  func getCpuFeatures*(): set[CpuFeature] =
     var res: set[CpuFeature]
     res.incl(CpuFeature.AMD64)
     let
@@ -81,7 +81,7 @@ when defined(amd64):
     res
 elif defined(arm64):
   when defined(linux):
-    proc getauxval(t: uint32): uint32 {.
+    func getauxval(t: uint32): uint32 {.
          importc: "getauxval", header: "<sys/auxv.h>".}
     const
       AT_HWCAP = 16'u32
@@ -91,7 +91,7 @@ elif defined(arm64):
       HWCAP_CRC32 = 0x80'u32
       HWCAP_SHA512 = 0x200000'u32
 
-    proc getCpuFeatures*(): set[CpuFeature] =
+    func getCpuFeatures*(): set[CpuFeature] =
       var res: set[CpuFeature]
       res.incl(CpuFeature.AARCH64)
       let plain = getauxval(AT_HWCAP)
@@ -107,16 +107,16 @@ elif defined(arm64):
         res.incl(CpuFeature.SHA2BEXT)
       res
   elif defined(macos) or defined(macosx):
-    proc getCpuFeatures*(): set[CpuFeature] =
+    func getCpuFeatures*(): set[CpuFeature] =
       ## TODO: Right now all modern aarch64 macos systems has neon extensions
       ## available, but we do not have method to detect it yet.
       {CpuFeature.AARCH64, CpuFeature.SHA2EXT, CpuFeature.SHA2BEXT,
        CpuFeature.CRC32, CpuFeature.AES}
   else:
-    proc getCpuFeatures*(): set[CpuFeature] =
+    func getCpuFeatures*(): set[CpuFeature] =
       {}
 else:
-  proc getCpuFeatures*(): set[CpuFeature] =
+  func getCpuFeatures*(): set[CpuFeature] =
     {}
 
 let

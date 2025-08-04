@@ -333,8 +333,11 @@ template f(ctx: var BlowfishContext, x: uint32): uint32 =
   vy = vy + ctx.S[3][d]
   vy
 
-proc blowfishEncrypt*(ctx: var BlowfishContext, inp: openArray[byte],
-                      oup: var openArray[byte]) =
+func blowfishEncrypt*(
+    ctx: var BlowfishContext,
+    inp: openArray[byte],
+    oup: var openArray[byte]
+) =
   var nxl = leLoad32(inp, 0)
   var nxr = leLoad32(inp, 4)
 
@@ -359,8 +362,11 @@ proc blowfishEncrypt*(ctx: var BlowfishContext, inp: openArray[byte],
   leStore32(oup, 0, nxl)
   leStore32(oup, 4, nxr)
 
-proc blowfishDecrypt*(ctx: var BlowfishContext, inp: openArray[byte],
-                      oup: var openArray[byte]) =
+func blowfishDecrypt*(
+    ctx: var BlowfishContext,
+    inp: openArray[byte],
+    oup: var openArray[byte]
+) =
 
   var nxl = leLoad32(inp, 0)
   var nxr = leLoad32(inp, 4)
@@ -385,8 +391,11 @@ proc blowfishDecrypt*(ctx: var BlowfishContext, inp: openArray[byte],
   leStore32(oup, 0, nxl)
   leStore32(oup, 4, nxr)
 
-proc initBlowfishContext*(ctx: var BlowfishContext, key: openArray[byte],
-                          nkey: int) =
+func initBlowfishContext*(
+    ctx: var BlowfishContext,
+    key: openArray[byte],
+    nkey: int
+) =
   var i = 0
   var j = 0
   var k = 0
@@ -445,36 +454,48 @@ template sizeKey*(r: typedesc[blowfish]): int =
 template sizeBlock*(r: typedesc[blowfish]): int =
   (8)
 
-proc init*(ctx: var BlowfishContext, key: openArray[byte]) {.inline.} =
+func init*(ctx: var BlowfishContext, key: openArray[byte]) {.inline.} =
   ctx.sizeKey = len(key) shl 3
   initBlowfishContext(ctx, key, ctx.sizeKey)
 
-proc init*(ctx: var BlowfishContext, key: ptr byte, nkey: int) {.inline.} =
+func init*(ctx: var BlowfishContext, key: ptr byte, nkey: int) {.inline.} =
   ctx.sizeKey = nkey shl 3
   var p = cast[ptr UncheckedArray[byte]](key)
   initBlowfishContext(ctx, toOpenArray(p, 0, (nkey shl 3) - 1),
                       ctx.sizeKey)
 
-proc clear*(ctx: var BlowfishContext) {.inline.} =
+func clear*(ctx: var BlowfishContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var BlowfishContext, input: openArray[byte],
-              output: var openArray[byte]) {.inline.} =
+func encrypt*(
+    ctx: var BlowfishContext,
+    input: openArray[byte],
+    output: var openArray[byte]
+) {.inline.} =
   blowfishEncrypt(ctx, input, output)
 
-proc decrypt*(ctx: var BlowfishContext, input: openArray[byte],
-              output: var openArray[byte]) {.inline.} =
+func decrypt*(
+    ctx: var BlowfishContext,
+    input: openArray[byte],
+    output: var openArray[byte]
+) {.inline.} =
   blowfishDecrypt(ctx, input, output)
 
-proc encrypt*(ctx: var BlowfishContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
+func encrypt*(
+    ctx: var BlowfishContext,
+    inbytes: ptr byte,
+    outbytes: ptr byte
+) {.inline.} =
   var ip = cast[ptr UncheckedArray[byte]](inbytes)
   var op = cast[ptr UncheckedArray[byte]](outbytes)
   blowfishEncrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
                        toOpenArray(op, 0, ctx.sizeBlock() - 1))
 
-proc decrypt*(ctx: var BlowfishContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
+func decrypt*(
+    ctx: var BlowfishContext,
+    inbytes: ptr byte,
+    outbytes: ptr byte
+) {.inline.} =
   var ip = cast[ptr UncheckedArray[byte]](inbytes)
   var op = cast[ptr UncheckedArray[byte]](outbytes)
   blowfishDecrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),

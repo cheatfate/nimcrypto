@@ -14,7 +14,7 @@
 import "."/[utils, sha2, hmac, pbkdf2, cpufeatures]
 export cpufeatures
 
-proc salsaXor(
+func salsaXor(
     tmp: var openArray[uint32],
     src: openArray[uint32],
     srco: int,
@@ -110,7 +110,7 @@ proc salsaXor(
   tmp[12] = x12; tmp[13] = x13; tmp[14] = x14
   tmp[15] = x15
 
-proc blockMix(
+func blockMix(
     tmp: var openArray[uint32],
     src: openArray[uint32],
     srco: int,
@@ -135,7 +135,7 @@ func integer(b: openArray[uint32], boff, r: int): uint64 =
   let j = (2 * r - 1) * 16 + boff
   result = uint64(b[j]) or (uint64(b[j + 1]) shl 32)
 
-proc blockXor(
+func blockXor(
     dst: var openArray[uint32],
     dsto: int,
     src: openArray[uint32],
@@ -146,7 +146,7 @@ proc blockXor(
   for i in 0 ..< n:
     dst[i + dsto] = dst[i + dsto] xor src[i + srco]
 
-proc smix(
+func smix(
     b: var openArray[byte],
     boffset, r, N: int,
     xyv: var openArray[uint32],
@@ -237,7 +237,7 @@ func validateParam(N, r, p: int): bool =
 # and p=1. The parameters N, r, and p should be increased as memory latency and
 # CPU parallelism increases; consider setting N to the highest power of 2 you
 # can derive within 100 milliseconds. Remember to get a good random salt.
-proc scrypt*[T, M](
+func scrypt*[T, M](
     password: openArray[T],
     salt: openArray[M],
     N, r, p: int,

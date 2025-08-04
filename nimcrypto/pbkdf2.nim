@@ -19,7 +19,7 @@ import "."/[hmac, utils, cpufeatures]
 import "."/sha2/sha2
 export hmac, sha2, cpufeatures
 
-proc pbkdf2*[T, M, N](
+func pbkdf2*[T, M, N](
     ctx: var HMAC[T],
     password: openArray[M],
     salt: openArray[N], c: int,
@@ -81,7 +81,7 @@ proc pbkdf2*[T, M, N](
   ctx.clear()
   int(glength)
 
-proc pbkdf2*[T, M, N](
+func pbkdf2*[T, M, N](
     ctx: var HMAC[T],
     password: openArray[M],
     salt: openArray[N], c: int,
@@ -103,7 +103,7 @@ proc pbkdf2*[T, M, N](
   else:
     pbkdf2(ctx, password, salt, c, output.toOpenArray(0, outlen))
 
-proc pbkdf2*[T, M](
+func pbkdf2*[T, M](
     hashtype: typedesc,
     password: openArray[T],
     salt: openArray[M],
@@ -131,7 +131,7 @@ proc pbkdf2*[T, M](
 type
   Sha2Type = sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
 
-proc pbkdf2*[M, N](
+func pbkdf2*[M, N](
     ctx: var HMAC[Sha2Type],
     password: openArray[M],
     salt: openArray[N],
@@ -196,7 +196,7 @@ proc pbkdf2*[M, N](
   ctx.clear()
   int(glength)
 
-proc pbkdf2*[M, N](
+func pbkdf2*[M, N](
     ctx: var HMAC[Sha2Type],
     password: openArray[M],
     salt: openArray[N],
@@ -206,7 +206,7 @@ proc pbkdf2*[M, N](
 ): int =
   pbkdf2(ctx, password, salt, c, output, implementation, defaultCpuFeatures)
 
-proc pbkdf2*[M, N](
+func pbkdf2*[M, N](
     ctx: var HMAC[Sha2Type],
     password: openArray[M],
     salt: openArray[N],
@@ -216,7 +216,7 @@ proc pbkdf2*[M, N](
   pbkdf2(ctx, password, salt, c, output, Sha2Implementation.Auto,
          defaultCpuFeatures)
 
-proc pbkdf2*[T, M](
+func pbkdf2*[T, M](
     hashtype: typedesc[Sha2Type],
     password: openArray[T],
     salt: openArray[M],
@@ -241,7 +241,7 @@ proc pbkdf2*[T, M](
     discard pbkdf2(ctx, password, salt, c, res, implementation, cpuFeatures)
   res
 
-proc pbkdf2*[T, M](
+func pbkdf2*[T, M](
     hashtype: typedesc[Sha2Type],
     password: openArray[T],
     salt: openArray[M],
@@ -252,7 +252,7 @@ proc pbkdf2*[T, M](
   pbkdf2(
     hashtype, password, salt, c, outlen, implementation, defaultCpuFeatures)
 
-proc pbkdf2*[T, M](
+func pbkdf2*[T, M](
     hashtype: typedesc[Sha2Type],
     password: openArray[T],
     salt: openArray[M],

@@ -38,27 +38,27 @@ when defined(arm64):
     uint32x4x2* {.importc: "uint32x4x2_t", arm64type.} = object
       data {.importc: "val".}: array[2, uint32x4]
 
-  proc vld1q_u8_x4(a: ptr byte): uint8x16x4 {.
+  func vld1q_u8_x4(a: ptr byte): uint8x16x4 {.
        importc: "vld1q_u8_x4", arm64proc.}
-  proc vst1q_u32_x2(a: ptr uint32, val: uint32x4x2) {.
+  func vst1q_u32_x2(a: ptr uint32, val: uint32x4x2) {.
        importc: "vst1q_u32_x2", arm64proc.}
-  proc vreinterpretq_u32_u8(a: uint8x16): uint32x4 {.
+  func vreinterpretq_u32_u8(a: uint8x16): uint32x4 {.
        importc: "vreinterpretq_u32_u8", arm64proc.}
-  proc vrev32q_u8(a: uint8x16): uint8x16 {.
+  func vrev32q_u8(a: uint8x16): uint8x16 {.
        importc: "vrev32q_u8", arm64proc.}
-  proc vld1q_u32_x2(a: ptr uint32): uint32x4x2 {.
+  func vld1q_u32_x2(a: ptr uint32): uint32x4x2 {.
        importc: "vld1q_u32_x2", arm64proc.}
-  proc vaddq_u32(a, b: uint32x4): uint32x4 {.
+  func vaddq_u32(a, b: uint32x4): uint32x4 {.
        importc: "vaddq_u32", arm64proc.}
-  proc vld1q_u32(a: ptr uint32): uint32x4 {.
+  func vld1q_u32(a: ptr uint32): uint32x4 {.
        importc: "vld1q_u32", arm64proc.}
-  proc vsha256hq_u32(abcd: uint32x4, efgh: uint32x4, wk: uint32x4): uint32x4 {.
+  func vsha256hq_u32(abcd: uint32x4, efgh: uint32x4, wk: uint32x4): uint32x4 {.
        importc: "vsha256hq_u32", arm64proc.}
-  proc vsha256h2q_u32(efgh: uint32x4, abcd: uint32x4, wk: uint32x4): uint32x4 {.
+  func vsha256h2q_u32(efgh: uint32x4, abcd: uint32x4, wk: uint32x4): uint32x4 {.
        importc: "vsha256h2q_u32", arm64proc.}
-  proc vsha256su0q_u32(a, b: uint32x4): uint32x4 {.
+  func vsha256su0q_u32(a, b: uint32x4): uint32x4 {.
        importc: "vsha256su0q_u32", arm64proc.}
-  proc vsha256su1q_u32(tw0, w8, w12: uint32x4): uint32x4 {.
+  func vsha256su1q_u32(tw0, w8, w12: uint32x4): uint32x4 {.
        importc: "vsha256su1q_u32", arm64proc.}
 
   let K0D = K0

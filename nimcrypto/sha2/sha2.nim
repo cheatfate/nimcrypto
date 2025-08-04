@@ -378,7 +378,7 @@ func finish*(ctx: var Sha2Context): MDigest[ctx.bits] {.noinit.} =
   discard finish(ctx, result.data)
 
 template declareDigest(DigestType: untyped) =
-  when DigestType is sha224 or DigestType is sha256:
+  when (DigestType is sha224) or (DigestType is sha256):
     var `default _ DigestType _ compress _ func`* {.inject.}: Sha256CompressFunc
     `default _ DigestType _ compress _ func` =
       proc(

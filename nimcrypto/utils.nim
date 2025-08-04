@@ -21,7 +21,7 @@ const
     ## Force nimcrypto to compile without dependency on C library functions
     ## explicit_bzero()/explicit_memset()/SecureZeroMemory() .
 
-proc replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
+func replaceNodes(node: NimNode, what: NimNode, by: NimNode): NimNode =
   # Replace "what" ident node by "by"
   if node.kind in {nnkIdent, nnkSym}:
     if node.eqIdent(what): by else: node
@@ -68,14 +68,14 @@ template ROR*(x: uint32, n: int): uint32 =
 template ROR*(x: uint64, n: int): uint64 =
   (x shr uint64(n and 0x3F)) or (x shl uint64(64 - (n and 0x3F)))
 
-proc `-`(x: uint32): uint32 {.inline.} =
+func `-`(x: uint32): uint32 {.inline.} =
   result = (0xFFFF_FFFF'u32 - x) + 1'u32
 
-proc LT(x, y: uint32): uint32 {.inline.} =
+func LT(x, y: uint32): uint32 {.inline.} =
   let z = x - y
   (z xor ((y xor x) and (y xor z))) shr 31
 
-proc hexValue(c: char): int =
+func hexValue(c: char): int =
   let x = uint32(c) - 0x30'u32
   let y = uint32(c) - 0x41'u32
   let z = uint32(c) - 0x61'u32
@@ -84,14 +84,17 @@ proc hexValue(c: char): int =
           ((z + 11'u32) and -LT(z, 6))
   int(r) - 1
 
-proc hexDigit(x: int, lowercase: bool = false): char =
+func hexDigit(x: int, lowercase: bool = false): char =
   var off = uint32(0x41 - 0x3A)
   if lowercase:
     off += 0x20
   char(0x30'u32 + uint32(x) + (off and not((uint32(x) - 10) shr 8)))
 
-proc bytesToHex*(src: openArray[byte], dst: var openArray[char],
-                 flags: set[HexFlags]): int =
+func bytesToHex*(
+    src: openArray[byte],
+    dst: var openArray[char],
+    flags: set[HexFlags]
+): int =
   if len(dst) == 0:
     (len(src) shl 1)
   else:
@@ -122,8 +125,11 @@ proc bytesToHex*(src: openArray[byte], dst: var openArray[char],
 
     k
 
-proc hexToBytes*(src: openArray[char], dst: var openArray[byte],
-                 flags: set[HexFlags]): int =
+func hexToBytes*(
+    src: openArray[char],
+    dst: var openArray[byte],
+    flags: set[HexFlags]
+): int =
   var halfbyte = false
   var acc: byte
   var v = 0
@@ -175,12 +181,12 @@ proc hexToBytes*(src: openArray[char], dst: var openArray[byte],
       return v
   return v
 
-proc toHex*(a: openArray[byte], flags: set[HexFlags]): string =
+func toHex*(a: openArray[byte], flags: set[HexFlags]): string =
   var res = newString(len(a) shl 1)
   discard bytesToHex(a, res, flags)
   res
 
-proc toHex*(a: openArray[byte], lowercase: bool = false): string {.inline.} =
+func toHex*(a: openArray[byte], lowercase: bool = false): string {.inline.} =
   var res = newString(len(a) shl 1)
   if lowercase:
     discard bytesToHex(a, res, {HexFlags.LowerCase})
@@ -188,16 +194,16 @@ proc toHex*(a: openArray[byte], lowercase: bool = false): string {.inline.} =
     discard bytesToHex(a, res, {})
   res
 
-proc hexToBytes*(a: string, output: var openArray[byte]) {.inline.} =
+func hexToBytes*(a: string, output: var openArray[byte]) {.inline.} =
   discard hexToBytes(a, output, {HexFlags.SkipPrefix, HexFlags.PadOdd})
 
-proc fromHex*(a: string): seq[byte] =
+func fromHex*(a: string): seq[byte] =
   var buf = newSeq[byte](len(a) shr 1)
   let res = hexToBytes(a, buf, {HexFlags.SkipPrefix, HexFlags.PadOdd})
   buf.setLen(res)
   buf
 
-proc stripSpaces*(s: string): string =
+func stripSpaces*(s: string): string =
   result = ""
   const allowed:set[char] = {'A'..'Z', 'a'..'z', '0'..'9'}
   for i in s:
@@ -206,39 +212,39 @@ proc stripSpaces*(s: string): string =
 
 when (defined(freebsd) or defined(dragonflybsd) or defined(openbsd)) and
      not(nimcryptoNoBzero):
-  proc c_explicit_bzero(
+  func c_explicit_bzero(
     s: pointer, n: csize_t
   ) {.importc: "explicit_bzero", header: "strings.h".}
 
-  proc burnMem*(p: pointer, size: Natural) =
+  func burnMem*(p: pointer, size: Natural) =
     c_explicit_bzero(p, csize_t(size))
 
 elif defined(netbsd) and not(nimcryptoNoBzero):
-  proc c_explicit_memset(
+  func c_explicit_memset(
     s: pointer, c: cint, n: csize_t
   ) {.importc: "explicit_memset", header: "string.h".}
 
-  proc burnMem*(p: pointer, size: Natural) =
+  func burnMem*(p: pointer, size: Natural) =
     c_explicit_memset(p, cint(0), csize_t(size))
 
 elif defined(linux) and not(defined(android)) and not(nimcryptoNoBzero):
-  proc c_explicit_bzero(
+  func c_explicit_bzero(
     s: pointer, n: csize_t
   ) {.importc: "explicit_bzero", header: "string.h".}
 
-  proc burnMem*(p: pointer, size: Natural) =
+  func burnMem*(p: pointer, size: Natural) =
     c_explicit_bzero(p, csize_t(size))
 elif defined(windows) and not(nimcryptoNoBzero):
-  proc cSecureZeroMemory(
+  func cSecureZeroMemory(
     s: pointer, n: csize_t
   ) {.importc: "SecureZeroMemory", header: "windows.h".}
 
-  proc burnMem*(p: pointer, size: Natural) =
+  func burnMem*(p: pointer, size: Natural) =
     cSecureZeroMemory(p, csize_t(size))
 else:
   # We use OPENSSL_cleanse() trick here.
 
-  proc c_memset(
+  func c_memset(
     s: pointer, c: cint, n: csize_t
   ): pointer {.importc: "memset", header: "string.h".}
 
@@ -247,11 +253,11 @@ else:
     # the pointer and can't assume that it points to any function in
     # particular (such as memset, which it then might further "optimize").
 
-  proc burnMem*(p: pointer, size: Natural) =
+  func burnMem*(p: pointer, size: Natural) =
     {.noSideEffect.}:
       discard memset_func(p, cint(0), csize_t(size))
 
-proc burnArray*[T](a: var openArray[T]) {.inline.} =
+func burnArray*[T](a: var openArray[T]) {.inline.} =
   if len(a) > 0:
     burnMem(addr a[0], len(a) * sizeof(T))
 
@@ -261,10 +267,10 @@ template burnMem*[T](a: var seq[T]) =
 template burnMem*[A, B](a: var array[A, B]) =
   burnArray(a)
 
-proc burnMem*[T](a: var T) {.inline.} =
+func burnMem*[T](a: var T) {.inline.} =
   burnMem(addr a, sizeof(T))
 
-proc isFullZero*(p: pointer, size: Natural): bool =
+func isFullZero*(p: pointer, size: Natural): bool =
   result = true
   var counter = 0
   var sp {.volatile.} = cast[ptr byte](p)
@@ -277,12 +283,12 @@ proc isFullZero*(p: pointer, size: Natural): bool =
       dec(c)
   result = (counter == 0)
 
-proc isFullZero*[T](a: openArray[T]): bool {.inline.} =
+func isFullZero*[T](a: openArray[T]): bool {.inline.} =
   result = true
   if len(a) > 0:
     result = isFullZero(unsafeAddr a[0], len(a) * sizeof(T))
 
-proc isFullZero*[T](a: T): bool {.inline.} =
+func isFullZero*[T](a: T): bool {.inline.} =
   result = isFullZero(unsafeAddr a, sizeof(T))
 
 when defined(gcc) or defined(llvm_gcc) or defined(clang):
@@ -302,11 +308,11 @@ elif defined(icc):
 
 elif defined(vcc):
   func swapBytesBuiltin(x: uint8): uint8 = x
-  proc swapBytesBuiltin(a: uint16): uint16 {.
+  func swapBytesBuiltin(a: uint16): uint16 {.
       importc: "_byteswap_ushort", cdecl, header: "<intrin.h>".}
-  proc swapBytesBuiltin(a: uint32): uint32 {.
+  func swapBytesBuiltin(a: uint32): uint32 {.
       importc: "_byteswap_ulong", cdecl, header: "<intrin.h>".}
-  proc swapBytesBuiltin(a: uint64): uint64 {.
+  func swapBytesBuiltin(a: uint64): uint64 {.
       importc: "_byteswap_uint64", cdecl, header: "<intrin.h>".}
 
 template leSwap32*(a: uint32): uint32 =
@@ -480,7 +486,7 @@ template equalMemFull(
 
   res == 0
 
-proc equalMemFull*(a, b: pointer, len: static Natural): bool =
+func equalMemFull*(a, b: pointer, len: static Natural): bool =
   when len mod sizeof(uint64) == 0:
     equalMemFull(a, b, len div sizeof(uint64), uint64)
   elif len mod sizeof(uint32) == 0:
@@ -490,14 +496,14 @@ proc equalMemFull*(a, b: pointer, len: static Natural): bool =
   else:
     equalMemFull(a, b, len, uint8)
 
-proc equalMemFull*[I; T](a, b: array[I, T]): bool =
+func equalMemFull*[I; T](a, b: array[I, T]): bool =
   when nimvm:
     a == b
   else:
     const bytes = a.len * sizeof(T)
     equalMemFull(unsafeAddr a[0], unsafeAddr b[0], bytes)
 
-proc equalMemFull*[T](a, b: openArray[T]): bool =
+func equalMemFull*[T](a, b: openArray[T]): bool =
   when nimvm:
     a == b
   else:

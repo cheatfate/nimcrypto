@@ -72,7 +72,7 @@ template hmacSizeBlock*(r: typedesc[sha1]): int =
   ## operation.
   r.sizeBlock
 
-proc init*(ctx: var Sha1Context) {.inline.} =
+func init*(ctx: var Sha1Context) {.inline.} =
   ctx.size = 0'u64
   ctx.h[0] = 0x67452301'u32
   ctx.h[1] = 0xEFCDAB89'u32
@@ -80,9 +80,11 @@ proc init*(ctx: var Sha1Context) {.inline.} =
   ctx.h[3] = 0x10325476'u32
   ctx.h[4] = 0xC3D2E1F0'u32
 
-proc sha1Transform[T: bchar](ctx: var Sha1Context,
-                             blk: openArray[T],
-                             offset: int) {.noinit, inline.} =
+func sha1Transform[T: bchar](
+    ctx: var Sha1Context,
+    blk: openArray[T],
+    offset: int
+) {.noinit, inline.} =
   var
     A, B, C, D, E: uint32
     arr {.noinit.}: array[16, uint32]
@@ -184,7 +186,7 @@ proc sha1Transform[T: bchar](ctx: var Sha1Context,
   ctx.h[3] += D
   ctx.h[4] += E
 
-proc clear*(ctx: var Sha1Context) {.inline.} =
+func clear*(ctx: var Sha1Context) {.inline.} =
   when nimvm:
     for i in 0 ..< len(ctx.h):
       ctx.h[i] = 0x00'u32
@@ -195,10 +197,10 @@ proc clear*(ctx: var Sha1Context) {.inline.} =
   else:
     burnMem(ctx)
 
-proc reset*(ctx: var Sha1Context) {.inline.} =
+func reset*(ctx: var Sha1Context) {.inline.} =
   init(ctx)
 
-proc update*[T: bchar](ctx: var Sha1Context, data: openArray[T]) {.inline.} =
+func update*[T: bchar](ctx: var Sha1Context, data: openArray[T]) {.inline.} =
   var length = len(data)
   if length > 0:
     var lenw = int(ctx.size and 63'u64) # ctx.size mod 64
@@ -223,14 +225,19 @@ proc update*[T: bchar](ctx: var Sha1Context, data: openArray[T]) {.inline.} =
     if length > 0:
       copyMem(ctx.w, 0, data, offset, length)
 
-proc update*(ctx: var Sha1Context, pbytes: ptr byte,
-             nbytes: uint) {.inline.} =
+func update*(
+    ctx: var Sha1Context,
+    pbytes: ptr byte,
+    nbytes: uint
+) {.inline.} =
   if not(isNil(pbytes)) and (nbytes > 0'u):
     var p = cast[ptr UncheckedArray[byte]](pbytes)
     ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
-proc finish*(ctx: var Sha1Context,
-             data: var openArray[byte]): uint {.inline, discardable.} =
+func finish*(
+    ctx: var Sha1Context,
+    data: var openArray[byte]
+): uint {.inline, discardable.} =
   let
     one80 = [0x80'u8]
     one00 = [0x00'u8]
@@ -249,10 +256,13 @@ proc finish*(ctx: var Sha1Context,
     beStore32(data, 12, ctx.h[3])
     beStore32(data, 16, ctx.h[4])
 
-proc finish*(ctx: var Sha1Context, pbytes: ptr byte,
-             nbytes: uint): uint {.inline.} =
+func finish*(
+    ctx: var Sha1Context,
+    pbytes: ptr byte,
+    nbytes: uint
+): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(ctx: var Sha1Context): MDigest[ctx.bits] =
+func finish*(ctx: var Sha1Context): MDigest[ctx.bits] =
   discard finish(ctx, result.data)

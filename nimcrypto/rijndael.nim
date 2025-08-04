@@ -42,7 +42,7 @@ type
   rijndael* = rijndael128 | rijndael192 | rijndael256 | aes128 | aes192 | aes256
 
 when sizeof(int) == 4:
-  proc bitsliceSbox(q: var array[8, uint32]) =
+  func bitsliceSbox(q: var array[8, uint32]) =
     var
       x0, x1, x2, x3, x4, x5, x6, x7: uint32
       y1, y2, y3, y4, y5, y6, y7, y8, y9: uint32
@@ -200,7 +200,7 @@ when sizeof(int) == 4:
     q[1] = s6
     q[0] = s7
 
-  proc bitsliceInvSbox(q: var array[8, uint32]) {.inline.} =
+  func bitsliceInvSbox(q: var array[8, uint32]) {.inline.} =
     var
       q0, q1, q2, q3, q4, q5, q6, q7: uint32
     q0 = not(q[0])
@@ -237,7 +237,7 @@ when sizeof(int) == 4:
     q[1] = q3 xor q6 xor q0
     q[0] = q2 xor q5 xor q7
 
-  proc ortho(q: var openArray[uint32]) {.inline.} =
+  func ortho(q: var openArray[uint32]) {.inline.} =
     template swapN(cl, ch, s, x, y) =
       var a, b: uint32
       a = x
@@ -267,7 +267,7 @@ when sizeof(int) == 4:
     swap8(q[2], q[6])
     swap8(q[3], q[7])
 
-  proc subWord(x: uint32): uint32 =
+  func subWord(x: uint32): uint32 =
     var q {.noinit.}: array[8, uint32]
     q[0] = x
     q[1] = x
@@ -282,7 +282,7 @@ when sizeof(int) == 4:
     ortho(q)
     q[0]
 
-  proc keySchedule(ctx: var RijndaelContext, key: openArray[byte]) =
+  func keySchedule(ctx: var RijndaelContext, key: openArray[byte]) =
     var tmp = 0'u32
     var j, k: int
 
@@ -457,8 +457,11 @@ when sizeof(int) == 4:
     q[6] = q3 xor q4 xor q5 xor q7 xor r3 xor r5 xor r6 xor r7 xor rotr16(v6)
     q[7] = q4 xor q5 xor q6 xor r4 xor r6 xor r7 xor rotr16(v7)
 
-  proc encrypt*(ctx: RijndaelContext, input: openArray[byte],
-                output: var openArray[byte]) =
+  func encrypt*(
+      ctx: RijndaelContext,
+      input: openArray[byte],
+      output: var openArray[byte]
+  ) =
     var q {.noinit.}: array[8, uint32]
     q[0] = leLoad32(input, 0)
     q[2] = leLoad32(input, 4)
@@ -485,8 +488,11 @@ when sizeof(int) == 4:
     leStore32(output, 8, q[4])
     leStore32(output, 12, q[6])
 
-  proc decrypt*(ctx: RijndaelContext, input: openArray[byte],
-                output: var openArray[byte]) =
+  func decrypt*(
+      ctx: RijndaelContext,
+      input: openArray[byte],
+      output: var openArray[byte]
+  ) =
     var q {.noinit.}: array[8, uint32]
     q[0] = leLoad32(input, 0)
     q[2] = leLoad32(input, 4)
@@ -514,7 +520,7 @@ when sizeof(int) == 4:
     leStore32(output, 12, q[6])
 
 elif sizeof(int) == 8:
-  proc bitsliceSbox(q: var array[8, uint64]) {.inline.} =
+  func bitsliceSbox(q: var array[8, uint64]) {.inline.} =
     var
       x0, x1, x2, x3, x4, x5, x6, x7: uint64
       y1, y2, y3, y4, y5, y6, y7, y8, y9: uint64
@@ -672,7 +678,7 @@ elif sizeof(int) == 8:
     q[1] = s6
     q[0] = s7
 
-  proc bitsliceInvSbox(q: var array[8, uint64]) {.inline.} =
+  func bitsliceInvSbox(q: var array[8, uint64]) {.inline.} =
     var q0 = not(q[0])
     var q1 = not(q[1])
     var q2 = q[2]
@@ -710,7 +716,7 @@ elif sizeof(int) == 8:
     q[1] = q3 xor q6 xor q0
     q[0] = q2 xor q5 xor q7
 
-  proc ortho(q: var array[8, uint64]) =
+  func ortho(q: var array[8, uint64]) =
     template swapN(cl, ch, s, x, y) =
       var a, b: uint64
       a = x
@@ -740,8 +746,11 @@ elif sizeof(int) == 8:
     swap8(q[2], q[6])
     swap8(q[3], q[7])
 
-  proc interleaveIn(q0: var uint64, q1: var uint64,
-                    w: openArray[uint32]) {.inline.} =
+  func interleaveIn(
+      q0: var uint64,
+      q1: var uint64,
+      w: openArray[uint32]
+  ) {.inline.} =
     var x0, x1, x2, x3: uint64
 
     x0 = w[0]
@@ -767,8 +776,11 @@ elif sizeof(int) == 8:
     q0 = x0 or (x2 shl 8)
     q1 = x1 or (x3 shl 8)
 
-  proc interleaveOut(w: var openArray[uint32], q0: uint64,
-                     q1: uint64) {.inline.} =
+  func interleaveOut(
+      w: var openArray[uint32],
+      q0: uint64,
+      q1: uint64
+  ) {.inline.} =
     var x0, x1, x2, x3: uint64
 
     x0 = q0 and 0x00FF_00FF_00FF_00FF'u64
@@ -792,7 +804,7 @@ elif sizeof(int) == 8:
     w[3] = uint32(x3 and 0xFFFF_FFFF'u64) or
            uint32((x3 shr 16) and 0xFFFF_FFFF'u64)
 
-  proc subWord(x: uint32): uint32 =
+  func subWord(x: uint32): uint32 =
     var q: array[8, uint64]
     q[0] = uint64(x)
     ortho(q)
@@ -800,7 +812,7 @@ elif sizeof(int) == 8:
     ortho(q)
     uint32(q[0] and 0xFFFF_FFFF'u64)
 
-  proc keySchedule(ctx: var RijndaelContext, key: openArray[byte]) =
+  func keySchedule(ctx: var RijndaelContext, key: openArray[byte]) =
     var skey: array[60, uint32]
     var tkey: array[30, uint64]
     var tmp = 0'u32
@@ -995,8 +1007,11 @@ elif sizeof(int) == 8:
     q[6] = q3 xor q4 xor q5 xor q7 xor r3 xor r5 xor r6 xor r7 xor rotr32(v6)
     q[7] = q4 xor q5 xor q6 xor r4 xor r6 xor r7 xor rotr32(v7)
 
-  proc encrypt*(ctx: RijndaelContext, input: openArray[byte],
-                output: var openArray[byte]) =
+  func encrypt*(
+      ctx: RijndaelContext,
+      input: openArray[byte],
+      output: var openArray[byte]
+  ) =
     var q: array[8, uint64]
     var w: array[4, uint32]
 
@@ -1029,8 +1044,11 @@ elif sizeof(int) == 8:
     leStore32(output, 8, w[2])
     leStore32(output, 12, w[3])
 
-  proc decrypt*(ctx: RijndaelContext, input: openArray[byte],
-                output: var openArray[byte]) =
+  func decrypt*(
+      ctx: RijndaelContext,
+      input: openArray[byte],
+      output: var openArray[byte]
+  ) =
     var q: array[8, uint64]
     var w: array[16, uint32]
 
@@ -1086,25 +1104,31 @@ template sizeKey*(r: typedesc[rijndael]): int =
 template sizeBlock*(r: typedesc[rijndael]): int =
   (16)
 
-proc init*(ctx: var RijndaelContext, key: openArray[byte]) {.inline.} =
+func init*(ctx: var RijndaelContext, key: openArray[byte]) {.inline.} =
   keySchedule(ctx, key)
 
-proc init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =
+func init*(ctx: var RijndaelContext, key: ptr byte, nkey: int = 0) {.inline.} =
   var p = cast[ptr UncheckedArray[byte]](key)
   keySchedule(ctx, toOpenArray(p, 0, int(ctx.sizeKey()) - 1))
 
-proc clear*(ctx: var RijndaelContext) {.inline.} =
+func clear*(ctx: var RijndaelContext) {.inline.} =
   burnMem(ctx)
 
-proc encrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
+func encrypt*(
+    ctx: var RijndaelContext,
+    inbytes: ptr byte,
+    outbytes: ptr byte
+) {.inline.} =
   var ip = cast[ptr UncheckedArray[byte]](inbytes)
   var op = cast[ptr UncheckedArray[byte]](outbytes)
   encrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),
                toOpenArray(op, 0, ctx.sizeBlock() - 1))
 
-proc decrypt*(ctx: var RijndaelContext, inbytes: ptr byte,
-              outbytes: ptr byte) {.inline.} =
+func decrypt*(
+    ctx: var RijndaelContext,
+    inbytes: ptr byte,
+    outbytes: ptr byte
+) {.inline.} =
   var ip = cast[ptr UncheckedArray[byte]](inbytes)
   var op = cast[ptr UncheckedArray[byte]](outbytes)
   decrypt(ctx, toOpenArray(ip, 0, ctx.sizeBlock() - 1),

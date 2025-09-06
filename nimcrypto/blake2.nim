@@ -96,7 +96,7 @@ template B2S_G(v, a, b, c, d, x, y: untyped) =
 # then 256 registers and so it is not enough for it to perform round in
 # template.
 when nimvm:
-  proc B2BROUND(v: var array[16, uint64], m: array[16, uint64], n: int) =
+  func B2BROUND(v: var array[16, uint64], m: array[16, uint64], n: int) =
     B2B_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
     B2B_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
     B2B_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
@@ -106,7 +106,7 @@ when nimvm:
     B2B_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
     B2B_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
 
-  proc B2SROUND(v: var array[16, uint32], m: array[16, uint32], n: int) =
+  func B2SROUND(v: var array[16, uint32], m: array[16, uint32], n: int) =
     B2S_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
     B2S_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
     B2S_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
@@ -136,7 +136,7 @@ else:
     B2S_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
     B2S_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
 
-proc blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
+func blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
   var v {.noinit.}: array[16, uint64]
   var m {.noinit.}: array[16, uint64]
 
@@ -198,7 +198,7 @@ proc blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
     ctx.h[6] = ctx.h[6] xor (v[6] xor v[6 + 8])
     ctx.h[7] = ctx.h[7] xor (v[7] xor v[7 + 8])
 
-proc blake2Transform(ctx: var Blake2sContext, last: bool) {.inline.} =
+func blake2Transform(ctx: var Blake2sContext, last: bool) {.inline.} =
   var v {.noinit.}: array[16, uint32]
   var m {.noinit.}: array[16, uint32]
 
@@ -288,7 +288,7 @@ template hmacSizeBlock*(r: typedesc[blake2]): int =
   ## operation.
   r.sizeBlock
 
-proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
+func init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
   when ctx is Blake2sContext:
     when nimvm:
       for i in 0 ..< 64:
@@ -337,11 +337,11 @@ proc init*[T: bchar](ctx: var Blake2Context, key: openArray[T]) {.inline.} =
   ctx.tb[1] = ctx.t[1]
   ctx.cb = ctx.c
 
-proc init*(ctx: var Blake2Context) {.inline.} =
+func init*(ctx: var Blake2Context) {.inline.} =
   var zeroKey: array[0, byte]
   ctx.init(zeroKey)
 
-proc init*(ctx: var Blake2Context, key: ptr byte, keylen: uint) {.inline.} =
+func init*(ctx: var Blake2Context, key: ptr byte, keylen: uint) {.inline.} =
   var zeroKey: array[0, byte]
   if not isNil(key) and keylen > 0'u:
     var ptrarr = cast[ptr UncheckedArray[byte]](key)
@@ -349,7 +349,7 @@ proc init*(ctx: var Blake2Context, key: ptr byte, keylen: uint) {.inline.} =
   else:
     ctx.init(zeroKey)
 
-proc clear*(ctx: var Blake2Context) {.inline.} =
+func clear*(ctx: var Blake2Context) {.inline.} =
   when nimvm:
     when ctx is Blake2sContext:
       for i in 0 ..< 64:
@@ -378,14 +378,14 @@ proc clear*(ctx: var Blake2Context) {.inline.} =
   else:
     burnMem(ctx)
 
-proc reset*(ctx: var Blake2Context) {.inline.} =
+func reset*(ctx: var Blake2Context) {.inline.} =
   copyMem(ctx.b, 0, ctx.bb, 0, len(ctx.b))
   copyMem(ctx.h, 0, ctx.hb, 0, len(ctx.h))
   ctx.t[0] = ctx.tb[0]
   ctx.t[1] = ctx.tb[1]
   ctx.c = ctx.cb
 
-proc update*[T: bchar](ctx: var Blake2Context, data: openArray[T]) {.inline.} =
+func update*[T: bchar](ctx: var Blake2Context, data: openArray[T]) {.inline.} =
   var i = 0
   while i < len(data):
     if ctx.c == int(ctx.sizeBlock):
@@ -406,14 +406,19 @@ proc update*[T: bchar](ctx: var Blake2Context, data: openArray[T]) {.inline.} =
     inc(ctx.c)
     inc(i)
 
-proc update*(ctx: var Blake2Context, pbytes: ptr byte,
-             nbytes: uint) {.inline.} =
+func update*(
+    ctx: var Blake2Context,
+    pbytes: ptr byte,
+    nbytes: uint
+) {.inline.} =
   if not(isNil(pbytes)) and (nbytes > 0'u):
     var p = cast[ptr UncheckedArray[byte]](pbytes)
     ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
-proc finish*(ctx: var Blake2sContext,
-             data: var openArray[byte]): uint {.inline, discardable.} =
+func finish*(
+    ctx: var Blake2sContext,
+    data: var openArray[byte]
+): uint {.inline, discardable.} =
   ctx.t[0] = ctx.t[0] + uint32(ctx.c)
   if ctx.t[0] < uint32(ctx.c):
     ctx.t[1] = ctx.t[1] + 1
@@ -426,8 +431,10 @@ proc finish*(ctx: var Blake2sContext,
   for i in 0 ..< length:
     data[i] = byte((ctx.h[i shr 2] shr (8 * (i and 3))) and 0xFF'u32)
 
-proc finish*(ctx: var Blake2bContext,
-             data: var openArray[byte]): uint {.inline, discardable.} =
+func finish*(
+    ctx: var Blake2bContext,
+    data: var openArray[byte]
+): uint {.inline, discardable.} =
   ctx.t[0] = ctx.t[0] + uint64(ctx.c)
   if ctx.t[0] < uint64(ctx.c):
     ctx.t[1] = ctx.t[1] + 1'u64
@@ -440,18 +447,24 @@ proc finish*(ctx: var Blake2bContext,
   for i in 0 ..< length:
     data[i] = byte((ctx.h[i shr 3] shr (8 * (i and 7))) and 0xFF'u64)
 
-proc finish*(ctx: var Blake2sContext, pbytes: ptr byte,
-             nbytes: uint): uint {.inline.} =
+func finish*(
+    ctx: var Blake2sContext,
+    pbytes: ptr byte,
+    nbytes: uint
+): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(ctx: var Blake2bContext, pbytes: ptr byte,
-             nbytes: uint): uint {.inline.} =
+func finish*(
+    ctx: var Blake2bContext,
+    pbytes: ptr byte,
+    nbytes: uint
+): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(ctx: var Blake2sContext): MDigest[ctx.bits] =
+func finish*(ctx: var Blake2sContext): MDigest[ctx.bits] =
   discard finish(ctx, result.data)
 
-proc finish*(ctx: var Blake2bContext): MDigest[ctx.bits] =
+func finish*(ctx: var Blake2bContext): MDigest[ctx.bits] =
   discard finish(ctx, result.data)

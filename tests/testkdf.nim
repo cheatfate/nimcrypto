@@ -1,6 +1,7 @@
-import nimcrypto/pbkdf2, nimcrypto/hmac, nimcrypto/sha2, nimcrypto/utils
-import nimcrypto/sha
+import nimcrypto/[pbkdf2, hmac, sha2, sha, utils, cpufeatures]
 import unittest
+
+from std/strutils import toLower
 
 when defined(nimHasUsed): {.used.}
 
@@ -665,3 +666,120 @@ suite "PBKDF2-HMAC-SHA1/SHA224/256/384/512 tests suite":
           compare(toOpenArray(e, 0, length - 1),
                   toOpenArray(output, 0, length - 1)) == true
         burnMem(output)
+
+  template getLength(HashType: typedesc): untyped =
+    when HashType is sha224:
+      lengths224
+    elif HashType is sha256:
+      lengths256
+    elif HashType is sha384:
+      lengths384
+    elif HashType is sha512:
+      lengths512
+    else:
+      raiseAssert "Unknown context!"
+
+  template getPassword(HashType: typedesc): untyped =
+    when HashType is sha224:
+      passwords224
+    elif HashType is sha256:
+      passwords256
+    elif HashType is sha384:
+      passwords384
+    elif HashType is sha512:
+      passwords512
+    else:
+      raiseAssert "Unknown context!"
+
+  template getSalt(HashType: typedesc): untyped =
+    when HashType is sha224:
+      salts224
+    elif HashType is sha256:
+      salts256
+    elif HashType is sha384:
+      salts384
+    elif HashType is sha512:
+      salts512
+    else:
+      raiseAssert "Unknown context!"
+
+  template getExpect1(HashType: typedesc): untyped =
+    when HashType is sha224:
+      expects224_1
+    elif HashType is sha256:
+      expects256_1
+    elif HashType is sha384:
+      expects384_1
+    elif HashType is sha512:
+      expects512_1
+    else:
+      raiseAssert "Unknown context!"
+
+  template getExpect100k(HashType: typedesc): untyped =
+    when HashType is sha224:
+      expects224_100k
+    elif HashType is sha256:
+      expects256_100k
+    elif HashType is sha384:
+      expects384_100k
+    elif HashType is sha512:
+      expects512_100k
+    else:
+      raiseAssert "Unknown context!"
+
+  let cpuFeatures = getCpuFeatures()
+
+  template doSha2KdfTest1(description: static[string],
+                          implementation: Sha2Implementation,
+                          HashType: typedesc) =
+    test description & " test (1 iteration) [" & toLower($implementation) & "]":
+      if not(isAvailable(HashType, implementation, cpuFeatures)):
+        skip()
+      else:
+        var
+          ctx: HMAC[HashType]
+          output: array[128, byte]
+        for i in 0 ..< len(HashType.getLength()):
+          let
+            index = i mod 10
+            p = stripSpaces(HashType.getPassword()[index])
+            s = stripSpaces(HashType.getSalt()[index])
+            e = fromHex(stripSpaces(HashType.getExpect1()[index]))
+            length = HashType.getLength()[i]
+          check:
+            pbkdf2(ctx, p, s, 1, output.toOpenArray(0, length - 1),
+                   implementation, cpuFeatures) == length
+            compare(toOpenArray(e, 0, length - 1),
+                    toOpenArray(output, 0, length - 1)) == true
+          burnMem(output)
+
+    test description & " test (100,000 iteration) [" &
+         toLower($implementation) & "]":
+      when defined(release):
+        if not(isAvailable(HashType, implementation, cpuFeatures)):
+          skip()
+        else:
+          var
+            ctx: HMAC[HashType]
+            output: array[128, byte]
+          for i in 20 ..< len(HashType.getLength()):
+            let
+              index = i mod 10
+              p = stripSpaces(HashType.getPassword()[index])
+              s = stripSpaces(HashType.getSalt()[index])
+              e = fromHex(stripSpaces(HashType.getExpect100k()[index]))
+              length = HashType.getLength()[i]
+            check:
+              pbkdf2(ctx, p, s, 100000, output.toOpenArray(0, length - 1),
+                     implementation, cpuFeatures) == length
+              compare(toOpenArray(e, 0, length - 1),
+                      toOpenArray(output, 0, length - 1)) == true
+            burnMem(output)
+      else:
+        skip()
+
+  for implementation in Sha2Implementation:
+    doSha2KdfTest1("HMAC-SHA-224 optimized", implementation, sha224)
+    doSha2KdfTest1("HMAC-SHA-256 optimized", implementation, sha256)
+    doSha2KdfTest1("HMAC-SHA-384 optimized", implementation, sha384)
+    doSha2KdfTest1("HMAC-SHA-512 optimized", implementation, sha512)

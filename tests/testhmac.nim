@@ -1,5 +1,7 @@
-import nimcrypto/[hmac, hash, utils, sha, sha2, ripemd, keccak]
+import nimcrypto/[hmac, hash, utils, sha2, ripemd, keccak, sha, cpufeatures]
 import unittest
+
+from std/strutils import toLower
 
 when defined(nimHasUsed): {.used.}
 
@@ -845,3 +847,60 @@ suite "HMAC Tests":
       md1 == md5
       hctx1.isFullZero() == true
       hctx2.isFullZero() == true
+
+  let cpuFeatures = getCpuFeatures()
+  template doSha2Test(description: static[string],
+                      implementation: Sha2Implementation,
+                      HashType: typedesc) =
+    test description & " test vectors [" & toLower($implementation) & "]":
+      if not(isAvailable(HashType, implementation, cpuFeatures)):
+        skip()
+      else:
+        var ctx: HMAC[HashType]
+        for i in 0 ..< len(sha2keys):
+          let
+            key = fromHex(stripSpaces(sha2keys[i]))
+            data = fromHex(stripSpaces(sha2data[i]))
+            digest = stripSpaces(
+              when HashType is sha224:
+                sha224digests[i]
+              elif HashType is sha256:
+                sha256digests[i]
+              elif HashType is sha384:
+                sha384digests[i]
+              elif HashType is sha512:
+                sha512digests[i]
+              else:
+                raiseAssert "Unsupported context!"
+            )
+          let
+            check1 =
+              block:
+                ctx.init(cast[ptr uint8](unsafeAddr key[0]), uint(len(key)),
+                         implementation, cpuFeatures)
+                ctx.update(cast[ptr uint8](unsafeAddr data[0]), uint(len(data)))
+                $ctx.finish()
+            check2 =
+              $HashType.hmac(
+                cast[ptr uint8](unsafeAddr key[0]), uint(len(key)),
+                cast[ptr uint8](unsafeAddr data[0]), uint(len(data)),
+                implementation, cpuFeatures)
+            check3 =
+              $HashType.hmac(key, data, implementation, cpuFeatures)
+            check4 =
+              block:
+                ctx.init(key, implementation, cpuFeatures)
+                ctx.update(data)
+                $ctx.finish()
+          ctx.clear()
+          check:
+            check1 == digest
+            check2 == digest
+            check3 == digest
+            check4 == digest
+
+  for implementation in Sha2Implementation:
+    doSha2Test("HMAC-SHA2-224 optimized", implementation, sha224)
+    doSha2Test("HMAC-SHA2-256 optimized", implementation, sha256)
+    doSha2Test("HMAC-SHA2-384 optimized", implementation, sha384)
+    doSha2Test("HMAC-SHA2-512 optimized", implementation, sha512)

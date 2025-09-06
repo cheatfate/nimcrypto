@@ -463,7 +463,7 @@ template RROUND160N5(a, b, c, d, e, x): void =
   FFF160(c, d, e, a, b, x[ 9] , 11)
   FFF160(b, c, d, e, a, x[11] , 11)
 
-proc ripemd128Transform(state: var array[4, uint32], data: openArray[byte]) =
+func ripemd128Transform(state: var array[4, uint32], data: openArray[byte]) =
   var
     aa = state[0]
     bb = state[1]
@@ -500,7 +500,7 @@ proc ripemd128Transform(state: var array[4, uint32], data: openArray[byte]) =
   state[3] = state[0] + bb + ccc
   state[0] = ddd
 
-proc ripemd256Transform(state: var array[8, uint32], data: openArray[byte]) =
+func ripemd256Transform(state: var array[8, uint32], data: openArray[byte]) =
   var
     aa = state[0]
     bb = state[1]
@@ -544,8 +544,10 @@ proc ripemd256Transform(state: var array[8, uint32], data: openArray[byte]) =
   state[6] = state[6] + ccc
   state[7] = state[7] + ddd
 
-proc ripemd160Transform(state: var array[5, uint32],
-                        data: openArray[byte]) {.inline.} =
+func ripemd160Transform(
+    state: var array[5, uint32],
+    data: openArray[byte]
+) {.inline.} =
   var
     aa = state[0]
     bb = state[1]
@@ -587,8 +589,10 @@ proc ripemd160Transform(state: var array[5, uint32],
   state[4] = state[0] + bb + ccc
   state[0] = ddd
 
-proc ripemd320Transform(state: var array[10, uint32],
-                        data: openArray[byte]) {.inline.} =
+func ripemd320Transform(
+    state: var array[10, uint32],
+    data: openArray[byte]
+) {.inline.} =
   var
     aa = state[0]
     bb = state[1]
@@ -663,7 +667,7 @@ template hmacSizeBlock*(r: typedesc[ripemd]): int =
   ## operation.
   r.sizeBlock
 
-proc init*(ctx: var RipemdContext) {.inline.} =
+func init*(ctx: var RipemdContext) {.inline.} =
   ctx.count[0] = 0
   ctx.count[1] = 0
 
@@ -705,7 +709,7 @@ proc init*(ctx: var RipemdContext) {.inline.} =
     ctx.state[8] = 0x01234567'u32
     ctx.state[9] = 0x3C2D1E0F'u32
 
-proc clear*(ctx: var RipemdContext) {.inline.} =
+func clear*(ctx: var RipemdContext) {.inline.} =
   when nimvm:
     ctx.count[0] = 0x00'u32
     ctx.count[1] = 0x00'u32
@@ -745,10 +749,10 @@ proc clear*(ctx: var RipemdContext) {.inline.} =
   else:
     burnMem(ctx)
 
-proc reset*(ctx: var RipemdContext) {.inline.} =
+func reset*(ctx: var RipemdContext) {.inline.} =
   init(ctx)
 
-proc update*[T: bchar](ctx: var RipemdContext, data: openArray[T]) {.inline.} =
+func update*[T: bchar](ctx: var RipemdContext, data: openArray[T]) {.inline.} =
   var pos = 0
   var length = len(data)
 
@@ -771,13 +775,13 @@ proc update*[T: bchar](ctx: var RipemdContext, data: openArray[T]) {.inline.} =
       elif ctx.bits == 320:
         ripemd320Transform(ctx.state, ctx.buffer)
 
-proc update*(ctx: var RipemdContext, pbytes: ptr byte,
+func update*(ctx: var RipemdContext, pbytes: ptr byte,
              nbytes: uint) {.inline.} =
   if not(isNil(pbytes)) and (nbytes > 0'u):
     var p = cast[ptr UncheckedArray[byte]](pbytes)
     ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
-proc finalize(ctx: var RipemdContext) {.inline.} =
+func finalize(ctx: var RipemdContext) {.inline.} =
   let size = int(ctx.count[0] and 0x3F'u32)
   when nimvm:
     for i in size ..< 64:
@@ -813,7 +817,7 @@ proc finalize(ctx: var RipemdContext) {.inline.} =
   elif ctx.bits == 320:
     ripemd320Transform(ctx.state, ctx.buffer)
 
-proc finish*(ctx: var RipemdContext,
+func finish*(ctx: var RipemdContext,
              data: var openArray[byte]): uint {.inline, discardable.} =
   result = 0
   finalize(ctx)
@@ -857,10 +861,10 @@ proc finish*(ctx: var RipemdContext,
       leStore32(data, 32, ctx.state[8])
       leStore32(data, 36, ctx.state[9])
 
-proc finish*(ctx: var RipemdContext, pbytes: ptr byte,
+func finish*(ctx: var RipemdContext, pbytes: ptr byte,
              nbytes: uint): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
+func finish*(ctx: var RipemdContext): MDigest[ctx.bits] =
   discard finish(ctx, result.data)

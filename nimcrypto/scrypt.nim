@@ -2,6 +2,7 @@
 #
 #                    NimCrypto
 #          (c) Copyright 2020 Andri Lim
+#       (c) Copyright 2024-2025 Eugene Kabanov
 #
 #      See the file "LICENSE", included in this
 #    distribution, for details about the copyright.
@@ -10,10 +11,16 @@
 ## This module implements
 ## The scrypt Password-Based Key Derivation Function
 ## https://tools.ietf.org/html/rfc7914
-import utils, sha2, hmac, pbkdf2
+import "."/[utils, sha2, hmac, pbkdf2, cpufeatures]
+export cpufeatures
 
-proc salsaXor(tmp: var openArray[uint32],
-  src: openArray[uint32], srco: int, dest: var openArray[uint32], dsto: int) =
+func salsaXor(
+    tmp: var openArray[uint32],
+    src: openArray[uint32],
+    srco: int,
+    dest: var openArray[uint32],
+    dsto: int
+) =
   ## salsaXor applies Salsa20/8 to the XOR of 16 numbers from tmp and in,
   ## and puts the result into both tmp and out.
 
@@ -58,29 +65,29 @@ proc salsaXor(tmp: var openArray[uint32],
     x = x xor ROL(a, b)
 
   for i in 0 ..< 4:
-    R(x4, x0+x12,  7); R(x8, x4+x0, 9)
-    R(x12, x8+x4, 13); R(x0, x12+x8, 18)
+    R(x4, x0 + x12,  7); R(x8, x4 + x0, 9)
+    R(x12, x8 + x4, 13); R(x0, x12 + x8, 18)
 
-    R(x9,  x5+x1,  7); R(x13, x9+x5, 9)
-    R(x1, x13+x9, 13); R(x5, x1+x13, 18)
+    R(x9,  x5 + x1,  7); R(x13, x9 + x5, 9)
+    R(x1, x13 + x9, 13); R(x5, x1 + x13, 18)
 
-    R(x14, x10+x6, 7); R(x2, x14+x10, 9)
-    R(x6, x2+x14, 13); R(x10, x6+x2, 18)
+    R(x14, x10 + x6, 7); R(x2, x14 + x10, 9)
+    R(x6, x2 + x14, 13); R(x10, x6 + x2, 18)
 
-    R(x3, x15+x11, 7); R(x7, x3+x15, 9)
-    R(x11, x7+x3, 13); R(x15, x11+x7, 18)
+    R(x3, x15 + x11, 7); R(x7, x3 + x15, 9)
+    R(x11, x7 + x3, 13); R(x15, x11 + x7, 18)
 
-    R(x1, x0+x3,  7);  R(x2, x1+x0, 9)
-    R(x3, x2+x1, 13);  R(x0, x3+x2, 18)
+    R(x1, x0 + x3,  7);  R(x2, x1 + x0, 9)
+    R(x3, x2 + x1, 13);  R(x0, x3 + x2, 18)
 
-    R(x6, x5+x4,  7);  R(x7, x6+x5, 9)
-    R(x4, x7+x6, 13);  R(x5, x4+x7, 18)
+    R(x6, x5 + x4,  7);  R(x7, x6 + x5, 9)
+    R(x4, x7 + x6, 13);  R(x5, x4 + x7, 18)
 
-    R(x11, x10+x9, 7); R(x8, x11+x10, 9)
-    R(x9, x8+x11, 13); R(x10, x9+x8, 18)
+    R(x11, x10 + x9, 7); R(x8, x11 + x10, 9)
+    R(x9, x8 + x11, 13); R(x10, x9 + x8, 18)
 
-    R(x12, x15+x14,  7); R(x13, x12+x15, 9)
-    R(x14, x13+x12, 13); R(x15, x14+x13, 18)
+    R(x12, x15 + x14,  7); R(x13, x12 + x15, 9)
+    R(x14, x13 + x12, 13); R(x15, x14 + x13, 18)
 
   x0  += w0;  x1  +=  w1; x2  +=  w2; x3  +=  w3
   x4  += w4;  x5  +=  w5; x6  +=  w6; x7  +=  w7
@@ -103,34 +110,48 @@ proc salsaXor(tmp: var openArray[uint32],
   tmp[12] = x12; tmp[13] = x13; tmp[14] = x14
   tmp[15] = x15
 
-proc blockMix(tmp: var openArray[uint32], src: openArray[uint32], srco: int,
-              dest: var openArray[uint32], dsto: int, r: int) =
+func blockMix(
+    tmp: var openArray[uint32],
+    src: openArray[uint32],
+    srco: int,
+    dest: var openArray[uint32],
+    dsto: int,
+    r: int
+) =
   let
-    r16  = r*16
-    r2_1 = 2*r-1
+    r16  = r * 16
+    r2_1 = 2 * r - 1
   var
     i16 = srco
     i8 = dsto
-  copyMem(tmp, 0, src, r2_1*16+srco, 16)
+  copyMem(tmp, 0, src, r2_1 * 16 + srco, 16)
   for i in countup(0, r2_1, 2):
     salsaXor(tmp, src, i16, dest, i8)
-    salsaXor(tmp, src, i16+16, dest, i8+r16)
+    salsaXor(tmp, src, i16 + 16, dest, i8 + r16)
     inc(i16, 32)
     inc(i8, 16)
 
 func integer(b: openArray[uint32], boff, r: int): uint64 =
-  let j = (2*r - 1) * 16 + boff
-  result = uint64(b[j]) or (uint64(b[j+1]) shl 32)
+  let j = (2 * r - 1) * 16 + boff
+  result = uint64(b[j]) or (uint64(b[j + 1]) shl 32)
 
-proc blockXor(dst: var openArray[uint32], dsto: int,
-              src: openArray[uint32], srco: int, n: int) =
-
+func blockXor(
+    dst: var openArray[uint32],
+    dsto: int,
+    src: openArray[uint32],
+    srco: int,
+    n: int
+) =
   ## blockXor XORs numbers from dst with n numbers from src.
   for i in 0 ..< n:
-    dst[i+dsto] = dst[i+dsto] xor src[i+srco]
+    dst[i + dsto] = dst[i + dsto] xor src[i + srco]
 
-proc smix(b: var openArray[byte], boffset, r, N: int,
-          xyv: var openArray[uint32], voffset: int) =
+func smix(
+    b: var openArray[byte],
+    boffset, r, N: int,
+    xyv: var openArray[uint32],
+    voffset: int
+) =
   let
     r32 = r * 32
     N_1 = N - 1
@@ -162,11 +183,11 @@ proc smix(b: var openArray[byte], boffset, r, N: int,
 
   for i in countup(0, N_1, 2):
     j = int(integer(x, 0, r) and uint64(N_1))
-    blockXor(x, 0, v, j*r32+voffset, r32)
+    blockXor(x, 0, v, j * r32 + voffset, r32)
     blockMix(tmp, x, 0, y, yoffset, r)
 
     j = int(integer(y, yoffset, r) and uint64(N_1))
-    blockXor(y, yoffset, v, j*r32+voffset, r32)
+    blockXor(y, yoffset, v, j * r32 + voffset, r32)
     blockMix(tmp, y, yoffset, x, 0, r)
 
   j = boffset
@@ -196,7 +217,7 @@ func validateParam(N, r, p: int): bool =
     # parameters are too large
     return false
 
-  result = true
+  true
 
 # scrypt derives a key from the password, salt, and cost parameters, returning
 # a byte slice of length keyLen that can be used as cryptographic key.
@@ -216,9 +237,15 @@ func validateParam(N, r, p: int): bool =
 # and p=1. The parameters N, r, and p should be increased as memory latency and
 # CPU parallelism increases; consider setting N to the highest power of 2 you
 # can derive within 100 milliseconds. Remember to get a good random salt.
-func scrypt[T, M](password: openArray[T], salt: openArray[M],
-                  N, r, p: int, xyv: var openArray[uint32],
-                  b, output: var openArray[byte]): int =
+func scrypt*[T, M](
+    password: openArray[T],
+    salt: openArray[M],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+): int =
 
   when not((M is byte) or (M is char)):
     {.fatal: "Choosen password type is not supported!".}
@@ -230,18 +257,18 @@ func scrypt[T, M](password: openArray[T], salt: openArray[M],
     return 0
 
   let
-    r32  = r*32
-    r64  = r32*2
-    r128 = r64*2
+    r32  = r * 32
+    r64  = r32 * 2
+    r128 = r64 * 2
 
-  if b.len < p*r128:
+  if b.len < p * r128:
     return 0
 
-  if xyv.len < r32*(N+2):
+  if xyv.len < r32 * (N + 2):
     return 0
 
   var ctx: HMAC[sha256]
-  if ctx.pbkdf2(password, salt, 1, b) == 0:
+  if ctx.pbkdf2(password, salt, 1, b, implementation, cpufeatures) == 0:
     return 0
 
   var n = 0
@@ -249,31 +276,147 @@ func scrypt[T, M](password: openArray[T], salt: openArray[M],
     smix(b, n, r, N, xyv, r64)
     inc(n, r128)
 
-  ctx.pbkdf2(password, b, 1, output)
+  ctx.pbkdf2(password, b, 1, output, implementation, cpufeatures)
 
 # because of NimCrypto no alloc policy,
 # users of scrypt must provide their own `xyv` and `b` array.
 # scryptCalc will return how much element needed.
 # return value -> (xyv.len of uint32s, b.len of bytes)
 func scryptCalc*(N, r, p: int): (int, int) =
-  result = ((r*32*(N+2)), (p*r*128))
+  ((r * 32 * (N + 2)), (p * r * 128))
 
-func scrypt*(password: openArray[char], salt: openArray[char],
-             N, r, p: int, xyv: var openArray[uint32],
-             b, output: var openArray[byte]): int =
-  scrypt[char, char](password, salt, N, r, p, xyv, b, output)
+func scrypt*(
+    password: openArray[char],
+    salt: openArray[char],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+): int =
+  scrypt[char, char](
+    password, salt, N, r, p, xyv, b, output, implementation, cpufeatures)
 
-func scrypt*(password: openArray[char], salt: openArray[byte],
-             N, r, p: int, xyv: var openArray[uint32],
-             b, output: var openArray[byte]): int =
-  scrypt[char, byte](password, salt, N, r, p, xyv, b, output)
+func scrypt*(
+    password: openArray[char],
+    salt: openArray[byte],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+): int =
+  scrypt[char, byte](
+    password, salt, N, r, p, xyv, b, output, implementation, cpufeatures)
 
-func scrypt*(password: openArray[byte], salt: openArray[char],
-             N, r, p: int, xyv: var openArray[uint32],
-             b, output: var openArray[byte]): int =
-  scrypt[byte, char](password, salt, N, r, p, xyv, b, output)
+func scrypt*(
+    password: openArray[byte],
+    salt: openArray[char],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+): int =
+  scrypt[byte, char](
+    password, salt, N, r, p, xyv, b, output, implementation, cpufeatures)
 
-func scrypt*(password: openArray[byte], salt: openArray[byte],
-             N, r, p: int, xyv: var openArray[uint32],
-             b, output: var openArray[byte]): int =
-  scrypt[byte, byte](password, salt, N, r, p, xyv, b, output)
+func scrypt*(
+    password: openArray[byte],
+    salt: openArray[byte],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation,
+    cpufeatures: set[CpuFeature]
+): int =
+  scrypt[byte, byte](
+    password, salt, N, r, p, xyv, b, output, implementation, cpufeatures)
+
+func scrypt*(
+    password: openArray[char],
+    salt: openArray[char],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation
+): int =
+  scrypt[char, char](
+    password, salt, N, r, p, xyv, b, output, implementation, defaultCpuFeatures)
+
+func scrypt*(
+    password: openArray[char],
+    salt: openArray[byte],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation
+): int =
+  scrypt[char, byte](
+    password, salt, N, r, p, xyv, b, output, implementation, defaultCpuFeatures)
+
+func scrypt*(
+    password: openArray[byte],
+    salt: openArray[char],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation
+): int =
+  scrypt[byte, char](
+    password, salt, N, r, p, xyv, b, output, implementation, defaultCpuFeatures)
+
+func scrypt*(
+    password: openArray[byte],
+    salt: openArray[byte],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte],
+    implementation: Sha2Implementation
+): int =
+  scrypt[byte, byte](
+    password, salt, N, r, p, xyv, b, output, implementation, defaultCpuFeatures)
+
+func scrypt*(
+    password: openArray[char],
+    salt: openArray[char],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte]
+): int =
+  scrypt[char, char](
+    password, salt, N, r, p, xyv, b, output, Sha2Implementation.Auto,
+    defaultCpuFeatures)
+
+func scrypt*(
+    password: openArray[char],
+    salt: openArray[byte],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte]
+): int =
+  scrypt[char, byte](
+    password, salt, N, r, p, xyv, b, output, Sha2Implementation.Auto,
+    defaultCpuFeatures)
+
+func scrypt*(
+    password: openArray[byte],
+    salt: openArray[char],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte]
+): int =
+  scrypt[byte, char](
+    password, salt, N, r, p, xyv, b, output, Sha2Implementation.Auto,
+    defaultCpuFeatures)
+
+func scrypt*(
+    password: openArray[byte],
+    salt: openArray[byte],
+    N, r, p: int,
+    xyv: var openArray[uint32],
+    b, output: var openArray[byte]
+): int =
+  scrypt[byte, byte](
+    password, salt, N, r, p, xyv, b, output, Sha2Implementation.Auto,
+    defaultCpuFeatures)

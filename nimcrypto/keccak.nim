@@ -58,28 +58,38 @@ type
 # then 256 registers and so it is not enough for it to perform round in
 # template.
 # See also https://github.com/nim-lang/Nim/issues/23688
-proc THETA1V(a: var openArray[uint64], b: openArray[uint64],
-             c: int) {.inline.} =
+func THETA1V(
+    a: var openArray[uint64],
+    b: openArray[uint64],
+    c: int
+) {.inline.} =
   a[c] = b[c] xor b[c + 5] xor b[c + 10] xor b[c + 15] xor b[c + 20]
 
-proc THETA2V(a: var uint64, b: openArray[uint64], c: int) {.inline.} =
+func THETA2V(a: var uint64, b: openArray[uint64], c: int) {.inline.} =
   a = b[(c + 4) mod 5] xor ROL(uint64(b[(c + 1) mod 5]), 1)
 
-proc THETA3V(a: var openArray[uint64], b: int, c: uint64) {.inline.} =
+func THETA3V(a: var openArray[uint64], b: int, c: uint64) {.inline.} =
   a[b] = a[b] xor c
   a[b + 5] = a[b + 5] xor c
   a[b + 10] = a[b + 10] xor c
   a[b + 15] = a[b + 15] xor c
   a[b + 20] = a[b + 20] xor c
 
-proc RHOPIV(a: var openArray[uint64], b: var openArray[uint64], c: var uint64,
-           d, e: int) {.inline.} =
+func RHOPIV(
+    a: var openArray[uint64],
+    b: var openArray[uint64],
+    c: var uint64,
+    d, e: int
+) {.inline.} =
   a[0] = b[d]
   b[d] = ROL(c, e)
   c = uint64(a[0])
 
-proc CHIV(a: var openArray[uint64], b: var openArray[uint64],
-          c: int) {.inline.} =
+func CHIV(
+    a: var openArray[uint64],
+    b: var openArray[uint64],
+    c: int
+) {.inline.} =
   a[0] = b[c]
   a[1] = b[c + 1]
   a[2] = b[c + 2]
@@ -91,9 +101,12 @@ proc CHIV(a: var openArray[uint64], b: var openArray[uint64],
   b[c + 3] = b[c + 3] xor (not(a[4]) and a[0])
   b[c + 4] = b[c + 4] xor (not(a[0]) and a[1])
 
-
-proc KECCAKROUNDP(a: var openArray[uint64], b: var openArray[uint64],
-                  c: var uint64, r: int) {.inline.} =
+func KECCAKROUNDP(
+    a: var openArray[uint64],
+    b: var openArray[uint64],
+    c: var uint64,
+    r: int
+) {.inline.} =
   THETA1V(b, a, 0)
   THETA1V(b, a, 1)
   THETA1V(b, a, 2)
@@ -227,7 +240,7 @@ template KECCAKROUND(a, b, c, r) =
 
   a[0] = a[0] xor RNDC[r]
 
-proc keccakTransform(data: var array[200, byte]) {.inline.} =
+func keccakTransform(data: var array[200, byte]) {.inline.} =
   var
     bc {.noinit.}: array[5, uint64]
     st {.noinit.}: array[25, uint64]
@@ -360,10 +373,10 @@ template hmacSizeBlock*(r: typedesc[keccak]): int =
   else:
     {.fatal: "Choosen hash primitive is not supported!".}
 
-proc init*(ctx: var KeccakContext) {.inline.} =
+func init*(ctx: var KeccakContext) {.inline.} =
   ctx = type(ctx)()
 
-proc clear*(ctx: var KeccakContext) {.inline.} =
+func clear*(ctx: var KeccakContext) {.inline.} =
   when nimvm:
     for i in 0 ..< len(ctx.q):
       ctx.q[i] = 0'u8
@@ -371,10 +384,10 @@ proc clear*(ctx: var KeccakContext) {.inline.} =
   else:
     burnMem(ctx)
 
-proc reset*(ctx: var KeccakContext) {.inline.} =
+func reset*(ctx: var KeccakContext) {.inline.} =
   init(ctx)
 
-proc update*[T: bchar](ctx: var KeccakContext,
+func update*[T: bchar](ctx: var KeccakContext,
                        data: openArray[T]) {.inline.} =
   var j = ctx.pt
   if len(data) > 0:
@@ -389,13 +402,16 @@ proc update*[T: bchar](ctx: var KeccakContext,
         j = 0
     ctx.pt = j
 
-proc update*(ctx: var KeccakContext, pbytes: ptr byte,
-             nbytes: uint) {.inline.} =
+func update*(
+    ctx: var KeccakContext,
+    pbytes: ptr byte,
+    nbytes: uint
+) {.inline.} =
   if not(isNil(pbytes)) and (nbytes > 0'u):
     var p = cast[ptr UncheckedArray[byte]](pbytes)
     ctx.update(toOpenArray(p, 0, int(nbytes) - 1))
 
-proc xof*(ctx: var KeccakContext) {.inline.} =
+func xof*(ctx: var KeccakContext) {.inline.} =
   when ctx.kind != Shake:
     {.error: "Only `Shake128` and `Shake256` types are supported".}
   ctx.q[ctx.pt] = ctx.q[ctx.pt] xor 0x1F'u8
@@ -403,8 +419,10 @@ proc xof*(ctx: var KeccakContext) {.inline.} =
   keccakTransform(ctx.q)
   ctx.pt = 0
 
-proc output*(ctx: var KeccakContext,
-             data: var openArray[byte]): uint {.inline.} =
+func output*(
+    ctx: var KeccakContext,
+    data: var openArray[byte]
+): uint {.inline.} =
   when ctx.kind != Shake:
     {.error: "Only `Shake128` and `Shake256` types are supported".}
   var j = ctx.pt
@@ -418,13 +436,18 @@ proc output*(ctx: var KeccakContext,
     ctx.pt = j
     result = uint(len(data))
 
-proc output*(ctx: var KeccakContext, pbytes: ptr byte,
-             nbytes: uint): uint {.inline.} =
+func output*(
+    ctx: var KeccakContext,
+    pbytes: ptr byte,
+    nbytes: uint
+): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.output(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(ctx: var KeccakContext,
-             data: var openArray[byte]): uint {.inline, discardable.} =
+func finish*(
+    ctx: var KeccakContext,
+    data: var openArray[byte]
+): uint {.inline, discardable.} =
   when ctx.kind == Sha3:
     ctx.q[ctx.pt] = ctx.q[ctx.pt] xor 0x06'u8
   else:
@@ -436,10 +459,13 @@ proc finish*(ctx: var KeccakContext,
       data[i] = ctx.q[i]
     result = ctx.sizeDigest
 
-proc finish*(ctx: var KeccakContext, pbytes: ptr byte,
-             nbytes: uint): uint {.inline.} =
+func finish*(
+    ctx: var KeccakContext,
+    pbytes: ptr byte,
+    nbytes: uint
+): uint {.inline.} =
   var ptrarr = cast[ptr UncheckedArray[byte]](pbytes)
   result = ctx.finish(ptrarr.toOpenArray(0, int(nbytes) - 1))
 
-proc finish*(ctx: var KeccakContext): MDigest[ctx.bits] {.inline.} =
+func finish*(ctx: var KeccakContext): MDigest[ctx.bits] {.inline.} =
   discard finish(ctx, result.data)

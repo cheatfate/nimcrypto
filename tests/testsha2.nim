@@ -131,6 +131,29 @@ suite "SHA2 Tests":
       $check2240 == stripSpaces(digest224[0])
       $check2241 == stripSpaces(digest224[1])
       $check2242 == stripSpaces(digest224[2])
+    const
+      check2243 =
+        static:
+          var ctx: sha224
+          ctx.init()
+          ctx.update(code224[0])
+          ctx.finish()
+      check2244 =
+        static:
+          var ctx: sha224
+          ctx.init()
+          ctx.update(code224[1])
+          ctx.finish()
+      check2245 =
+        static:
+          var ctx: sha224
+          ctx.init()
+          ctx.update(code224[2])
+          ctx.finish()
+    check:
+      $check2243 == stripSpaces(digest224[0])
+      $check2244 == stripSpaces(digest224[1])
+      $check2245 == stripSpaces(digest224[2])
 
   test "SHA2-256 compile-time test vectors":
     const
@@ -141,6 +164,29 @@ suite "SHA2 Tests":
       $check2560 == stripSpaces(digest256[0])
       $check2561 == stripSpaces(digest256[1])
       $check2562 == stripSpaces(digest256[2])
+    const
+      check2563 =
+        static:
+          var ctx: sha256
+          ctx.init()
+          ctx.update(code256[0])
+          ctx.finish()
+      check2564 =
+        static:
+          var ctx: sha256
+          ctx.init()
+          ctx.update(code256[1])
+          ctx.finish()
+      check2565 =
+        static:
+          var ctx: sha256
+          ctx.init()
+          ctx.update(code256[2])
+          ctx.finish()
+    check:
+      $check2563 == stripSpaces(digest256[0])
+      $check2564 == stripSpaces(digest256[1])
+      $check2565 == stripSpaces(digest256[2])
 
   test "SHA2-384 compile-time test vectors":
     const
@@ -151,6 +197,29 @@ suite "SHA2 Tests":
       $check3840 == stripSpaces(digest384[0])
       $check3841 == stripSpaces(digest384[1])
       $check3842 == stripSpaces(digest384[2])
+    const
+      check3843 =
+        static:
+          var ctx: sha384
+          ctx.init()
+          ctx.update(stripSpaces(code384[0]))
+          ctx.finish()
+      check3844 =
+        static:
+          var ctx: sha384
+          ctx.init()
+          ctx.update(stripSpaces(code384[1]))
+          ctx.finish()
+      check3845 =
+        static:
+          var ctx: sha384
+          ctx.init()
+          ctx.update(stripSpaces(code384[2]))
+          ctx.finish()
+    check:
+      $check3843 == stripSpaces(digest384[0])
+      $check3844 == stripSpaces(digest384[1])
+      $check3845 == stripSpaces(digest384[2])
 
   test "SHA2-512 compile-time test vectors":
     const
@@ -161,6 +230,29 @@ suite "SHA2 Tests":
       $check5120 == stripSpaces(digest512[0])
       $check5121 == stripSpaces(digest512[1])
       $check5122 == stripSpaces(digest512[2])
+    const
+      check5123 =
+        static:
+          var ctx: sha512
+          ctx.init()
+          ctx.update(stripSpaces(code512[0]))
+          ctx.finish()
+      check5124 =
+        static:
+          var ctx: sha512
+          ctx.init()
+          ctx.update(stripSpaces(code512[1]))
+          ctx.finish()
+      check5125 =
+        static:
+          var ctx: sha512
+          ctx.init()
+          ctx.update(stripSpaces(code512[2]))
+          ctx.finish()
+    check:
+      $check5123 == stripSpaces(digest512[0])
+      $check5124 == stripSpaces(digest512[1])
+      $check5125 == stripSpaces(digest512[2])
 
   test "SHA2-512/224 compile-time test vectors":
     const
@@ -169,6 +261,22 @@ suite "SHA2 Tests":
     check:
       $check5122240 == stripSpaces(digest512_224[0])
       $check5122241 == stripSpaces(digest512_224[1])
+    const
+      check5122242 =
+        static:
+          var ctx: sha512224
+          ctx.init()
+          ctx.update(stripSpaces(code512_224[0]))
+          ctx.finish()
+      check5122243 =
+        static:
+          var ctx: sha512224
+          ctx.init()
+          ctx.update(stripSpaces(code512_224[1]))
+          ctx.finish()
+    check:
+      $check5122242 == stripSpaces(digest512_224[0])
+      $check5122243 == stripSpaces(digest512_224[1])
 
   test "SHA2-512/256 compile-time test vectors":
     const
@@ -177,6 +285,22 @@ suite "SHA2 Tests":
     check:
       $check5122560 == stripSpaces(digest512_256[0])
       $check5122561 == stripSpaces(digest512_256[1])
+    const
+      check5122562 =
+        static:
+          var ctx: sha512256
+          ctx.init()
+          ctx.update(stripSpaces(code512_256[0]))
+          ctx.finish()
+      check5122563 =
+        static:
+          var ctx: sha512256
+          ctx.init()
+          ctx.update(stripSpaces(code512_256[1]))
+          ctx.finish()
+    check:
+      $check5122562 == stripSpaces(digest512_256[0])
+      $check5122563 == stripSpaces(digest512_256[1])
 
   test "SHA2-224 test vectors":
     i = 0

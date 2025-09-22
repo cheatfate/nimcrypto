@@ -1,4 +1,4 @@
-import nimcrypto/hash, nimcrypto/sha2, nimcrypto/utils
+import nimcrypto/hash, nimcrypto/sha2, nimcrypto/utils, nimcrypto/cpufeatures
 import unittest
 
 from std/strutils import toLower

@@ -58,43 +58,21 @@
 
 {.push raises: [].}
 
-import "."/[utils, cpufeatures]
-import "."/[sha, ripemd, keccak, blake2, hash]
-import "."/sha2/sha2
-export sha, sha2, ripemd, keccak, blake2, hash, cpufeatures
+import ./[hash, utils, cpufeatures]
+import ./sha2/sha2
+export sha2, hash, cpufeatures
 
-template hmacSizeBlock*(h: typedesc): int =
-  mixin sizeBlock
-  when (h is Sha1Context) or (h is Sha2Context) or (h is RipemdContext) or
-       (h is Blake2Context):
-    int(h.sizeBlock)
-  elif h is KeccakContext:
-    when h.kind == Keccak or h.kind == Sha3:
-      when h.bits == 224:
-        144
-      elif h.bits == 256:
-        136
-      elif h.bits == 384:
-        104
-      elif h.bits == 512:
-        72
-      else:
-        {.fatal: "Choosen hash primitive is not yet supported!".}
-    else:
-      {.fatal: "Choosen hash primitive is not yet supported!".}
+template hmacSizeBlockImpl*(T: type): untyped =
+  mixin hmacSizeBlock
+  hmacSizeBlock(T)
 
 type
   HMAC*[HashType] = object
     ## HMAC context object.
     mdctx: HashType
     opadctx: HashType
-    ipad: array[HashType.hmacSizeBlock, byte]
-    opad: array[HashType.hmacSizeBlock, byte]
-
-  NonOptimizedType =
-    sha1 | keccak224 | keccak256 | keccak384 | keccak512 | sha3_224 | sha3_256 |
-    sha3_384 | sha3_512 | blake2_224 | blake2_256 | blake2_384 | blake2_512 |
-    ripemd128 | ripemd160 | ripemd256 | ripemd320
+    ipad: array[HashType.hmacSizeBlockImpl, byte]
+    opad: array[HashType.hmacSizeBlockImpl, byte]
 
   Sha2Type =
     sha224 | sha256 | sha384 | sha512 | sha512_224 | sha512_256
@@ -102,16 +80,13 @@ type
 template sizeBlock*[T](h: HMAC[T]): uint =
   ## Size of processing block in octets (bytes), while perform HMAC
   ## operation using one of hash algorithms.
-  uint(T.hmacSizeBlock())
+  uint(T.hmacSizeBlockImpl())
 
 template sizeDigest*[T](h: HMAC[T]): uint =
   ## Size of HMAC digest in octets (bytes).
   uint(h.mdctx.sizeDigest)
 
-func init*[T: NonOptimizedType, M](
-    hmctx: var HMAC[T],
-    key: openArray[M]
-) =
+func init*[T, M](hmctx: var HMAC[T], key: openArray[M]) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` array.
   ##
   ## ``key`` supports ``openArray[byte]`` and ``openArray[char]`` only.
@@ -141,11 +116,7 @@ func init*[T: NonOptimizedType, M](
   update(hmctx.mdctx, hmctx.ipad)
   update(hmctx.opadctx, hmctx.opad)
 
-func init*[T: NonOptimizedType](
-    hmctx: var HMAC[T],
-    key: ptr byte,
-    keylen: uint
-) =
+func init*[T](hmctx: var HMAC[T], key: ptr byte, keylen: uint) =
   ## Initialize HMAC context ``hmctx`` with key using ``key`` of size
   ## ``keylen``.
   mixin init
@@ -241,7 +212,7 @@ func finish*(hmctx: var HMAC): MDigest[hmctx.HashType.bits] =
   discard finish(hmctx, res.data)
   res
 
-func hmac*[T: NonOptimizedType, A: bchar, B: bchar](
+func hmac*[T; A, B: bchar](
     HashType: typedesc[T],
     key: openArray[A],
     data: openArray[B]
@@ -274,7 +245,7 @@ func hmac*[T: NonOptimizedType, A: bchar, B: bchar](
   ctx.clear()
   res
 
-func hmac*[T: NonOptimizedType](
+func hmac*[T](
     HashType: typedesc[T],
     key: ptr byte,
     klen: uint,
@@ -345,12 +316,6 @@ func init*[T: Sha2Type, M](
 ) =
   init(hmctx, key, implementation, defaultCpuFeatures)
 
-func init*[T: Sha2Type, M](
-    hmctx: var HMAC[T],
-    key: openArray[M]
-) =
-  init(hmctx, key, Sha2Implementation.Auto, defaultCpuFeatures)
-
 func init*[T: Sha2Type](
     hmctx: var HMAC[T],
     key: ptr byte,
@@ -371,16 +336,6 @@ func init*[T: Sha2Type](
   var ptrarr = cast[ptr UncheckedArray[byte]](key)
   init(
     hmctx, ptrarr.toOpenArray(0, int(keylen) - 1), implementation,
-    defaultCpuFeatures)
-
-func init*[T: Sha2Type](
-    hmctx: var HMAC[T],
-    key: ptr byte,
-    keylen: uint,
-) =
-  var ptrarr = cast[ptr UncheckedArray[byte]](key)
-  init(
-    hmctx, ptrarr.toOpenArray(0, int(keylen) - 1), Sha2Implementation.Auto,
     defaultCpuFeatures)
 
 template declareHmac(DigestType: untyped) =
@@ -405,13 +360,6 @@ template declareHmac(DigestType: untyped) =
       implementation: Sha2Implementation
   ): MDigest[HashType.bits] =
     hmac(HashType, key, data, implementation, defaultCpuFeatures)
-
-  func hmac*[A: bchar, B: bchar](
-      HashType: typedesc[DigestType],
-      key: openArray[A],
-      data: openArray[B],
-  ): MDigest[HashType.bits] =
-    hmac(HashType, key, data, Sha2Implementation.Auto, defaultCpuFeatures)
 
   func hmac*(
       HashType: typedesc[DigestType],
@@ -443,21 +391,6 @@ template declareHmac(DigestType: untyped) =
     hmac(
       HashType, keyarr.toOpenArray(0, int(klen) - 1),
       dataarr.toOpenArray(0, int(ulen) - 1), implementation, defaultCpuFeatures)
-
-  func hmac*(
-      HashType: typedesc[DigestType],
-      key: ptr byte,
-      klen: uint,
-      data: ptr byte,
-      ulen: uint
-  ): MDigest[HashType.bits] =
-    var
-      keyarr = cast[ptr UncheckedArray[byte]](key)
-      dataarr = cast[ptr UncheckedArray[byte]](data)
-    hmac(
-      HashType, keyarr.toOpenArray(0, int(klen) - 1),
-      dataarr.toOpenArray(0, int(ulen) - 1), Sha2Implementation.Auto,
-      defaultCpuFeatures)
 
 declareHmac(sha224)
 declareHmac(sha256)

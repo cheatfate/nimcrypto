@@ -156,7 +156,12 @@ template sizeBlock*(r: typedesc[sha2]): int =
   else:
     (128)
 
-func name*(ctx: Sha2Context): string {.noinit.} =
+template hmacSizeBlock*(r: typedesc[sha2]): int =
+  ## Size of processing block in octets (bytes), while perform HMAC[sha2]
+  ## operation.
+  r.sizeBlock
+
+func name*(ctx: Sha2Context): string =
   when ctx is sha224:
     "SHA2-224"
   elif ctx is sha256:
@@ -172,7 +177,7 @@ func name*(ctx: Sha2Context): string {.noinit.} =
   else:
     raiseAssert "Unknown context"
 
-func name*(r: typedesc[sha2]): string {.noinit.} =
+func name*(r: typedesc[sha2]): string =
   when r is sha224:
     "SHA-224"
   elif r is sha256:

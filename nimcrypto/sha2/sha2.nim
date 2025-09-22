@@ -21,7 +21,7 @@ import "."/[sha2_common, sha2_ref, sha2_avx, sha2_avx2, sha2_sha, sha2_neon]
 export hash
 export Sha2Context, Sha2Implementation, sizeDigest, sizeBlock, name,
        sha224, sha256, sha384, sha512, sha512_224, sha512_256, sha2,
-       cpufeatures, isAvailable
+       cpufeatures, isAvailable, hmacSizeBlock
 
 func reset*(ctx: var Sha2Context) {.noinit.} =
   ctx.length = 0'u64

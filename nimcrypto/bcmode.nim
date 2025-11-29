@@ -70,8 +70,10 @@ type
     y: array[16, byte]
     basectr: array[16, byte]
     buf: array[16, byte]
+    ectr: array[16, byte]
     aadlen: uint64
     datalen: uint64
+    ectrUsed: int
 
 ## ECB (Electronic Code Book) Mode
 
@@ -1083,6 +1085,12 @@ template sizeKey*[T](ctx: GCM[T]): int =
   mixin sizeKey
   sizeKey(ctx.cipher)
 
+func refillEctr[T](ctx: var GCM[T]) {.inline.} =
+  ## Refresh keystream block and reset offset.
+  inc128(ctx.y)
+  ctx.cipher.encrypt(ctx.y, ctx.ectr)
+  ctx.ectrUsed = 0
+
 func init*[T](
     ctx: var GCM[T],
     key: openArray[byte],
@@ -1121,6 +1129,7 @@ func init*[T](
   ctx.datalen = 0
   if len(aad) > 0:
     ghash(ctx.buf, ctx.h, aad)
+  ctx.refillEctr()
 
 func encrypt*[T](
     ctx: var GCM[T],
@@ -1133,19 +1142,20 @@ func encrypt*[T](
   ## Note that length of ``input`` must be less or equal to length of
   ## ``output``. Length of ``input`` must not be zero.
   mixin encrypt
-  var ectr: array[16, byte]
   assert(len(input) <= len(output))
 
   var length = len(input)
   var offset = 0
   ctx.datalen += uint64(length)
   while length > 0:
-    let uselen = if length < 16: length else: 16
-    inc128(ctx.y)
-    ctx.cipher.encrypt(ctx.y, ectr)
+    if ctx.ectrUsed == 16:
+      ctx.refillEctr()
+    let available = 16 - ctx.ectrUsed
+    let uselen = if length < available: length else: available
     for i in 0..<uselen:
-      output[offset + i] = ectr[i] xor input[offset + i]
+      output[offset + i] = ctx.ectr[ctx.ectrUsed + i] xor input[offset + i]
     ghash(ctx.buf, ctx.h, output.toOpenArray(offset, offset + uselen - 1))
+    ctx.ectrUsed += uselen
     length -= uselen
     offset += uselen
 
@@ -1160,19 +1170,20 @@ func decrypt*[T](
   ## Note that length of ``input`` must be less or equal to length of
   ## ``output``. Length of ``input`` must not be zero.
   mixin encrypt
-  var ectr: array[16, byte]
   assert(len(input) <= len(output))
 
   var length = len(input)
   var offset = 0
   ctx.datalen += uint64(length)
   while length > 0:
-    let uselen = if length < 16: length else: 16
-    inc128(ctx.y)
-    ctx.cipher.encrypt(ctx.y, ectr)
+    if ctx.ectrUsed == 16:
+      ctx.refillEctr()
+    let available = 16 - ctx.ectrUsed
+    let uselen = if length < available: length else: available
     for i in 0..<uselen:
-      output[offset + i] = ectr[i] xor input[offset + i]
+      output[offset + i] = ctx.ectr[ctx.ectrUsed + i] xor input[offset + i]
     ghash(ctx.buf, ctx.h, input.toOpenArray(offset, offset + uselen - 1))
+    ctx.ectrUsed += uselen
     length -= uselen
     offset += uselen
 

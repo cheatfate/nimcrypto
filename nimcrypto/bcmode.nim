@@ -74,6 +74,8 @@ type
     aadlen: uint64
     datalen: uint64
     ectrUsed: int
+    ghashPending: array[16, byte]
+    ghashUsed: int
 
 ## ECB (Electronic Code Book) Mode
 
@@ -1091,6 +1093,31 @@ func refillEctr[T](ctx: var GCM[T]) {.inline.} =
   ctx.cipher.encrypt(ctx.y, ctx.ectr)
   ctx.ectrUsed = 0
 
+func updateGhash[T](ctx: var GCM[T], data: openArray[byte]) {.inline.} =
+  ## Process data into GHASH, buffering partial blocks until full.
+  var offset = 0
+  var length = len(data)
+
+  if ctx.ghashUsed > 0 and length > 0:
+    let toCopy = min(16 - ctx.ghashUsed, length)
+    copyMem(addr ctx.ghashPending[ctx.ghashUsed], unsafeAddr data[offset], toCopy)
+    ctx.ghashUsed += toCopy
+    offset += toCopy
+    length -= toCopy
+    if ctx.ghashUsed == 16:
+      ghash(ctx.buf, ctx.h, ctx.ghashPending)
+      ctx.ghashUsed = 0
+
+  let alignedLen = (length shr 4) shl 4
+  if alignedLen > 0:
+    ghash(ctx.buf, ctx.h, data.toOpenArray(offset, offset + alignedLen - 1))
+    offset += alignedLen
+    length -= alignedLen
+
+  if length > 0:
+    copyMem(addr ctx.ghashPending[0], unsafeAddr data[offset], length)
+    ctx.ghashUsed = length
+
 func init*[T](
     ctx: var GCM[T],
     key: openArray[byte],
@@ -1154,7 +1181,7 @@ func encrypt*[T](
     let uselen = if length < available: length else: available
     for i in 0..<uselen:
       output[offset + i] = ctx.ectr[ctx.ectrUsed + i] xor input[offset + i]
-    ghash(ctx.buf, ctx.h, output.toOpenArray(offset, offset + uselen - 1))
+    ctx.updateGhash(output.toOpenArray(offset, offset + uselen - 1))
     ctx.ectrUsed += uselen
     length -= uselen
     offset += uselen
@@ -1182,7 +1209,7 @@ func decrypt*[T](
     let uselen = if length < available: length else: available
     for i in 0..<uselen:
       output[offset + i] = ctx.ectr[ctx.ectrUsed + i] xor input[offset + i]
-    ghash(ctx.buf, ctx.h, input.toOpenArray(offset, offset + uselen - 1))
+    ctx.updateGhash(input.toOpenArray(offset, offset + uselen - 1))
     ctx.ectrUsed += uselen
     length -= uselen
     offset += uselen
@@ -1200,6 +1227,10 @@ func getTag*[T](
   var workbuf: array[16, byte]
   if taglen > 0:
     copyMem(tag, 0, ctx.basectr, 0, uselen)
+  if ctx.ghashUsed > 0:
+    zeroMem(addr ctx.ghashPending[ctx.ghashUsed], 16 - ctx.ghashUsed)
+    ghash(ctx.buf, ctx.h, ctx.ghashPending)
+    ctx.ghashUsed = 0
   beStore64(workbuf, 0, ctx.aadlen shl 3)
   beStore64(workbuf, 8, ctx.datalen shl 3)
   ghash(ctx.buf, ctx.h, workbuf)

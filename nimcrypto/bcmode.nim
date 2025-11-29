@@ -1179,9 +1179,9 @@ func encrypt*[T](
       ctx.refillEctr()
     let available = 16 - ctx.ectrUsed
     let uselen = if length < available: length else: available
+    ctx.updateGhash(output.toOpenArray(offset, offset + uselen - 1))
     for i in 0..<uselen:
       output[offset + i] = ctx.ectr[ctx.ectrUsed + i] xor input[offset + i]
-    ctx.updateGhash(output.toOpenArray(offset, offset + uselen - 1))
     ctx.ectrUsed += uselen
     length -= uselen
     offset += uselen
@@ -1207,9 +1207,9 @@ func decrypt*[T](
       ctx.refillEctr()
     let available = 16 - ctx.ectrUsed
     let uselen = if length < available: length else: available
+    ctx.updateGhash(input.toOpenArray(offset, offset + uselen - 1))
     for i in 0..<uselen:
       output[offset + i] = ctx.ectr[ctx.ectrUsed + i] xor input[offset + i]
-    ctx.updateGhash(input.toOpenArray(offset, offset + uselen - 1))
     ctx.ectrUsed += uselen
     length -= uselen
     offset += uselen

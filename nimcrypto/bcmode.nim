@@ -72,6 +72,7 @@ type
     buf: array[16, byte]
     aadlen: uint64
     datalen: uint64
+    coffset: uint8
 
 ## ECB (Electronic Code Book) Mode
 
@@ -1138,16 +1139,25 @@ func encrypt*[T](
 
   var length = len(input)
   var offset = 0
-  ctx.datalen += uint64(length)
+
   while length > 0:
-    let uselen = if length < 16: length else: 16
-    inc128(ctx.y)
+    let uselen =
+      if int(ctx.coffset) + length < 16:
+        length
+      else:
+        16 - int(ctx.coffset)
+    if ctx.coffset == 0:
+      inc128(ctx.y)
     ctx.cipher.encrypt(ctx.y, ectr)
-    for i in 0..<uselen:
-      output[offset + i] = ectr[i] xor input[offset + i]
+    for i in 0 ..< uselen:
+      output[offset + i] = ectr[int(ctx.coffset) + i] xor input[offset + i]
+    debugEcho "output[", offset, ", ", offset + uselen - 1, "] = ", output.toHex()
     ghash(ctx.buf, ctx.h, output.toOpenArray(offset, offset + uselen - 1))
     length -= uselen
     offset += uselen
+    ctx.coffset = (ctx.coffset + uint8(uselen)) and 15'u8
+
+  ctx.datalen += uint64(length)
 
 func decrypt*[T](
     ctx: var GCM[T],
@@ -1165,16 +1175,24 @@ func decrypt*[T](
 
   var length = len(input)
   var offset = 0
-  ctx.datalen += uint64(length)
+
   while length > 0:
-    let uselen = if length < 16: length else: 16
-    inc128(ctx.y)
+    let uselen =
+      if int(ctx.coffset) + length < 16:
+        length
+      else:
+        16 - int(ctx.coffset)
+    if ctx.coffset == 0:
+      inc128(ctx.y)
     ctx.cipher.encrypt(ctx.y, ectr)
-    for i in 0..<uselen:
-      output[offset + i] = ectr[i] xor input[offset + i]
+    for i in 0 ..< uselen:
+      output[offset + i] = ectr[int(ctx.coffset) + i] xor input[offset + i]
     ghash(ctx.buf, ctx.h, input.toOpenArray(offset, offset + uselen - 1))
     length -= uselen
     offset += uselen
+    ctx.coffset = (ctx.coffset + uint8(uselen)) and 15'u8
+
+  ctx.datalen += uint64(length)
 
 func getTag*[T](
     ctx: var GCM[T],

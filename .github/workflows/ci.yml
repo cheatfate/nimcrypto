@@ -4,7 +4,7 @@ on: [push, pull_request]
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       max-parallel: 20
       matrix:
         branch: [master]

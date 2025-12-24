@@ -28,22 +28,8 @@ EXIT /B 0
 ECHO Building Nim [%NIM_BRANCH%] (%NIM_ARCH%) in %NIM_DIR%
 git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
-IF "%NIM_BRANCH%" == "version-1-6" (
-  git checkout "%NIM_BRANCH%"
-  git clone --depth 1 https://github.com/nim-lang/csources_v1
-  CD csources_v1
-) ELSE (
-  git checkout devel
-  git clone --depth 1 https://github.com/nim-lang/csources_v2
-  CD csources_v2
-)
-
-IF "%NIM_ARCH%" == "amd64" (CALL build64.bat) ELSE (CALL build32.bat)
-CD ..
-ECHO CSOURCES NIM DONE
-bin\nim c --skipParentCfg --noNimblePath --skipUserCfg -d:release koch
-koch boot -d:release --skipParentCfg
-koch nimble --skipParentCfg
+git checkout "%NIM_BRANCH%"
+CALL build_all.bat
 CD ..
 EXIT /B 0
 

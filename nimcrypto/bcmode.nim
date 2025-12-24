@@ -70,6 +70,7 @@ type
     y: array[16, byte]
     basectr: array[16, byte]
     buf: array[16, byte]
+    hbuf: array[16, byte]
     aadlen: uint64
     datalen: uint64
     coffset: uint8
@@ -1104,8 +1105,8 @@ func init*[T](
   ## You can see examples of usage GCM mode here ``examples/gcm.nim``.
   mixin init
   # GCM supports only 128bit block ciphers
-  assert(ctx.sizeBlock() == (128 div 8))
-  assert(len(key) >= ctx.sizeKey())
+  doAssert(ctx.sizeBlock() == (128 div 8))
+  doAssert(len(key) >= ctx.sizeKey())
   burnMem(ctx)
   ctx.cipher.init(key)
   ctx.cipher.encrypt(ctx.h, ctx.h)
@@ -1113,10 +1114,10 @@ func init*[T](
     ctx.y[0 ..< 12] = iv.toOpenArray(0, 11)
     inc128(ctx.y)
   else:
-    var tmp: array[16, byte]
+    var tmp: array[ctx.sizeBlock(), byte]
     ghash(ctx.y, ctx.h, iv)
     beStore32(tmp, 12, uint32(len(iv) shl 3))
-    ghash(ctx.y, ctx.h, tmp.toOpenArray(0, 15))
+    ghash(ctx.y, ctx.h, tmp.toOpenArray(0, ctx.sizeBlock() - 1))
   ctx.cipher.encrypt(ctx.y, ctx.basectr)
   ctx.aadlen = uint64(len(aad))
   ctx.datalen = 0
@@ -1134,30 +1135,33 @@ func encrypt*[T](
   ## Note that length of ``input`` must be less or equal to length of
   ## ``output``. Length of ``input`` must not be zero.
   mixin encrypt
-  var ectr: array[16, byte]
-  assert(len(input) <= len(output))
+  doAssert(len(input) <= len(output))
 
-  var length = len(input)
-  var offset = 0
+  var
+    ectr: array[ctx.sizeBlock(), byte]
+    length = len(input)
+    offset = 0
 
   while length > 0:
     let uselen =
-      if int(ctx.coffset) + length < 16:
+      if int(ctx.coffset) + length < ctx.sizeBlock():
         length
       else:
-        16 - int(ctx.coffset)
+        ctx.sizeBlock() - int(ctx.coffset)
     if ctx.coffset == 0:
       inc128(ctx.y)
     ctx.cipher.encrypt(ctx.y, ectr)
     for i in 0 ..< uselen:
-      output[offset + i] = ectr[int(ctx.coffset) + i] xor input[offset + i]
-    debugEcho "output[", offset, ", ", offset + uselen - 1, "] = ", output.toHex()
-    ghash(ctx.buf, ctx.h, output.toOpenArray(offset, offset + uselen - 1))
+      let ch = ectr[int(ctx.coffset) + i] xor input[offset + i]
+      output[offset + i] = ch
+      ctx.hbuf[int(ctx.coffset) + i] = ch
     length -= uselen
     offset += uselen
-    ctx.coffset = (ctx.coffset + uint8(uselen)) and 15'u8
+    ctx.coffset = (ctx.coffset + uint8(uselen)) and uint8(ctx.sizeBlock() - 1)
+    if ctx.coffset == 0:
+      ghash(ctx.buf, ctx.h, ctx.hbuf.toOpenArray(0, ctx.sizeBlock - 1))
 
-  ctx.datalen += uint64(length)
+  ctx.datalen += uint64(len(input))
 
 func decrypt*[T](
     ctx: var GCM[T],
@@ -1170,29 +1174,33 @@ func decrypt*[T](
   ## Note that length of ``input`` must be less or equal to length of
   ## ``output``. Length of ``input`` must not be zero.
   mixin encrypt
-  var ectr: array[16, byte]
-  assert(len(input) <= len(output))
+  doAssert(len(input) <= len(output))
 
-  var length = len(input)
-  var offset = 0
+  var
+    ectr: array[ctx.sizeBlock(), byte]
+    length = len(input)
+    offset = 0
 
   while length > 0:
     let uselen =
-      if int(ctx.coffset) + length < 16:
+      if int(ctx.coffset) + length < ctx.sizeBlock():
         length
       else:
-        16 - int(ctx.coffset)
+        ctx.sizeBlock() - int(ctx.coffset)
     if ctx.coffset == 0:
       inc128(ctx.y)
     ctx.cipher.encrypt(ctx.y, ectr)
     for i in 0 ..< uselen:
-      output[offset + i] = ectr[int(ctx.coffset) + i] xor input[offset + i]
-    ghash(ctx.buf, ctx.h, input.toOpenArray(offset, offset + uselen - 1))
+      let ch = ectr[int(ctx.coffset) + i] xor input[offset + i]
+      output[offset + i] = ch
+      ctx.hbuf[int(ctx.coffset) + i] = input[offset + i]
     length -= uselen
     offset += uselen
-    ctx.coffset = (ctx.coffset + uint8(uselen)) and 15'u8
+    ctx.coffset = (ctx.coffset + uint8(uselen)) and uint8(ctx.sizeBlock() - 1)
+    if ctx.coffset == 0:
+      ghash(ctx.buf, ctx.h, ctx.hbuf.toOpenArray(0, ctx.sizeBlock - 1))
 
-  ctx.datalen += uint64(length)
+  ctx.datalen += uint64(len(input))
 
 func getTag*[T](
     ctx: var GCM[T],
@@ -1202,18 +1210,23 @@ func getTag*[T](
   ## ``tag``.
   ##
   ## Note that maximum size of ``tag`` is 128 bits (16 bytes).
-  let taglen = len(tag)
-  let uselen = if taglen < 16: taglen else: 16
-  var workbuf: array[16, byte]
+  var workbuf: array[ctx.sizeBlock(), byte]
+  let
+    taglen = len(tag)
+    uselen = if taglen < ctx.sizeBlock(): taglen else: ctx.sizeBlock()
+
+  if ctx.coffset != 0:
+    ghash(ctx.buf, ctx.h, ctx.hbuf.toOpenArray(0, int(ctx.coffset) - 1))
+
   if taglen > 0:
     copyMem(tag, 0, ctx.basectr, 0, uselen)
   beStore64(workbuf, 0, ctx.aadlen shl 3)
   beStore64(workbuf, 8, ctx.datalen shl 3)
   ghash(ctx.buf, ctx.h, workbuf)
-  for i in 0..<uselen:
+  for i in 0 ..< uselen:
     tag[i] = tag[i] xor ctx.buf[i]
 
-func getTag*[T](ctx: var GCM[T]): array[16, byte] {.noinit.} =
+func getTag*[T](ctx: var GCM[T]): array[ctx.sizeBlock(), byte] {.noinit.} =
   ## Obtain authentication tag from ``GCM[T]`` context ``ctx`` and return it as
   ## result array.
   getTag(ctx, result)
@@ -1247,8 +1260,8 @@ func decrypt*[T](
   ##
   ## Note that length of ``input`` must be less or equal to length of
   ## ``output``. Length of ``input`` must not be zero.
-  var dataTag: array[16, byte]
-  let uselen = min(len(tag), 16)
+  var dataTag: array[ctx.sizeBlock(), byte]
+  let uselen = min(len(tag), ctx.sizeBlock)
   ctx.decrypt(input, output)
   ctx.getTag(dataTag.toOpenArray(0, uselen - 1))
   equalMemFull(

@@ -29,6 +29,7 @@ ECHO Building Nim [%NIM_BRANCH%] (%NIM_ARCH%) in %NIM_DIR%
 git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
 git checkout "%NIM_BRANCH%"
+SET ARCH=%NIM_ARCH%
 CALL build_all.bat
 CD ..
 EXIT /B 0

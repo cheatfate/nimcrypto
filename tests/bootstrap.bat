@@ -30,7 +30,13 @@ git clone https://github.com/nim-lang/Nim.git "%CD%\%NIM_DIR%"
 CD "%CD%\%NIM_DIR%"
 git checkout "%NIM_BRANCH%"
 SET ARCH=%NIM_ARCH%
-SET PROCESSOR_ARCHITECTURE=%NIM_ARCH%
+IF "%NIM_ARCH%" == "amd64" (
+  SET ARCH=64
+  SET PROCESSOR_ARCHITECTURE="amd64"
+) ELSE (
+  SET ARCH=32
+  SET PROCESSOR_ARCHITECTURE="x86"
+)
 CALL build_all.bat
 CD ..
 EXIT /B 0

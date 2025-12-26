@@ -15,7 +15,14 @@ function build_nim {
   git clone https://github.com/nim-lang/Nim.git ${NIM_DIR}
   cd "${NIM_DIR}"
   git checkout "${NIM_BRANCH}"
-  ./build_all.sh
+  if [ "${NIM_ARCH}" = "i386" ]; then
+    NIM_CPU="i386"
+  elif [ "${NIM_ARCH}" = "arm64" ]; then
+    NIM_CPU="arm64"
+  else
+    NIM_CPU="amd64"
+  fi
+  ./build_all.sh ucpu=${NIM_CPU}
   cd ..
 }
 

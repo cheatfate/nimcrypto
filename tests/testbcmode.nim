@@ -759,7 +759,7 @@ suite "Block cipher modes Tests":
     ctx2.init(addr key[0], addr iv[0])
     ctx3.init(key, iv)
     ctx4.init(key, iv)
-    for i in 0..3:
+    for i in 0 .. 3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
@@ -786,6 +786,37 @@ suite "Block cipher modes Tests":
       ctx3.isFullZero() == true
       ctx4.isFullZero() == true
 
+  test "AES-128-CTR test vectors (byte by byte)":
+    var
+      key = fromHex(all128K)
+      iv = fromHex(ctrIV)
+      ctx1, ctx2: CTR[aes128]
+    ctx1.init(key, iv)
+    ctx2.init(key, iv)
+    for i in 0 .. 3:
+      var
+        plain = fromHex(allP[i])
+        ecrypt: seq[uint8]
+        dcrypt: seq[uint8]
+      if len(plain) > 0:
+        for pch in plain:
+          var rch: array[1, uint8]
+          rch[0] = 0x00'u8
+          ctx1.encrypt([pch], rch)
+          ecrypt.add(rch[0])
+          let ech = rch[0]
+          rch[0] = 0x00'u8
+          ctx2.decrypt([ech], rch)
+          dcrypt.add(rch[0])
+        check:
+          toHex(ecrypt) == ctr128E[i]
+          toHex(dcrypt) == allP[i]
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
+
   test "AES-192-CTR test vectors":
     var key = fromHex(all192K)
     var iv = fromHex(ctrIV)
@@ -794,7 +825,7 @@ suite "Block cipher modes Tests":
     ctx2.init(addr key[0], addr iv[0])
     ctx3.init(key, iv)
     ctx4.init(key, iv)
-    for i in 0..3:
+    for i in 0 .. 3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
@@ -821,6 +852,37 @@ suite "Block cipher modes Tests":
       ctx3.isFullZero() == true
       ctx4.isFullZero() == true
 
+  test "AES-192-CTR test vectors (byte by byte)":
+    var
+      key = fromHex(all192K)
+      iv = fromHex(ctrIV)
+      ctx1, ctx2: CTR[aes192]
+    ctx1.init(key, iv)
+    ctx2.init(key, iv)
+    for i in 0 .. 3:
+      var
+        plain = fromHex(allP[i])
+        ecrypt: seq[uint8]
+        dcrypt: seq[uint8]
+      if len(plain) > 0:
+        for pch in plain:
+          var rch: array[1, uint8]
+          rch[0] = 0x00'u8
+          ctx1.encrypt([pch], rch)
+          ecrypt.add(rch[0])
+          let ech = rch[0]
+          rch[0] = 0x00'u8
+          ctx2.decrypt([ech], rch)
+          dcrypt.add(rch[0])
+        check:
+          toHex(ecrypt) == ctr192E[i]
+          toHex(dcrypt) == allP[i]
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
+
   test "AES-256-CTR test vectors":
     var key = fromHex(all256K)
     var iv = fromHex(ctrIV)
@@ -829,7 +891,7 @@ suite "Block cipher modes Tests":
     ctx2.init(addr key[0], addr iv[0])
     ctx3.init(key, iv)
     ctx4.init(key, iv)
-    for i in 0..3:
+    for i in 0 .. 3:
       var plain = fromHex(allP[i])
       let length = len(plain)
       var ecrypt = newSeq[uint8](length)
@@ -855,6 +917,37 @@ suite "Block cipher modes Tests":
       ctx2.isFullZero() == true
       ctx3.isFullZero() == true
       ctx4.isFullZero() == true
+
+  test "AES-256-CTR test vectors (byte by byte)":
+    var
+      key = fromHex(all256K)
+      iv = fromHex(ctrIV)
+      ctx1, ctx2: CTR[aes256]
+    ctx1.init(key, iv)
+    ctx2.init(key, iv)
+    for i in 0 .. 3:
+      var
+        plain = fromHex(allP[i])
+        ecrypt: seq[uint8]
+        dcrypt: seq[uint8]
+      if len(plain) > 0:
+        for pch in plain:
+          var rch: array[1, uint8]
+          rch[0] = 0x00'u8
+          ctx1.encrypt([pch], rch)
+          ecrypt.add(rch[0])
+          let ech = rch[0]
+          rch[0] = 0x00'u8
+          ctx2.decrypt([ech], rch)
+          dcrypt.add(rch[0])
+        check:
+          toHex(ecrypt) == ctr256E[i]
+          toHex(dcrypt) == allP[i]
+    ctx1.clear()
+    ctx2.clear()
+    check:
+      ctx1.isFullZero() == true
+      ctx2.isFullZero() == true
 
   test "CTR/ECB equality test":
     # This test is based on statement that ECB[T](key) = CTR[T](key, iv)
@@ -910,8 +1003,9 @@ suite "Block cipher modes Tests":
           aad = newSeq[byte]()
         ctx1.init(key, iv, aad)
         ctx2.init(key, iv, aad)
-        var etagbuf = newSeq[byte](ctx1.sizeBlock)
-        var dtagbuf = newSeq[byte](ctx2.sizeBlock)
+        var
+          etagbuf = newSeq[byte](ctx1.sizeBlock)
+          dtagbuf = newSeq[byte](ctx2.sizeBlock)
         if len(pt) > 0:
           var ct = newSeq[byte](len(pt))
           ctx1.encrypt(pt, ct)
@@ -966,6 +1060,56 @@ suite "Block cipher modes Tests":
           ctx1.isFullZero() == true
           ctx2.isFullZero() == true
 
+  test "AES-128-GCM test vectors (byte by byte)":
+    block:
+      var ctx1: GCM[aes128]
+      var ctx2: GCM[aes128]
+      var key, pt, iv, aad, ctcheck: seq[byte]
+      for i in 0 ..< len(gcm128Keys):
+        key = fromHex(stripSpaces(gcm128Keys[i]))
+        iv = fromHex(stripSpaces(gcmIvs[i]))
+        if len(gcmP) > 0:
+          pt = fromHex(stripSpaces(gcmP[i]))
+          ctcheck = fromHex(stripSpaces(gcm128E[i]))
+        else:
+          pt = newSeq[byte]()
+          ctcheck = newSeq[byte]()
+        if len(gcmAads) > 0:
+          aad = fromHex(stripSpaces(gcmAads[i]))
+        else:
+          aad = newSeq[byte]()
+        ctx1.init(key, iv, aad)
+        ctx2.init(key, iv, aad)
+        var
+          etagbuf = newSeq[byte](ctx1.sizeBlock)
+          dtagbuf = newSeq[byte](ctx2.sizeBlock)
+        if len(pt) > 0:
+          var
+            ct: seq[byte]
+            et: seq[byte]
+          for pch in pt:
+            var rch: array[1, byte]
+            rch[0] = 0x00'u8
+            ctx1.encrypt([pch], rch)
+            ct.add(rch[0])
+            let ech = rch[0]
+            rch[0] = 0x00'u8
+            ctx2.decrypt([ech], rch)
+            et.add(rch[0])
+          check:
+            ct == ctcheck
+            et == pt
+        ctx1.getTag(etagbuf)
+        ctx2.getTag(dtagbuf)
+        check:
+          dtagbuf == etagbuf
+          etagbuf == fromHex(stripSpaces(gcm128Tags[i]))
+        ctx1.clear()
+        ctx2.clear()
+        check:
+          ctx1.isFullZero() == true
+          ctx2.isFullZero() == true
+
   test "AES-192-GCM test vectors":
     block:
       var ctx1: GCM[aes192]
@@ -988,8 +1132,9 @@ suite "Block cipher modes Tests":
           aad = newSeq[byte]()
         ctx1.init(key, iv, aad)
         ctx2.init(key, iv, aad)
-        var etagbuf = newSeq[byte](ctx1.sizeBlock)
-        var dtagbuf = newSeq[byte](ctx2.sizeBlock)
+        var
+          etagbuf = newSeq[byte](ctx1.sizeBlock)
+          dtagbuf = newSeq[byte](ctx2.sizeBlock)
         if len(pt) > 0:
           var ct = newSeq[byte](len(pt))
           ctx1.encrypt(pt, ct)
@@ -1038,6 +1183,56 @@ suite "Block cipher modes Tests":
             ct == ctcheck
             pt == ptcheck
             tag == fromHex(stripSpaces(gcm192Tags[i]))
+        ctx1.clear()
+        ctx2.clear()
+        check:
+          ctx1.isFullZero() == true
+          ctx2.isFullZero() == true
+
+  test "AES-192-GCM test vectors (byte by byte)":
+    block:
+      var ctx1: GCM[aes192]
+      var ctx2: GCM[aes192]
+      var key, pt, iv, aad, ctcheck: seq[byte]
+      for i in 0..<len(gcm192Keys):
+        key = fromHex(stripSpaces(gcm192Keys[i]))
+        iv = fromHex(stripSpaces(gcmIvs[i]))
+        if len(gcmP) > 0:
+          pt = fromHex(stripSpaces(gcmP[i]))
+          ctcheck = fromHex(stripSpaces(gcm192E[i]))
+        else:
+          pt = newSeq[byte]()
+          ctcheck = newSeq[byte]()
+        if len(gcmAads) > 0:
+          aad = fromHex(stripSpaces(gcmAads[i]))
+        else:
+          aad = newSeq[byte]()
+        ctx1.init(key, iv, aad)
+        ctx2.init(key, iv, aad)
+        var
+          etagbuf = newSeq[byte](ctx1.sizeBlock)
+          dtagbuf = newSeq[byte](ctx2.sizeBlock)
+        if len(pt) > 0:
+          var
+            ct: seq[byte]
+            et: seq[byte]
+          for pch in pt:
+            var rch: array[1, byte]
+            rch[0] = 0x00'u8
+            ctx1.encrypt([pch], rch)
+            ct.add(rch[0])
+            let ech = rch[0]
+            rch[0] = 0x00'u8
+            ctx2.decrypt([ech], rch)
+            et.add(rch[0])
+          check:
+            ct == ctcheck
+            et == pt
+        ctx1.getTag(etagbuf)
+        ctx2.getTag(dtagbuf)
+        check:
+          dtagbuf == etagbuf
+          etagbuf == fromHex(stripSpaces(gcm192Tags[i]))
         ctx1.clear()
         ctx2.clear()
         check:
@@ -1116,6 +1311,56 @@ suite "Block cipher modes Tests":
             ct == ctcheck
             pt == ptcheck
             tag == fromHex(stripSpaces(gcm256Tags[i]))
+        ctx1.clear()
+        ctx2.clear()
+        check:
+          ctx1.isFullZero() == true
+          ctx2.isFullZero() == true
+
+  test "AES-256-GCM test vectors (byte by byte)":
+    block:
+      var ctx1: GCM[aes256]
+      var ctx2: GCM[aes256]
+      var key, pt, iv, aad, ctcheck: seq[byte]
+      for i in 0..<len(gcm256Keys):
+        key = fromHex(stripSpaces(gcm256Keys[i]))
+        iv = fromHex(stripSpaces(gcmIvs[i]))
+        if len(gcmP) > 0:
+          pt = fromHex(stripSpaces(gcmP[i]))
+          ctcheck = fromHex(stripSpaces(gcm256E[i]))
+        else:
+          pt = newSeq[byte]()
+          ctcheck = newSeq[byte]()
+        if len(gcmAads) > 0:
+          aad = fromHex(stripSpaces(gcmAads[i]))
+        else:
+          aad = newSeq[byte]()
+        ctx1.init(key, iv, aad)
+        ctx2.init(key, iv, aad)
+        var
+          etagbuf = newSeq[byte](ctx1.sizeBlock)
+          dtagbuf = newSeq[byte](ctx1.sizeBlock)
+        if len(pt) > 0:
+          var
+            ct: seq[byte]
+            et: seq[byte]
+          for pch in pt:
+            var rch: array[1, byte]
+            rch[0] = 0x00'u8
+            ctx1.encrypt([pch], rch)
+            ct.add(rch[0])
+            let ech = rch[0]
+            rch[0] = 0x00'u8
+            ctx2.decrypt([ech], rch)
+            et.add(rch[0])
+          check:
+            ct == ctcheck
+            et == pt
+        ctx1.getTag(etagbuf)
+        ctx2.getTag(dtagbuf)
+        check:
+          dtagbuf == etagbuf
+          etagbuf == fromHex(stripSpaces(gcm256Tags[i]))
         ctx1.clear()
         ctx2.clear()
         check:

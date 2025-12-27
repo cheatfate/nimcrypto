@@ -4,7 +4,7 @@ on: [push, pull_request]
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       max-parallel: 20
       matrix:
         branch: [master]
@@ -43,6 +43,25 @@ jobs:
         with:
           path: nimcrypto
           submodules: false
+
+      - name: Install build dependencies (Linux i386)
+        if: runner.os == 'Linux' && matrix.target.cpu == 'i386'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND='noninteractive' apt-get install \
+            --no-install-recommends -yq gcc-multilib g++-multilib libssl-dev:i386
+          mkdir -p external/bin
+          cat << EOF > external/bin/gcc
+          #!/bin/bash
+          exec $(which gcc) -m32 -mno-adx "\$@"
+          EOF
+          cat << EOF > external/bin/g++
+          #!/bin/bash
+          exec $(which g++) -m32 -mno-adx "\$@"
+          EOF
+          chmod 755 external/bin/gcc external/bin/g++
+          echo '${{ github.workspace }}/external/bin' >> $GITHUB_PATH
 
       - name: Restore MinGW-W64 (Windows) from cache
         if: runner.os == 'Windows'
@@ -108,6 +127,8 @@ jobs:
 
       - name: Build Nim and associated tools
         shell: bash
+        env:
+          CC: gcc
         run: |
           pwd
           ls -la

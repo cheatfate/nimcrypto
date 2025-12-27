@@ -21,8 +21,15 @@ task test, "Runs the test suite":
     nimc & " c -f -d:danger -r tests/",
     nimc & " c -f -d:danger --threads:on -r tests/",
     nimc & " c -f --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/",
-    nimc & " c -f --mm:orc --threads:on -r tests/"
   ]
+
+  # Nim version 1.6 compiler crashes with `out of memory` on i386.
+  when defined(cpu64):
+    testCommands.add nimc & " c -f --mm:orc --threads:on -r tests/"
+  else:
+    when (NimMajor, NimMinor) >= (2, 0):
+      testCommands.add nimc & " c -f --mm:orc --threads:on -r tests/"
+
   when (NimMajor, NimMinor) >= (2, 0):
     testCommands.add nimc & " c -f --mm:refc --threads:off --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/"
     testCommands.add nimc & " c -f --mm:refc --threads:on --passC=\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" --passL:\"-fsanitize=undefined -fsanitize-undefined-trap-on-error\" -r tests/"

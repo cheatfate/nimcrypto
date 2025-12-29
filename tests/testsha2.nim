@@ -916,7 +916,7 @@ suite "SHA2 Tests":
       else:
         check sha512.millionAtest2() == stripSpaces(digest1ma512)
 
-    test "Uninitialized context crash test":
+    test "Uninitialized context update()/finish() crash test":
       var
         ctx1: sha224
         ctx2: sha256
@@ -925,7 +925,7 @@ suite "SHA2 Tests":
         ctx5: sha512_224
         ctx6: sha512_256
 
-      template doCheck(a: untyped): untyped =
+      template doCheckUpdate(a: untyped): untyped =
         try:
           a.update([0x00'u8])
           false
@@ -936,10 +936,29 @@ suite "SHA2 Tests":
         except Defect:
           false
 
+      template doCheckFinish(a: untyped): untyped =
+        try:
+          var digest: array[64, byte]
+          let count {.used.} = a.finish(digest)
+          false
+        except AssertionDefect:
+          true
+        except CatchableError:
+          false
+        except Defect:
+          false
+
       check:
-        ctx1.doCheck() == true
-        ctx2.doCheck() == true
-        ctx3.doCheck() == true
-        ctx4.doCheck() == true
-        ctx5.doCheck() == true
-        ctx6.doCheck() == true
+        ctx1.doCheckUpdate() == true
+        ctx2.doCheckUpdate() == true
+        ctx3.doCheckUpdate() == true
+        ctx4.doCheckUpdate() == true
+        ctx5.doCheckUpdate() == true
+        ctx6.doCheckUpdate() == true
+      check:
+        ctx1.doCheckFinish() == true
+        ctx2.doCheckFinish() == true
+        ctx3.doCheckFinish() == true
+        ctx4.doCheckFinish() == true
+        ctx5.doCheckFinish() == true
+        ctx6.doCheckFinish() == true

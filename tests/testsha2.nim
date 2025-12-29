@@ -915,3 +915,31 @@ suite "SHA2 Tests":
         skip()
       else:
         check sha512.millionAtest2() == stripSpaces(digest1ma512)
+
+    test "Uninitialized context crash test":
+      var
+        ctx1: sha224
+        ctx2: sha256
+        ctx3: sha384
+        ctx4: sha512
+        ctx5: sha512_224
+        ctx6: sha512_256
+
+      template doCheck(a: untyped): untyped =
+        try:
+          a.update([0x00'u8])
+          false
+        except AssertionDefect:
+          true
+        except CatchableError:
+          false
+        except Defect:
+          false
+
+      check:
+        ctx1.doCheck() == true
+        ctx2.doCheck() == true
+        ctx3.doCheck() == true
+        ctx4.doCheck() == true
+        ctx5.doCheck() == true
+        ctx6.doCheck() == true

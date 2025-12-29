@@ -81,6 +81,10 @@ func reset*(ctx: var Sha2Context) {.noinit.} =
     ctx.state[6] = 0x2B0199FC2C85B8AA'u64
     ctx.state[7] = 0x0EB72DDC81C52CA2'u64
 
+template checkContext(ctx: var Sha2Context) =
+  doAssert(not(isNil(ctx.compressFunc)),
+    "Context should be initialized first!")
+
 func getCompressFunction(
     Sha2ContextType: typedesc[sha224|sha256],
     implementation: Sha2Implementation,
@@ -226,6 +230,8 @@ func clear*(ctx: var Sha2Context) {.noinit.} =
     burnMem(ctx)
 
 func update*[T: bchar](ctx: var Sha2Context, data: openArray[T]) {.noinit.} =
+  ctx.checkContext()
+
   var
     pos = 0
     bytesLeft = len(data)
@@ -313,6 +319,7 @@ func finalize512(ctx: var Sha2Context) {.inline, noinit.} =
 
 func finish*(ctx: var Sha2Context,
              data: var openArray[byte]): uint {.noinit, discardable.} =
+  ctx.checkContext()
   when ctx.bits == 224 and ctx.bsize == 64:
     if len(data) >= 28:
       finalize256(ctx)

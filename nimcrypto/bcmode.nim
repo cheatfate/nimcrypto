@@ -1195,8 +1195,8 @@ func decrypt*[T](
     ctx.cipher.encrypt(ctx.y, ectr)
     for i in 0 ..< uselen:
       let ch = ectr[int(ctx.coffset) + i] xor input[offset + i]
-      output[offset + i] = ch
       ctx.hbuf[int(ctx.coffset) + i] = input[offset + i]
+      output[offset + i] = ch
     length -= uselen
     offset += uselen
     ctx.coffset = (ctx.coffset + uint8(uselen)) and uint8(GCMBlockSize - 1)

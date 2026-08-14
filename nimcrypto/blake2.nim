@@ -95,46 +95,45 @@ template B2S_G(v, a, b, c, d, x, y: untyped) =
 # This difference in implementation was made because Nim VM do not support more
 # then 256 registers and so it is not enough for it to perform round in
 # template.
-when nimvm:
-  func B2BROUND(v: var array[16, uint64], m: array[16, uint64], n: int) =
-    B2B_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
-    B2B_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
-    B2B_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
-    B2B_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
-    B2B_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
-    B2B_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
-    B2B_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
-    B2B_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
+func B2BROUNDP(v: var array[16, uint64], m: array[16, uint64], n: int) =
+  B2B_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
+  B2B_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
+  B2B_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
+  B2B_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
+  B2B_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
+  B2B_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
+  B2B_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
+  B2B_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
 
-  func B2SROUND(v: var array[16, uint32], m: array[16, uint32], n: int) =
-    B2S_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
-    B2S_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
-    B2S_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
-    B2S_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
-    B2S_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
-    B2S_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
-    B2S_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
-    B2S_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
-else:
-  template B2BROUND(v, m, n: untyped) =
-    B2B_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
-    B2B_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
-    B2B_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
-    B2B_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
-    B2B_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
-    B2B_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
-    B2B_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
-    B2B_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
+func B2SROUNDP(v: var array[16, uint32], m: array[16, uint32], n: int) =
+  B2S_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
+  B2S_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
+  B2S_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
+  B2S_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
+  B2S_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
+  B2S_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
+  B2S_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
+  B2S_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
 
-  template B2SROUND(v, m, n: untyped) =
-    B2S_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
-    B2S_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
-    B2S_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
-    B2S_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
-    B2S_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
-    B2S_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
-    B2S_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
-    B2S_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
+template B2BROUND(v, m, n: untyped) =
+  B2B_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
+  B2B_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
+  B2B_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
+  B2B_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
+  B2B_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
+  B2B_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
+  B2B_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
+  B2B_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
+
+template B2SROUND(v, m, n: untyped) =
+  B2S_G(v, 0, 4,  8, 12, m[Sigma[n][ 0]], m[Sigma[n][ 1]])
+  B2S_G(v, 1, 5,  9, 13, m[Sigma[n][ 2]], m[Sigma[n][ 3]])
+  B2S_G(v, 2, 6, 10, 14, m[Sigma[n][ 4]], m[Sigma[n][ 5]])
+  B2S_G(v, 3, 7, 11, 15, m[Sigma[n][ 6]], m[Sigma[n][ 7]])
+  B2S_G(v, 0, 5, 10, 15, m[Sigma[n][ 8]], m[Sigma[n][ 9]])
+  B2S_G(v, 1, 6, 11, 12, m[Sigma[n][10]], m[Sigma[n][11]])
+  B2S_G(v, 2, 7,  8, 13, m[Sigma[n][12]], m[Sigma[n][13]])
+  B2S_G(v, 3, 4,  9, 14, m[Sigma[n][14]], m[Sigma[n][15]])
 
 func blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
   var v {.noinit.}: array[16, uint64]
@@ -172,18 +171,32 @@ func blake2Transform(ctx: var Blake2bContext, last: bool) {.inline.} =
     m[12] = leLoad64(ctx.b, 96); m[13] = leLoad64(ctx.b, 104)
     m[14] = leLoad64(ctx.b, 112); m[15] = leLoad64(ctx.b, 120)
 
-  B2BROUND(v, m, 0)
-  B2BROUND(v, m, 1)
-  B2BROUND(v, m, 2)
-  B2BROUND(v, m, 3)
-  B2BROUND(v, m, 4)
-  B2BROUND(v, m, 5)
-  B2BROUND(v, m, 6)
-  B2BROUND(v, m, 7)
-  B2BROUND(v, m, 8)
-  B2BROUND(v, m, 9)
-  B2BROUND(v, m, 0)
-  B2BROUND(v, m, 1)
+  when nimvm:
+    B2BROUNDP(v, m, 0)
+    B2BROUNDP(v, m, 1)
+    B2BROUNDP(v, m, 2)
+    B2BROUNDP(v, m, 3)
+    B2BROUNDP(v, m, 4)
+    B2BROUNDP(v, m, 5)
+    B2BROUNDP(v, m, 6)
+    B2BROUNDP(v, m, 7)
+    B2BROUNDP(v, m, 8)
+    B2BROUNDP(v, m, 9)
+    B2BROUNDP(v, m, 0)
+    B2BROUNDP(v, m, 1)
+  else:
+    B2BROUND(v, m, 0)
+    B2BROUND(v, m, 1)
+    B2BROUND(v, m, 2)
+    B2BROUND(v, m, 3)
+    B2BROUND(v, m, 4)
+    B2BROUND(v, m, 5)
+    B2BROUND(v, m, 6)
+    B2BROUND(v, m, 7)
+    B2BROUND(v, m, 8)
+    B2BROUND(v, m, 9)
+    B2BROUND(v, m, 0)
+    B2BROUND(v, m, 1)
 
   when nimvm:
     for i in 0 ..< 8:
@@ -234,16 +247,28 @@ func blake2Transform(ctx: var Blake2sContext, last: bool) {.inline.} =
     m[12] = leLoad32(ctx.b, 48); m[13] = leLoad32(ctx.b, 52)
     m[14] = leLoad32(ctx.b, 56); m[15] = leLoad32(ctx.b, 60)
 
-  B2SROUND(v, m, 0)
-  B2SROUND(v, m, 1)
-  B2SROUND(v, m, 2)
-  B2SROUND(v, m, 3)
-  B2SROUND(v, m, 4)
-  B2SROUND(v, m, 5)
-  B2SROUND(v, m, 6)
-  B2SROUND(v, m, 7)
-  B2SROUND(v, m, 8)
-  B2SROUND(v, m, 9)
+  when nimvm:
+    B2SROUNDP(v, m, 0)
+    B2SROUNDP(v, m, 1)
+    B2SROUNDP(v, m, 2)
+    B2SROUNDP(v, m, 3)
+    B2SROUNDP(v, m, 4)
+    B2SROUNDP(v, m, 5)
+    B2SROUNDP(v, m, 6)
+    B2SROUNDP(v, m, 7)
+    B2SROUNDP(v, m, 8)
+    B2SROUNDP(v, m, 9)
+  else:
+    B2SROUND(v, m, 0)
+    B2SROUND(v, m, 1)
+    B2SROUND(v, m, 2)
+    B2SROUND(v, m, 3)
+    B2SROUND(v, m, 4)
+    B2SROUND(v, m, 5)
+    B2SROUND(v, m, 6)
+    B2SROUND(v, m, 7)
+    B2SROUND(v, m, 8)
+    B2SROUND(v, m, 9)
 
   when nimvm:
     for i in 0 ..< 8:

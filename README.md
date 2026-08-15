@@ -23,3 +23,4 @@ echo keccak_256.digest("Alice makes a hash")
 ```
 
 See full documentation [here](https://cheatfate.github.io/nimcrypto).
+

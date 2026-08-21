@@ -26,6 +26,29 @@
 
 {.push raises: [].}
 
+type
+  RandomFillProc* = proc(pbytes: pointer, nbytes: int): int {.gcsafe, raises: [].}
+    ## Reader used by `fillRandomBytes`. It should write up to `nbytes` bytes at
+    ## `pbytes` and return the number of bytes produced (> 0), `0` to stop, or a
+    ## negative value to indicate a retryable condition (e.g. `EINTR`).
+
+proc fillRandomBytes*(pbytes: pointer, nbytes: int,
+                      reader: RandomFillProc): int =
+  ## Fill `nbytes` of memory at `pbytes` by repeatedly invoking `reader`,
+  ## resuming at the correct offset after short reads. Returns the number of
+  ## bytes actually written.
+  var res = 0
+  while res < nbytes:
+    let p = cast[pointer](cast[uint](pbytes) + uint(res))
+    let bytesRead = reader(p, nbytes - res)
+    if bytesRead > 0:
+      res += bytesRead
+    elif bytesRead == 0:
+      break
+    else:
+      discard
+  res
+
 when defined(posix):
   import os, posix
 
@@ -128,27 +151,24 @@ elif defined(linux):
       gSystemRng = newSystemRng()
     gSystemRng
 
+  proc getrandomReader(p: pointer, n: int): int {.gcsafe, raises: [].} =
+    let r = int(syscall(SYS_getrandom, p, n, 0))
+    if r >= 0:
+      r
+    elif osLastError().int32 == EINTR:
+      -1
+    else:
+      0
+
   proc randomBytes*(pbytes: pointer, nbytes: int): int =
-    var p: pointer
     let srng = getSystemRng()
 
     if srng.getRandomPresent:
-      var res = 0
-      while res < nbytes:
-        p = cast[pointer](cast[uint](pbytes) + uint(res))
-        let bytesRead = syscall(SYS_getrandom, pbytes, nbytes - res, 0)
-        if bytesRead > 0:
-          res += bytesRead
-        elif bytesRead == 0:
-          break
-        else:
-          if osLastError().int32 != EINTR:
-            break
-
+      var res = fillRandomBytes(pbytes, nbytes, getrandomReader)
       if res <= 0:
         res = urandomRead(pbytes, nbytes)
       elif res < nbytes:
-        p = cast[pointer](cast[uint](pbytes) + uint(res))
+        let p = cast[pointer](cast[uint](pbytes) + uint(res))
         let bytesRead = urandomRead(p, nbytes - res)
         if bytesRead != -1:
           res += bytesRead

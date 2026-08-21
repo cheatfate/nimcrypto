@@ -41,3 +41,31 @@ suite "OS random source Tests":
         result = true
 
     check test() == true
+
+  test "getrandom partial-read offset test":
+    # A source such as getrandom(2) may return fewer bytes than requested for
+    # large buffers. `fillRandomBytes` must resume at the correct offset after
+    # each short read; otherwise later reads overwrite the beginning of the
+    # buffer and leave the tail untouched while still reporting full success.
+    const Total = 64
+    var buffer: array[Total, byte]
+
+    proc shortReader(pbytes: pointer, nbytes: int): int {.gcsafe, raises: [].} =
+      # Emulate a source that only ever produces up to 8 bytes per call, writing
+      # a non-zero marker so an untouched tail is detectable.
+      let chunk = min(nbytes, 8)
+      let arr = cast[ptr UncheckedArray[byte]](pbytes)
+      for i in 0 ..< chunk:
+        arr[i] = 0xAA'u8
+      chunk
+
+    let filled = fillRandomBytes(addr buffer[0], Total, shortReader)
+
+    var allWritten = true
+    for b in buffer:
+      if b != 0xAA'u8:
+        allWritten = false
+
+    check:
+      filled == Total
+      allWritten == true

@@ -40,7 +40,7 @@ proc fillRandomBytes*(pbytes: pointer, nbytes: int,
   var res = 0
   while res < nbytes:
     let p = cast[pointer](cast[uint](pbytes) + uint(res))
-    let bytesRead = reader(pbytes, nbytes - res)
+    let bytesRead = reader(p, nbytes - res)
     if bytesRead > 0:
       res += bytesRead
     elif bytesRead == 0:

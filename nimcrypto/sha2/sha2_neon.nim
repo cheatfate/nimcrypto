@@ -21,7 +21,7 @@
 when defined(arm64):
   import "."/sha2_common
 
-  {.localPassc: "-march=armv8-a+crypto".}
+  {.localPassC: "-march=armv8-a+crypto".}
   {.pragma: arm64type, bycopy, header:"<arm_neon.h>".}
   {.pragma: arm64proc, nodecl, header:"<arm_neon.h>".}
 

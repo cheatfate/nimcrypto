@@ -88,8 +88,8 @@ suite "SHA2 Tests":
   var ctx256: sha256
   var ctx384: sha384
   var ctx512: sha512
-  var ctx512224: sha512_224
-  var ctx512256: sha512_256
+  var ctx512_224: sha512_224
+  var ctx512_256: sha512_256
   var i = 0
 
   test "SHA2 224/256/384/512/512_224/512-256 block sizes":
@@ -104,8 +104,8 @@ suite "SHA2 Tests":
       ctx256.sizeBlock == 64
       ctx384.sizeBlock == 128
       ctx512.sizeBlock == 128
-      ctx512224.sizeBlock == 128
-      ctx512256.sizeBlock == 128
+      ctx512_224.sizeBlock == 128
+      ctx512_256.sizeBlock == 128
 
   test "SHA2 224/256/384/512/224_512/256_512 digest sizes":
     check:
@@ -119,8 +119,8 @@ suite "SHA2 Tests":
       ctx256.sizeDigest == 32
       ctx384.sizeDigest == 48
       ctx512.sizeDigest == 64
-      ctx512224.sizeDigest == 28
-      ctx512256.sizeDigest == 32
+      ctx512_224.sizeDigest == 28
+      ctx512_256.sizeDigest == 32
 
   test "SHA2-224 compile-time test vectors":
     const
@@ -264,13 +264,13 @@ suite "SHA2 Tests":
     const
       check5122242 =
         static:
-          var ctx: sha512224
+          var ctx: sha512_224
           ctx.init()
           ctx.update(stripSpaces(code512_224[0]))
           ctx.finish()
       check5122243 =
         static:
-          var ctx: sha512224
+          var ctx: sha512_224
           ctx.init()
           ctx.update(stripSpaces(code512_224[1]))
           ctx.finish()
@@ -288,13 +288,13 @@ suite "SHA2 Tests":
     const
       check5122562 =
         static:
-          var ctx: sha512256
+          var ctx: sha512_256
           ctx.init()
           ctx.update(stripSpaces(code512_256[0]))
           ctx.finish()
       check5122563 =
         static:
-          var ctx: sha512256
+          var ctx: sha512_256
           ctx.init()
           ctx.update(stripSpaces(code512_256[1]))
           ctx.finish()

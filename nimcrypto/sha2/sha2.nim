@@ -16,6 +16,9 @@
 
 {.push raises: [].}
 
+when (NimMajor, NimMinor, NimPatch) < (2, 2, 8):
+  {.warning: "Nim 2.2.8 required for sha2, see https://github.com/cheatfate/nimcrypto/issues/98".}
+
 import ".."/[hash, utils, cpufeatures]
 import "."/[sha2_common, sha2_ref, sha2_avx, sha2_avx2, sha2_sha, sha2_neon]
 export hash
@@ -125,7 +128,7 @@ func getCompressFunction(
       sha2_ref.sha256Compress
 
 func getCompressFunction(
-    Sha2ContextType: typedesc[sha384|sha512|sha512224|sha512256],
+    Sha2ContextType: typedesc[sha384|sha512|sha512_224|sha512_256],
     implementation: Sha2Implementation,
     cpufeatures: set[CpuFeature]
 ): Sha512CompressFunc =
@@ -208,16 +211,16 @@ func init*(ctx: var Sha2Context) {.noinit.} =
         sha2_ref.sha512Compress
       else:
         {.noSideEffect.}: default_sha512_compress_func
-    elif ctx is sha512224:
+    elif ctx is sha512_224:
       when nimvm:
         sha2_ref.sha512Compress
       else:
-        {.noSideEffect.}: default_sha512224_compress_func
-    elif ctx is sha512256:
+        {.noSideEffect.}: default_sha512_224_compress_func
+    elif ctx is sha512_256:
       when nimvm:
         sha2_ref.sha512Compress
       else:
-        {.noSideEffect.}: default_sha512256_compress_func
+        {.noSideEffect.}: default_sha512_256_compress_func
   ctx.reset()
 
 func clear*(ctx: var Sha2Context) {.noinit.} =
@@ -487,5 +490,5 @@ declareDigest(sha224)
 declareDigest(sha256)
 declareDigest(sha384)
 declareDigest(sha512)
-declareDigest(sha512224)
-declareDigest(sha512256)
+declareDigest(sha512_224)
+declareDigest(sha512_256)

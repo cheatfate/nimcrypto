@@ -136,7 +136,7 @@ elif defined(linux):
       var res = 0
       while res < nbytes:
         p = cast[pointer](cast[uint](pbytes) + uint(res))
-        let bytesRead = syscall(SYS_getrandom, pbytes, nbytes - res, 0)
+        let bytesRead = syscall(SYS_getrandom, p, nbytes - res, 0)
         if bytesRead > 0:
           res += bytesRead
         elif bytesRead == 0:
